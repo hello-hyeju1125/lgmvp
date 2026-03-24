@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #ffffff;
+  --color-text: #6B6B6B;
+  --color-text-strong: #4A4A4A;
+  --color-border: #E5E5E5;
+}
+
+/* LG Smart UI 2.0 - self-hosted
+   Note: The "LGSmHa*.ttf / LGSMHATB.TTF" files include Korean glyphs.
+*/
+@font-face {
+  font-family: "LG Smart UI 2.0";
+  src:
+    local("LG Smart_H"),
+    local("LG Smart_H Regular"),
+    local("LG스마트체2.0"),
+    local("LG스마트체"),
+    url("/fonts/lgsmart2/LGSmHaR.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "LG Smart UI 2.0";
+  src:
+    local("LG Smart_H Light"),
+    local("LG스마트체 Light"),
+    url("/fonts/lgsmart2/LGSmHaL.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "LG Smart UI 2.0";
+  src:
+    local("LG Smart_H SemiBold"),
+    local("LG스마트체 SemiBold"),
+    url("/fonts/lgsmart2/LGSmHaSB.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "LG Smart UI 2.0";
+  src:
+    local("LG Smart_H2.0 B"),
+    local("LG Smart_H2.0"),
+    local("LG스마트체2.0 Bold"),
+    url("/fonts/lgsmart2/LGSMHATB.TTF") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: "LG Smart UI 2.0", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+@keyframes risk-sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-risk-sweep {
+  animation: risk-sweep 2s linear infinite;
+}
+
+@keyframes ui-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.animate-ui-shake {
+  animation: ui-shake 220ms ease-in-out 1;
+}

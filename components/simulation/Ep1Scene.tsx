@@ -1,0 +1,98 @@
+"use client";
+
+import { useStore } from "@/store/useStore";
+import { ep1Scene, ep1Options } from "@/content/episode1";
+
+function replaceUserName(text: string, name: string) {
+  return text.replace(/\{User_Name\}/g, name);
+}
+
+interface Ep1SceneProps {
+  userName: string;
+}
+
+export function Ep1Scene({ userName }: Ep1SceneProps) {
+  const { episode1Choice, setEpisode1Choice, ep1SceneRevealedQuotes, revealEp1SceneQuote } = useStore();
+
+  const quoteLines = (lines: string[], revealKey: "first" | "second") => {
+    const isRevealed = ep1SceneRevealedQuotes[revealKey];
+    return (
+      <div className="rounded-2xl border border-black/10 bg-gray-50 p-5 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
+        <div className="border-l-4 border-[#E4003F] pl-4">
+          <p className="text-[13px] font-extrabold text-black/85">최성민 상무</p>
+
+          {!isRevealed ? (
+            <button
+              type="button"
+              onClick={() => revealEp1SceneQuote(revealKey)}
+              className="group relative mt-3 w-full text-left"
+              aria-label="대화 펼치기"
+            >
+              <div className="relative overflow-hidden rounded-xl bg-white/60 px-4 py-3 ring-1 ring-black/10 transition-all group-hover:bg-white/80 group-hover:ring-[#E4003F]/35">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-extrabold text-black/70 underline decoration-black/15 decoration-dotted underline-offset-4 group-hover:decoration-[#E4003F]/50">
+                      대화 내용 펼치기
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-[14px] leading-[1.75] text-black/40 blur-[0.6px]">
+                      {replaceUserName(lines[0] ?? "", userName)}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-[#E4003F]/10 px-3 py-1 text-[12px] font-extrabold text-[#E4003F] ring-1 ring-black/10 transition group-hover:bg-[#E4003F]/15">
+                    Click
+                  </span>
+                </div>
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(280px_120px_at_18%_35%,rgba(228,0,63,0.12),transparent_60%)] opacity-70" />
+              </div>
+            </button>
+          ) : (
+            lines.map((line, i) => (
+              <p key={i} className="mt-2 text-[16px] leading-[1.85] text-black/80">
+                {replaceUserName(line, userName)}
+              </p>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const [firstQuote, narration, secondQuote] = ep1Scene.dialogue;
+
+  return (
+    <div className="mx-auto w-full max-w-3xl space-y-6">
+      <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-black/90">{ep1Scene.title}</h2>
+      <p className="text-[16px] leading-[1.85] text-black/75">
+        <span className="font-extrabold text-black/85">[Situation]</span> {ep1Scene.situation}
+      </p>
+
+      {firstQuote ? quoteLines([firstQuote], "first") : null}
+      {narration ? <p className="text-[16px] leading-[1.85] text-black/75">{replaceUserName(narration, userName)}</p> : null}
+      {secondQuote ? quoteLines([secondQuote], "second") : null}
+
+      <p className="mt-12 text-[18px] font-extrabold leading-[1.85] text-black/90">
+        <span className="text-black/90">[Action]</span> {ep1Scene.action}
+      </p>
+
+      <div className="space-y-3">
+        {ep1Options.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => setEpisode1Choice(opt.id)}
+            className={`w-full text-left rounded-2xl border-2 bg-white p-5 transition-all cursor-pointer hover:-translate-y-1 hover:shadow-lg ${
+              episode1Choice === opt.id
+                ? "border-[#E4003F] shadow-[0_14px_50px_rgba(228,0,63,0.14)]"
+                : "border-black/10 hover:border-[#E4003F]"
+            }`}
+          >
+            <p className="text-[18px] font-bold leading-tight text-gray-900">
+              옵션 {opt.id}. {opt.title}
+            </p>
+            <p className="mt-2 text-[16px] leading-[1.85] text-gray-600">{opt.summary}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
