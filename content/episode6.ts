@@ -58,15 +58,16 @@ function kpi(partial: Partial<Record<keyof KpiState, number>>): Partial<Record<k
 export function getEp6Result(
   block4: string,
   block2?: string
-): { text: string; advice: string; kpi: Partial<Record<keyof KpiState, number>>; kpiLabels: string[] } {
+): { endingTitle: string; text: string; advice: string; kpi: Partial<Record<keyof KpiState, number>>; kpiLabels: string[] } {
   switch (block4) {
     case "B":
     case "D":
       const bestChannel = block2 === "E";
       return {
+        endingTitle: "엔딩 1 · 장애물 제거자",
         text: bestChannel
-          ? "리더님은 **텍스트 핑퐁을 끊어내고 당사자들을 모아** 합법적인 우회로를 모색했습니다. **규정도 지키고 납기도 사수하는 완벽한 리딩**입니다."
-          : "**대안은 훌륭했지만**, 여전히 텍스트로 지시를 남겨 실시간 소통의 이점을 살리지 못해 적용에 시간이 걸렸습니다.",
+          ? "리더님은 **텍스트 핑퐁을 끊어내고 당사자들을 한자리에 모아** 합법적인 우회로를 빠르게 합의했습니다. 각 부서가 서로의 제약을 실시간으로 확인하면서, 보안 원칙을 지키는 선에서 실행 가능한 해법이 도출되었습니다. 결과적으로 **규정도 지키고 납기도 사수하는 리딩**이 되었고, 팀은 '문제가 생기면 함께 풀 수 있다'는 신뢰를 확보했습니다."
+          : "**대안 자체는 매우 훌륭했지만**, 여전히 텍스트 중심으로 지시가 전달되어 맥락 정렬에 시간이 소요되었습니다. 실시간 토론에서 바로 정리될 쟁점이 댓글/문서 왕복으로 늘어지면서 적용 시점이 다소 늦어졌고, 실행 속도는 베스트 조합 대비 아쉬움이 남았습니다.",
         advice: "텍스트 핑퐁을 끊고 당사자들을 모아 합법적인 우회로를 모색하는 것이 효과적입니다.",
         kpi: bestChannel ? kpi({ delivery: 20, stakeholderAlignment: 20, teamEngagement: 10 }) : kpi({ delivery: 10, stakeholderAlignment: 20, teamEngagement: 10 }),
         kpiLabels: bestChannel
@@ -75,6 +76,7 @@ export function getEp6Result(
       };
     case "A":
       return {
+        endingTitle: "엔딩 2 · 권위주의자",
         text: "기록이 남는 공개된 장소에서 상위 조직을 내세우며 원칙을 무시하려 들자, **정태영 책임은 방어 기제가 발동**해 '구두 협의는 효력 없으니 규정대로 다음 달 심의 올리시죠'라며 완벽한 철벽을 칩니다. **감정의 골만 깊어졌습니다.**",
         advice: "권위만으로 밀어붙이면 보안 담당자의 방어 기제가 오히려 강화됩니다.",
         kpi: kpi({ delivery: -20, stakeholderAlignment: -20, teamEngagement: -10, leaderEnergy: -20 }),
@@ -82,6 +84,7 @@ export function getEp6Result(
       };
     case "C":
       return {
+        endingTitle: "엔딩 3 · 구원자",
         text: "당장의 마찰은 피했고 실무진은 환호합니다. 하지만 **리더인 당신은 밤을 새워 데이터 마스킹 계획서를 써야 합니다.** 전체 판을 읽어야 할 PM이 실무 행정 처리의 늪에 빠져 허우적대며, 팀원들은 앞으로도 껄끄러운 일은 모두 리더에게 미루게 될 것입니다.",
         advice: "PM이 직접 서류를 대행하면 당장은 해결되지만 팀의 의사결정 역량이 약해집니다.",
         kpi: kpi({ leaderEnergy: -25, teamEngagement: -20, delivery: 10 }),
@@ -89,13 +92,15 @@ export function getEp6Result(
       };
     case "E":
       return {
-        text: "**안전한 선택 같지만**, 실무선에서 풀 수 있는 문제를 너무 일찍 포기하고 상위 이해관계자들을 개입시켰습니다. 정 책임은 향후 모든 이슈에서 방어적으로 나올 것이며, **임원진은 '이런 것도 해결 못 하냐'며 당신의 리더십을 의심**합니다.",
+        endingTitle: "엔딩 4 · 방관자",
+        text: "**안전한 선택 같지만**, 실무선에서 풀 수 있는 문제를 너무 일찍 포기하고 상위 이해관계자들을 개입시켰습니다. 정 책임은 향후 모든 이슈에서 방어적으로 나올 것이며, **임원진은 '이런 것도 해결 못 하냐'며 당신의 리더십을 의심**합니다. 프로젝트의 리더가 해결해야 할 문제를 위로 넘기는 순간, 리더로서의 신뢰에 부정적인 영향을 미칠 수 있습니다. 이해관계자 혹은 유관부서와의 갈등이나 의사결정 사항을 상부에 올려 문제를 넘기는 것은 최선의 해결책이 되기 어렵습니다.",
         advice: "에스컬레이션은 필요할 때만 사용해야 합니다. 실무에서 해결 가능한 문제를 너무 일찍 윗선에 올리면 리더십이 약해 보입니다.",
-        kpi: kpi({ stakeholderAlignment: -25, delivery: -20, teamEngagement: -20, leaderEnergy: -10 }),
-        kpiLabels: ["이해관계자 조율 하락 ▼▼▼", "일정 준수 하락 ▼▼", "팀 몰입도 하락 ▼▼", "리더의 에너지 하락 ▼"],
+        kpi: kpi({ stakeholderAlignment: -25, delivery: 10, teamEngagement: -20, leaderEnergy: -10 }),
+        kpiLabels: ["이해관계자 조율 하락 ▼▼▼", "일정 준수 상승 ▲", "팀 몰입도 하락 ▼▼", "리더의 에너지 하락 ▼"],
       };
     default:
       return {
+        endingTitle: "결과",
         text: "선택이 반영되었습니다. 당사자들과 소통 채널, 톤, 메시지 조합에 따라 결과가 달라집니다.",
         advice: "블록 4(핵심 메시지)가 프로젝트 방향을 가장 크게 결정합니다.",
         kpi: kpi({}),

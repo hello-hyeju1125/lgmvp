@@ -52,7 +52,7 @@ export default function HomePage() {
 
             {/* Input card (placed under copy) */}
             <section className="mt-10 w-full max-w-3xl">
-              <div className="rounded-3xl border border-white/15 bg-black/35 p-5 sm:p-6 shadow-[0_18px_60px_rgba(0,0,0,0.6)] backdrop-blur-md">
+              <div className="rounded-[0.735rem] border border-white/15 bg-black/35 p-5 sm:p-6 shadow-[0_18px_60px_rgba(0,0,0,0.6)] backdrop-blur-md">
                 <p className="text-center text-[14px] sm:text-[15px] text-white/70 leading-relaxed">
                   시뮬레이션 상에서 사용할 닉네임을 입력해주십시오.
                 </p>
@@ -71,7 +71,7 @@ export default function HomePage() {
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && canStart && handleStart()}
-                      className="w-full rounded-2xl border border-white/15 bg-black/35 px-4 py-3.5 text-[16px] sm:text-[17px] text-white placeholder:text-white/45 shadow-inner shadow-black/40 outline-none transition focus:border-white/30 focus:ring-4 focus:ring-[#A50034]/25"
+                      className="w-full rounded-[0.49rem] border border-white/15 bg-black/35 px-4 py-3.5 text-[16px] sm:text-[17px] text-white placeholder:text-white/45 shadow-inner shadow-black/40 outline-none transition focus:border-white/30 focus:ring-4 focus:ring-[#A50034]/25"
                     />
                     <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-[12px] text-white/45">
                       {input.length}/{maxLength}
@@ -82,7 +82,7 @@ export default function HomePage() {
                     type="button"
                     onClick={handleStart}
                     disabled={!canStart}
-                    className="group inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 text-[16px] sm:text-[17px] font-semibold text-[#E4003F] shadow-[0_18px_50px_rgba(0,0,0,0.55)] transition hover:bg-white/90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white disabled:active:scale-100"
+                    className="group inline-flex w-full items-center justify-center gap-2 rounded-[0.49rem] bg-white px-6 py-3.5 text-[16px] sm:text-[17px] font-semibold text-[#E4003F] shadow-[0_18px_50px_rgba(0,0,0,0.55)] transition hover:bg-white/90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white disabled:active:scale-100"
                   >
                     프로젝트 시작하기
                     <svg

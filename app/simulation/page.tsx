@@ -24,6 +24,7 @@ import { InitiationRampup } from "@/components/simulation/InitiationRampup";
 import { PlanSurvival } from "@/components/simulation/PlanSurvival";
 import { PlanRampup } from "@/components/simulation/PlanRampup";
 import { ExecAction } from "@/components/simulation/ExecAction";
+import { ExecD1Popup } from "@/components/simulation/ExecD1Popup";
 import { ExecBoard } from "@/components/simulation/ExecBoard";
 import { Ep3TeamScene } from "@/components/simulation/Ep3TeamScene";
 import { Ep3TeamOptions } from "@/components/simulation/Ep3TeamOptions";
@@ -55,8 +56,15 @@ import { MonitoringRampup } from "@/components/simulation/MonitoringRampup";
 import { ClosingScene } from "@/components/simulation/ClosingScene";
 import { ClosingResult } from "@/components/simulation/ClosingResult";
 import { initiationActions, INITIATION_TOTAL_HOURS, INITIATION_STEP_HOURS, getInitiationKpiDelta } from "@/content/initiationActions";
+import { planningActions, PLANNING_TOTAL_HOURS, PLANNING_STEP_HOURS, getPlanningKpiDelta } from "@/content/planningActions";
 import { ep1Options, ep1Results } from "@/content/episode1";
 import { ep2AlignOptions, ep2AlignResults } from "@/content/episode2Align";
+import { ep3Options, getEp3Result } from "@/content/episode3";
+import { ep4Options, getEp4Result } from "@/content/episode4";
+import { ep5Options, getEp5Result } from "@/content/episode5";
+import { ep6Block1Options, ep6Block2Options, ep6Block3Options, ep6Block4Options, getEp6Result } from "@/content/episode6";
+import { ep7Options, getEp7Result } from "@/content/episode7";
+import { EXECUTION_STEP_HOURS, EXECUTION_TOTAL_HOURS, executionActions, getExecutionKpiDelta } from "@/content/executionActions";
 
 const VALID_PHASES = [
   "initiation-action",
@@ -87,6 +95,7 @@ const VALID_PHASES = [
   "plan-survival",
   "plan-rampup",
   "exec-action",
+  "exec-d1",
   "exec-board",
   "ep6-scene",
   "ep6-options",
@@ -117,6 +126,7 @@ type ProcessStep = (typeof PROCESS_STEPS)[number];
 function getProcessStep(phase: string): ProcessStep {
   if (phase.startsWith("initiation")) return "착수";
   if (phase.startsWith("plan") || phase.startsWith("planning")) return "기획";
+  if (phase.startsWith("ep3") || phase.startsWith("ep4") || phase.startsWith("ep5")) return "기획";
   if (phase.startsWith("exec")) return "실행";
   if (phase.startsWith("monitoring") || phase === "risk-radar") return "감시/통제";
   if (phase.startsWith("closing")) return "종료";
@@ -130,6 +140,14 @@ function getProcessStep(phase: string): ProcessStep {
 }
 
 function Stepper({ current }: { current: ProcessStep }) {
+  const helpByStep: Record<ProcessStep, string> = {
+    착수: "프로젝트를 시작하기 위한 목표·범위·이해관계자를 정리하고 추진 기반을 만드는 단계입니다.",
+    기획: "일정·범위·자원·리스크 계획을 수립해 실행 가능한 로드맵으로 구체화하는 단계입니다.",
+    실행: "계획에 따라 작업을 수행하고 팀을 운영하며 산출물을 만들어 내는 단계입니다.",
+    "감시/통제": "진척·품질·리스크를 모니터링하고 편차를 조정해 계획대로 되돌리는 단계입니다.",
+    종료: "성과를 인수·정리하고 회고를 통해 지식을 남기며 프로젝트를 마무리하는 단계입니다.",
+  };
+
   return (
     <div className="bg-[#0B0F19] px-6">
       <div className="mx-auto w-full max-w-4xl">
@@ -139,16 +157,25 @@ function Stepper({ current }: { current: ProcessStep }) {
             const isFuture = PROCESS_STEPS.indexOf(current) < idx;
             return (
               <div key={label} className="flex items-center gap-2">
-                <span
-                  className={`pb-1 ${
-                    isCurrent
-                      ? "font-extrabold text-[#E4003F] border-b-2 border-[#E4003F]"
-                      : isFuture
-                        ? "font-semibold text-white/35"
-                        : "font-semibold text-white/80"
-                  }`}
-                >
-                  {label}
+                <span className="relative group">
+                  <span
+                    className={`pb-1 ${
+                      isCurrent
+                        ? "font-extrabold text-[#E4003F] border-b-2 border-[#E4003F]"
+                        : isFuture
+                          ? "font-semibold text-white/35"
+                          : "font-semibold text-white/80"
+                    }`}
+                  >
+                    {label}
+                  </span>
+                  <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-[260px] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                    <span className="block rounded-[0.35rem] border border-white/10 bg-black/85 px-3 py-2 text-[12px] font-semibold leading-relaxed text-white/90 shadow-[0_14px_40px_rgba(0,0,0,0.45)] backdrop-blur">
+                      <span className="font-extrabold text-[#E4003F]">{label}</span>
+                      <span className="text-white/70"> · </span>
+                      {helpByStep[label]}
+                    </span>
+                  </span>
                 </span>
                 {idx !== PROCESS_STEPS.length - 1 && (
                   <span className="text-white/25" aria-hidden="true">
@@ -174,16 +201,35 @@ function SimulationContent() {
     applyKpiDelta,
     kpi,
     setKpiBeforeInitiation,
+    planningActionHours,
+    setPlanningActionHours,
+    executionActionHours,
+    setExecutionActionHours,
+    setKpiBeforePlanning,
+    setKpiBeforeExecution,
     episode1Choice,
     episode2AlignChoice,
+    episode3Choice,
+    episode4Choice,
+    episode5Choice,
+    episode6Blocks,
+    episode7Choice,
   } = useStore();
   const [initiationConfirmOpen, setInitiationConfirmOpen] = useState(false);
+  const [planningConfirmOpen, setPlanningConfirmOpen] = useState(false);
   const [ep1ConfirmOpen, setEp1ConfirmOpen] = useState(false);
   const [ep2ConfirmOpen, setEp2ConfirmOpen] = useState(false);
+  const [ep3ConfirmOpen, setEp3ConfirmOpen] = useState(false);
+  const [ep4ConfirmOpen, setEp4ConfirmOpen] = useState(false);
+  const [ep5ConfirmOpen, setEp5ConfirmOpen] = useState(false);
+  const [ep6ConfirmOpen, setEp6ConfirmOpen] = useState(false);
+  const [ep7ConfirmOpen, setEp7ConfirmOpen] = useState(false);
+  const [ep8ConfirmOpen, setEp8ConfirmOpen] = useState(false);
+  const [execConfirmOpen, setExecConfirmOpen] = useState(false);
 
   const phase = useMemo(() => {
     const raw = searchParams.get("phase") || "initiation-action";
-    const p = raw === "ep2-options" ? "ep2-scene" : raw;
+    const p = raw === "ep2-options" ? "ep2-scene" : raw === "ep4-team-result" ? "ep4-result" : raw;
     return VALID_PHASES.includes(p) ? p : "initiation-action";
   }, [searchParams]);
 
@@ -191,10 +237,24 @@ function SimulationContent() {
     const raw = searchParams.get("phase");
     if (raw === "ep2-options") {
       router.replace("/simulation?phase=ep2-scene");
+      return;
+    }
+    if (raw === "ep4-team-result") {
+      router.replace("/simulation?phase=ep4-result");
     }
   }, [searchParams, router]);
 
-  const useMainBackground = phase === "initiation-d1";
+  const usePhotoBackground = phase === "initiation-d1" || phase === "planning-d1" || phase === "exec-d1";
+  const useRecapBackground =
+    phase === "initiation-recap" ||
+    phase === "initiation-senior-tips" ||
+    phase === "initiation-rampup" ||
+    phase === "plan-recap" ||
+    phase === "plan-survival" ||
+    phase === "plan-rampup" ||
+    phase === "exec-recap" ||
+    phase === "exec-senior-tips" ||
+    phase === "exec-rampup";
 
   const initiationStage = useMemo(() => {
     if (phase !== "initiation-action") return "alloc" as const;
@@ -203,22 +263,53 @@ function SimulationContent() {
   }, [phase, searchParams]);
 
   const phaseIdx = useMemo(() => VALID_PHASES.indexOf(phase), [phase]);
+  const planningStage = useMemo(() => {
+    if (phase !== "plan-action") return "alloc" as const;
+    const s = searchParams.get("stage");
+    return s === "intro" || s === "alloc" ? (s as "intro" | "alloc") : "intro";
+  }, [phase, searchParams]);
+  const execStage = useMemo(() => {
+    if (phase !== "exec-action") return "alloc" as const;
+    const s = searchParams.get("stage");
+    return s === "intro" || s === "alloc" ? (s as "intro" | "alloc") : "intro";
+  }, [phase, searchParams]);
   const prevHref = useMemo(() => {
     if (phase === "initiation-action" && initiationStage === "alloc") return "/simulation?phase=initiation-action&stage=intro";
     if (phase === "initiation-d1") return "/simulation?phase=initiation-action&stage=alloc";
+    if (phase === "plan-action" && planningStage === "alloc") return "/simulation?phase=plan-action&stage=intro";
+    if (phase === "plan-action") return "/simulation?phase=initiation-rampup";
+    if (phase === "planning-d1") return "/simulation?phase=plan-action&stage=alloc";
+    if (phase === "exec-action" && execStage === "alloc") return "/simulation?phase=exec-action&stage=intro";
+    if (phase === "exec-board") return "/simulation?phase=exec-action&stage=alloc";
     if (phase === "ep1-result") return "/simulation?phase=ep1-scene";
+    if (phase === "ep6-result") return "/simulation?phase=ep6-scene";
+    if (phase === "ep7-result") return "/simulation?phase=ep7-scene";
+    if (phase === "ep3-team-result") return "/simulation?phase=ep3-scene";
+    if (phase === "ep4-result") return "/simulation?phase=ep4-scene";
+    if (phase === "ep5-result") return "/simulation?phase=ep5-scene";
     if (phaseIdx > 0) return `/simulation?phase=${VALID_PHASES[phaseIdx - 1]}`;
     return "/onboarding?step=5";
-  }, [phaseIdx, phase, initiationStage]);
+  }, [phaseIdx, phase, initiationStage, planningStage, execStage]);
   const nextHref = useMemo(() => {
+    if (phase === "initiation-rampup") return "/simulation?phase=plan-action";
+    if (phase === "plan-action" && planningStage === "intro") return "/simulation?phase=plan-action&stage=alloc";
+    if (phase === "exec-action" && execStage === "intro") return "/simulation?phase=exec-action&stage=alloc";
     if (phaseIdx >= 0 && phaseIdx < VALID_PHASES.length - 1) {
       return `/simulation?phase=${VALID_PHASES[phaseIdx + 1]}`;
     }
     return "/";
-  }, [phaseIdx]);
+  }, [phase, phaseIdx, planningStage, execStage]);
 
   const userName = nickname || "PM";
   const processStep = useMemo(() => getProcessStep(phase), [phase]);
+  const containerMaxWidth = useMemo(() => {
+    if (phase === "ep1-result") return "max-w-4xl";
+    return "max-w-4xl";
+  }, [phase]);
+  const containerPaddingX = useMemo(() => {
+    if (phase === "ep1-result" || phase === "ep2-result" || phase === "ep3-team-result" || phase === "ep4-result" || phase === "ep5-result" || phase === "ep7-result" || phase === "ep8-result") return "px-0";
+    return "px-6";
+  }, [phase]);
 
   const initiationTotal = useMemo(() => {
     if (phase !== "initiation-action") return 0;
@@ -230,6 +321,26 @@ function SimulationContent() {
     return initiationActions.reduce((s, a) => s + getHours(a.id), 0);
   }, [phase, initiationActionHours]);
   const initiationExceed = Math.max(0, initiationTotal - INITIATION_TOTAL_HOURS);
+  const planningTotal = useMemo(() => {
+    if (phase !== "plan-action") return 0;
+    const getHours = (id: string) => {
+      const v = planningActionHours[id];
+      if (typeof v === "number" && (PLANNING_STEP_HOURS as readonly number[]).includes(v)) return v;
+      return PLANNING_STEP_HOURS[0];
+    };
+    return planningActions.reduce((s, a) => s + getHours(a.id), 0);
+  }, [phase, planningActionHours]);
+  const planningExceed = Math.max(0, planningTotal - PLANNING_TOTAL_HOURS);
+  const executionTotal = useMemo(() => {
+    if (phase !== "exec-action") return 0;
+    const getHours = (id: string) => {
+      const v = executionActionHours[id];
+      if (typeof v === "number" && (EXECUTION_STEP_HOURS as readonly number[]).includes(v)) return v;
+      return EXECUTION_STEP_HOURS[0];
+    };
+    return executionActions.reduce((s, a) => s + getHours(a.id), 0);
+  }, [phase, executionActionHours]);
+  const executionExceed = Math.max(0, executionTotal - EXECUTION_TOTAL_HOURS);
 
   const handleInitiationNext = () => {
     if (phase !== "initiation-action") return;
@@ -252,6 +363,50 @@ function SimulationContent() {
     applyKpiDelta({ ...delta, leaderEnergy: (delta.leaderEnergy ?? 0) - initiationExceed });
     setInitiationConfirmOpen(false);
     router.push("/simulation?phase=initiation-d1");
+  };
+
+  const commitPlanningAndGoNext = () => {
+    if (phase !== "plan-action" || planningStage !== "alloc") return;
+    const hours: Record<string, number> = {};
+    planningActions.forEach((a) => {
+      const v = planningActionHours[a.id];
+      hours[a.id] = typeof v === "number" && (PLANNING_STEP_HOURS as readonly number[]).includes(v) ? v : PLANNING_STEP_HOURS[0];
+    });
+    setPlanningActionHours(hours);
+    setKpiBeforePlanning({ ...kpi });
+    const delta = getPlanningKpiDelta(hours);
+    applyKpiDelta(delta);
+    setPlanningConfirmOpen(false);
+    router.push("/simulation?phase=planning-d1");
+  };
+  const handlePlanningNext = () => {
+    if (phase !== "plan-action") return;
+    if (planningStage === "intro") {
+      router.push("/simulation?phase=plan-action&stage=alloc");
+      return;
+    }
+    setPlanningConfirmOpen(true);
+  };
+  const commitExecutionAndGoNext = () => {
+    if (phase !== "exec-action" || execStage !== "alloc") return;
+    const hours: Record<string, number> = {};
+    executionActions.forEach((a) => {
+      const v = executionActionHours[a.id];
+      hours[a.id] = typeof v === "number" && (EXECUTION_STEP_HOURS as readonly number[]).includes(v) ? v : EXECUTION_STEP_HOURS[0];
+    });
+    setExecutionActionHours(hours);
+    setKpiBeforeExecution({ ...kpi });
+    applyKpiDelta(getExecutionKpiDelta(hours));
+    setExecConfirmOpen(false);
+    router.push("/simulation?phase=exec-d1");
+  };
+  const handleExecNext = () => {
+    if (phase !== "exec-action") return;
+    if (execStage === "intro") {
+      router.push("/simulation?phase=exec-action&stage=alloc");
+      return;
+    }
+    setExecConfirmOpen(true);
   };
 
   const handleEp1Next = () => {
@@ -282,13 +437,104 @@ function SimulationContent() {
     router.push("/simulation?phase=ep2-result");
   };
 
+  const handleEp3Next = () => {
+    if (phase !== "ep3-scene") return;
+    if (!episode3Choice) return;
+    setEp3ConfirmOpen(true);
+  };
+
+  const commitEp3AndGoNext = () => {
+    if (!episode3Choice) return;
+    const result = getEp3Result(episode3Choice, planningActionHours["resource_assign"] ?? 0);
+    if (result?.kpi) applyKpiDelta(result.kpi);
+    setEp3ConfirmOpen(false);
+    router.push("/simulation?phase=ep3-team-result");
+  };
+
+  const handleEp4Next = () => {
+    if (phase !== "ep4-scene") return;
+    if (!episode4Choice) return;
+    setEp4ConfirmOpen(true);
+  };
+
+  const commitEp4AndGoNext = () => {
+    if (!episode4Choice) return;
+    const result = getEp4Result(episode4Choice, initiationActionHours["team_profile"] ?? 0);
+    if (result?.kpi) applyKpiDelta(result.kpi);
+    setEp4ConfirmOpen(false);
+    router.push("/simulation?phase=ep4-result");
+  };
+
+  const handleEp5Next = () => {
+    if (phase !== "ep5-scene") return;
+    if (!episode5Choice) return;
+    setEp5ConfirmOpen(true);
+  };
+
+  const commitEp5AndGoNext = () => {
+    if (!episode5Choice) return;
+    const result = getEp5Result(episode5Choice);
+    if (result?.kpi) applyKpiDelta(result.kpi);
+    setEp5ConfirmOpen(false);
+    router.push("/simulation?phase=ep5-result");
+  };
+  const handleEp6Next = () => {
+    if (phase !== "ep6-scene") return;
+    setEp6ConfirmOpen(true);
+  };
+  const commitEp6AndGoNext = () => {
+    if (!episode6Blocks) return;
+    const result = getEp6Result(episode6Blocks.block4, episode6Blocks.block2);
+    if (result?.kpi) applyKpiDelta(result.kpi);
+    setEp6ConfirmOpen(false);
+    router.push("/simulation?phase=ep6-result");
+  };
+  const ep6Selection = useMemo(() => {
+    const b1 = episode6Blocks?.block1 ?? "B";
+    const b2 = episode6Blocks?.block2 ?? "E";
+    const b3 = episode6Blocks?.block3 ?? "D";
+    const b4 = episode6Blocks?.block4 ?? "B";
+    return {
+      b1: ep6Block1Options.find((o) => o.id === b1)?.label ?? "",
+      b2: ep6Block2Options.find((o) => o.id === b2)?.label ?? "",
+      b3: ep6Block3Options.find((o) => o.id === b3)?.label ?? "",
+      b4: ep6Block4Options.find((o) => o.id === b4)?.label ?? "",
+    };
+  }, [episode6Blocks]);
+  const handleEp7Next = () => {
+    if (phase !== "ep7-scene") return;
+    if (!episode7Choice) return;
+    setEp7ConfirmOpen(true);
+  };
+  const commitEp7AndGoNext = () => {
+    if (!episode7Choice) return;
+    const vocHours = executionActionHours["voc_data"] ?? 0;
+    const refHours = executionActionHours["ref_benchmark"] ?? 0;
+    const result = getEp7Result(episode7Choice, vocHours, refHours);
+    if (result?.kpi) applyKpiDelta(result.kpi);
+    setEp7ConfirmOpen(false);
+    router.push("/simulation?phase=ep7-result");
+  };
+  const handleEp8Next = () => {
+    if (phase !== "ep8-input") return;
+    setEp8ConfirmOpen(true);
+  };
+  const commitEp8AndGoNext = () => {
+    setEp8ConfirmOpen(false);
+    router.push("/simulation?phase=ep8-result");
+  };
+
   return (
     <main
       className={`min-h-screen flex flex-col ${
-        useMainBackground ? "relative bg-[url('/mainbackground.jpg')] bg-cover bg-center bg-no-repeat" : "bg-white"
+        usePhotoBackground
+          ? "relative bg-[url('/mainbackground.jpg')] bg-cover bg-center bg-no-repeat"
+          : useRecapBackground
+            ? "bg-[#070A12]"
+            : "bg-white"
       }`}
     >
-      {useMainBackground && (
+      {usePhotoBackground && (
         <>
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1200px_600px_at_30%_10%,rgba(0,0,0,0.45),transparent_60%)]" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-black/45 to-black/70" />
@@ -298,7 +544,7 @@ function SimulationContent() {
         <Stepper current={processStep} />
         <KpiGauges />
       </header>
-      <div className="mx-auto w-full max-w-4xl flex-1 px-6 py-6">
+      <div className={`mx-auto w-full ${containerMaxWidth} flex-1 ${containerPaddingX} py-6`}>
         {phase === "initiation-action" && <InitiationAction userName={userName} stage={initiationStage} />}
         {phase === "initiation-d1" && <InitiationD1Popup userName={userName} />}
         {phase === "ep1-scene" && <Ep1Scene userName={userName} />}
@@ -312,7 +558,7 @@ function SimulationContent() {
         {phase === "ep3-charter" && <Ep2Charter userName={userName} />}
         {phase === "ep3-result" && <Ep2Result userName={userName} />}
         {phase === "ep3-survival" && <SurvivalGuideline userName={userName} />}
-        {phase === "plan-action" && <PlanningAction userName={userName} />}
+        {phase === "plan-action" && <PlanningAction userName={userName} stage={planningStage} />}
         {phase === "planning-d1" && <PlanningD1Popup userName={userName} />}
         {phase === "ep3-scene" && <Ep3TeamScene userName={userName} />}
         {phase === "ep3-options" && <Ep3TeamOptions userName={userName} />}
@@ -326,7 +572,8 @@ function SimulationContent() {
         {phase === "plan-recap" && <PlanRecap userName={userName} />}
         {phase === "plan-survival" && <PlanSurvival userName={userName} />}
         {phase === "plan-rampup" && <PlanRampup userName={userName} />}
-        {phase === "exec-action" && <ExecAction userName={userName} />}
+        {phase === "exec-action" && <ExecAction userName={userName} stage={execStage} />}
+        {phase === "exec-d1" && <ExecD1Popup userName={userName} />}
         {phase === "exec-board" && <ExecBoard userName={userName} />}
         {phase === "ep6-scene" && <Ep6PingpongScene userName={userName} />}
         {phase === "ep6-options" && <Ep6PingpongOptions userName={userName} />}
@@ -391,6 +638,106 @@ function SimulationContent() {
                 <button
                   type="button"
                   onClick={commitInitiationAndGoNext}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
+                >
+                  네
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {phase === "plan-action" && planningStage === "alloc" && planningConfirmOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
+          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
+            <div className="bg-[#0B0F19] px-6 py-5">
+              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
+              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">
+                {planningExceed > 0 ? "배분 시간이 초과되었습니다" : "이 선택 그대로 진행할까요?"}
+              </h3>
+            </div>
+            <div className="px-6 py-5 text-center">
+              {planningExceed > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-[15px] leading-[1.85] text-black/75">
+                    현재 총 배분 시간은 <span className="font-extrabold text-black/90">{planningTotal}시간</span>입니다.
+                    기준 시간(40시간)보다 <span className="font-extrabold text-[#E4003F]">{planningExceed}시간</span> 초과되었습니다.
+                  </p>
+                  <div className="rounded-2xl border border-black/10 bg-[#f8f9fa] p-4">
+                    <p className="mt-2 text-[14px] leading-[1.85] text-black/75">
+                      초과 시간은 이후 일정 안정성에 부담으로 작용할 수 있습니다.
+                      <br />
+                      그래도 이 의사결정을 그대로 진행하시겠습니까?
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[15px] leading-[1.85] text-black/75">
+                  현재 총 배분 시간은 <span className="font-extrabold text-black/90">{planningTotal}시간</span>입니다.
+                  이 선택 그대로 진행하시겠습니까?
+                </p>
+              )}
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPlanningConfirmOpen(false)}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
+                >
+                  아니오
+                </button>
+                <button
+                  type="button"
+                  onClick={commitPlanningAndGoNext}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
+                >
+                  네
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {phase === "exec-action" && execStage === "alloc" && execConfirmOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
+          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
+            <div className="bg-[#0B0F19] px-6 py-5">
+              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
+              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">
+                {executionExceed > 0 ? "배분 시간이 초과되었습니다" : "이 선택 그대로 진행할까요?"}
+              </h3>
+            </div>
+            <div className="px-6 py-5 text-center">
+              {executionExceed > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-[15px] leading-[1.85] text-black/75">
+                    현재 총 배분 시간은 <span className="font-extrabold text-black/90">{executionTotal}시간</span>입니다.
+                    기준 시간(80시간)보다 <span className="font-extrabold text-[#E4003F]">{executionExceed}시간</span> 초과되었습니다.
+                  </p>
+                  <div className="rounded-2xl border border-black/10 bg-[#f8f9fa] p-4">
+                    <p className="mt-2 text-[14px] leading-[1.85] text-black/75">
+                      초과 시간은 실행 단계의 집중력 저하와 우선순위 혼선으로 이어질 수 있습니다.
+                      <br />
+                      그래도 이 의사결정을 그대로 진행하시겠습니까?
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[15px] leading-[1.85] text-black/75">
+                  현재 총 배분 시간은 <span className="font-extrabold text-black/90">{executionTotal}시간</span>입니다.
+                  이 선택 그대로 진행하시겠습니까?
+                </p>
+              )}
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setExecConfirmOpen(false)}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
+                >
+                  아니오
+                </button>
+                <button
+                  type="button"
+                  onClick={commitExecutionAndGoNext}
                   className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
                 >
                   네
@@ -472,19 +819,251 @@ function SimulationContent() {
           </div>
         </div>
       )}
+      {phase === "ep3-scene" && ep3ConfirmOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
+          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
+            <div className="px-6 py-5 bg-[#0B0F19]">
+              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
+              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 옵션으로 진행할까요?</h3>
+            </div>
+            <div className="px-6 py-5 text-center">
+              <p className="text-[15px] leading-[1.85] text-black/75">
+                선택하신 의사결정은{" "}
+                <span className="font-extrabold text-black/90">
+                  옵션 {episode3Choice}. {ep3Options.find((o) => o.id === episode3Choice)?.title ?? ""}
+                </span>
+                입니다.
+              </p>
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEp3ConfirmOpen(false)}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
+                >
+                  아니오
+                </button>
+                <button
+                  type="button"
+                  onClick={commitEp3AndGoNext}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
+                >
+                  네
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {phase === "ep4-scene" && ep4ConfirmOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
+          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
+            <div className="px-6 py-5 bg-[#0B0F19]">
+              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
+              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 옵션으로 진행할까요?</h3>
+            </div>
+            <div className="px-6 py-5 text-center">
+              <p className="text-[15px] leading-[1.85] text-black/75">
+                선택하신 의사결정은{" "}
+                <span className="font-extrabold text-black/90">
+                  옵션 {episode4Choice}. {ep4Options.find((o) => o.id === episode4Choice)?.title ?? ""}
+                </span>
+                입니다.
+              </p>
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEp4ConfirmOpen(false)}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
+                >
+                  아니오
+                </button>
+                <button
+                  type="button"
+                  onClick={commitEp4AndGoNext}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
+                >
+                  네
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {phase === "ep5-scene" && ep5ConfirmOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
+          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
+            <div className="px-6 py-5 bg-[#0B0F19]">
+              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
+              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 옵션으로 진행할까요?</h3>
+            </div>
+            <div className="px-6 py-5 text-center">
+              <p className="text-[15px] leading-[1.85] text-black/75">
+                선택하신 의사결정은{" "}
+                <span className="font-extrabold text-black/90">
+                  옵션 {episode5Choice}. {ep5Options.find((o) => o.id === episode5Choice)?.title ?? ""}
+                </span>
+                입니다.
+              </p>
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEp5ConfirmOpen(false)}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
+                >
+                  아니오
+                </button>
+                <button
+                  type="button"
+                  onClick={commitEp5AndGoNext}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
+                >
+                  네
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {phase === "ep6-scene" && ep6ConfirmOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
+          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
+            <div className="px-6 py-5 bg-[#0B0F19]">
+              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
+              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 선택 그대로 진행할까요?</h3>
+            </div>
+            <div className="px-6 py-5 text-center">
+              <div className="rounded-2xl border border-black/10 bg-[#f8f9fa] p-4 text-left">
+                <p className="text-[13px] font-extrabold text-black/85">선택한 조합</p>
+                <ul className="mt-2 space-y-1.5 text-[14px] leading-[1.7] text-black/75">
+                  <li><span className="font-extrabold text-black/85">소통 대상</span> · {ep6Selection.b1}</li>
+                  <li><span className="font-extrabold text-black/85">소통 채널</span> · {ep6Selection.b2}</li>
+                  <li><span className="font-extrabold text-black/85">소통 톤</span> · {ep6Selection.b3}</li>
+                  <li><span className="font-extrabold text-black/85">소통 내용</span> · {ep6Selection.b4}</li>
+                </ul>
+              </div>
+              <p className="mt-3 text-[15px] leading-[1.85] text-black/75">이 조합으로 결과를 확인하시겠습니까?</p>
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEp6ConfirmOpen(false)}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
+                >
+                  아니오
+                </button>
+                <button
+                  type="button"
+                  onClick={commitEp6AndGoNext}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
+                >
+                  네
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {phase === "ep7-scene" && ep7ConfirmOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
+          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
+            <div className="px-6 py-5 bg-[#0B0F19]">
+              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
+              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 옵션으로 진행할까요?</h3>
+            </div>
+            <div className="px-6 py-5 text-center">
+              <p className="text-[15px] leading-[1.85] text-black/75">
+                선택하신 의사결정은{" "}
+                <span className="font-extrabold text-black/90">
+                  옵션 {episode7Choice}. {ep7Options.find((o) => o.id === episode7Choice)?.title ?? ""}
+                </span>
+                입니다.
+              </p>
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEp7ConfirmOpen(false)}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
+                >
+                  아니오
+                </button>
+                <button
+                  type="button"
+                  onClick={commitEp7AndGoNext}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
+                >
+                  네
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {phase === "ep8-input" && ep8ConfirmOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
+          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
+            <div className="px-6 py-5 bg-[#0B0F19]">
+              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
+              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 코칭으로 진행할까요?</h3>
+            </div>
+            <div className="px-6 py-5 text-center">
+              <p className="text-[15px] leading-[1.85] text-black/75">
+                작성한 코칭 메시지가 반영되고 결과 페이지로 이동합니다.
+                <br />
+                이대로 진행하시겠습니까?
+              </p>
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEp8ConfirmOpen(false)}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
+                >
+                  아니오
+                </button>
+                <button
+                  type="button"
+                  onClick={commitEp8AndGoNext}
+                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
+                >
+                  네
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <PrevNextNav
         prevHref={prevHref}
         nextHref={nextHref}
         nextDisabled={
-          (phase === "ep1-scene" && !episode1Choice) || (phase === "ep2-scene" && !episode2AlignChoice)
+          (phase === "ep1-scene" && !episode1Choice) ||
+          (phase === "ep2-scene" && !episode2AlignChoice) ||
+          (phase === "ep3-scene" && !episode3Choice) ||
+          (phase === "ep4-scene" && !episode4Choice) ||
+          (phase === "ep5-scene" && !episode5Choice) ||
+          (phase === "ep7-scene" && !episode7Choice)
         }
         onNextClick={
           phase === "initiation-action"
             ? handleInitiationNext
+            : phase === "plan-action"
+              ? handlePlanningNext
+              : phase === "exec-action"
+                ? handleExecNext
             : phase === "ep1-scene"
               ? handleEp1Next
               : phase === "ep2-scene"
                 ? handleEp2Next
+                : phase === "ep3-scene"
+                  ? handleEp3Next
+                  : phase === "ep4-scene"
+                    ? handleEp4Next
+                    : phase === "ep5-scene"
+                      ? handleEp5Next
+                      : phase === "ep6-scene"
+                        ? handleEp6Next
+                        : phase === "ep7-scene"
+                          ? handleEp7Next
+                          : phase === "ep8-input"
+                            ? handleEp8Next
                 : undefined
         }
       />

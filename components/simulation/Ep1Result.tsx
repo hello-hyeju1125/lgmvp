@@ -59,7 +59,7 @@ function ResultBlock({
       )}
       {isOpen && (
         <div className="space-y-4 border-t border-black/10 bg-[#f8f9fa] p-4">
-          <p className="text-[15px] leading-[1.85] text-black/75">{text}</p>
+          <p className="text-[15px] leading-[1.85] text-black/75">{renderWithBold(text)}</p>
           <div className="flex flex-wrap gap-2">
             {kpiLabels.map((label) => (
               <span
@@ -72,18 +72,21 @@ function ResultBlock({
               </span>
             ))}
           </div>
-          <div className="rounded-xl border border-black/10 bg-white p-4">
-            <p className="mb-3 text-[13px] font-extrabold text-black/85">챗봇 선배 PM의 조언</p>
-            <div className="flex gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1E3A5F]/10 text-sm font-extrabold text-[#1E3A5F] ring-1 ring-black/10">
-                PM
-              </div>
-              <div className="min-w-0 space-y-2">
-                {adviceParagraphs.map((para, i) => (
-                  <p key={i} className="text-[14px] leading-[1.85] text-black/70">
-                    {renderWithBold(para)}
-                  </p>
-                ))}
+          <div className="flex items-start gap-3">
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-[#E4003F]/10 ring-1 ring-black/10">
+              <img src="/chatbot.png" alt="챗봇 선배 PM" className="h-full w-full object-cover" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="mb-2 text-[13px] font-extrabold text-black/85">챗봇 선배 PM</p>
+              <div className="relative rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
+                <div className="absolute left-0 top-5 -translate-x-1/2 rotate-45 h-3 w-3 border border-black/10 bg-white" aria-hidden="true" />
+                <div className="space-y-2">
+                  {adviceParagraphs.map((para, i) => (
+                    <p key={i} className="text-[14px] leading-[1.85] text-black/70">
+                      {renderWithBold(para)}
+                    </p>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -117,8 +120,8 @@ export function Ep1Result({ userName }: Ep1ResultProps) {
   const otherIds: ("A" | "B" | "C")[] = ["A", "B", "C"].filter((c) => c !== episode1Choice) as ("A" | "B" | "C")[];
 
   return (
-    <section className="mx-auto w-full max-w-3xl" aria-labelledby="ep1-result-title">
-      <div className="rounded-3xl border border-white/15 bg-white/95 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-md sm:p-8">
+    <section className="mx-auto w-full max-w-4xl" aria-labelledby="ep1-result-title">
+      <div className="rounded-xl border border-white/15 bg-white/95 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-md sm:p-8">
         <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-[#E4003F]">E1 RESULT</p>
         <h2 id="ep1-result-title" className="mt-2 text-center text-2xl font-extrabold tracking-tight text-black/90 sm:text-3xl">
           E1. 위에서 떨어진 폭탄 – 결과

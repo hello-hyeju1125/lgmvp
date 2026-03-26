@@ -7,6 +7,12 @@ function replaceUserName(text: string, name: string) {
   return text.replace(/\{User_Name\}/g, name);
 }
 
+/** **text** → <strong>text</strong> */
+function renderWithBold(paragraph: string) {
+  const parts = paragraph.split(/\*\*(.+?)\*\*/g);
+  return parts.map((p, i) => (i % 2 === 1 ? <strong key={i}>{p}</strong> : p));
+}
+
 interface Ep1SceneProps {
   userName: string;
 }
@@ -35,7 +41,7 @@ export function Ep1Scene({ userName }: Ep1SceneProps) {
                       대화 내용 펼치기
                     </p>
                     <p className="mt-1 line-clamp-2 text-[14px] leading-[1.75] text-black/40 blur-[0.6px]">
-                      {replaceUserName(lines[0] ?? "", userName)}
+                      {renderWithBold(replaceUserName(lines[0] ?? "", userName))}
                     </p>
                   </div>
                   <span className="shrink-0 rounded-full bg-[#E4003F]/10 px-3 py-1 text-[12px] font-extrabold text-[#E4003F] ring-1 ring-black/10 transition group-hover:bg-[#E4003F]/15">
@@ -48,7 +54,7 @@ export function Ep1Scene({ userName }: Ep1SceneProps) {
           ) : (
             lines.map((line, i) => (
               <p key={i} className="mt-2 text-[16px] leading-[1.85] text-black/80">
-                {replaceUserName(line, userName)}
+                {renderWithBold(replaceUserName(line, userName))}
               </p>
             ))
           )}
@@ -62,16 +68,20 @@ export function Ep1Scene({ userName }: Ep1SceneProps) {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6">
       <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-black/90">{ep1Scene.title}</h2>
-      <p className="text-[16px] leading-[1.85] text-black/75">
-        <span className="font-extrabold text-black/85">[Situation]</span> {ep1Scene.situation}
+      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
+        <span className="text-black/90">[Situation]</span> {renderWithBold(ep1Scene.situation)}
       </p>
 
       {firstQuote ? quoteLines([firstQuote], "first") : null}
-      {narration ? <p className="text-[16px] leading-[1.85] text-black/75">{replaceUserName(narration, userName)}</p> : null}
+      {narration ? <p className="text-[16px] leading-[1.85] text-black/75">{renderWithBold(replaceUserName(narration, userName))}</p> : null}
       {secondQuote ? quoteLines([secondQuote], "second") : null}
 
-      <p className="mt-12 text-[18px] font-extrabold leading-[1.85] text-black/90">
-        <span className="text-black/90">[Action]</span> {ep1Scene.action}
+      <div className="py-[1.8rem] flex items-center" aria-hidden="true">
+        <div className="h-px w-full bg-black/10" />
+      </div>
+
+      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
+        <span className="text-black/90">[Action]</span> {renderWithBold(ep1Scene.action)}
       </p>
 
       <div className="space-y-3">
@@ -89,7 +99,7 @@ export function Ep1Scene({ userName }: Ep1SceneProps) {
             <p className="text-[18px] font-bold leading-tight text-gray-900">
               옵션 {opt.id}. {opt.title}
             </p>
-            <p className="mt-2 text-[16px] leading-[1.85] text-gray-600">{opt.summary}</p>
+            <p className="mt-2 text-[16px] leading-[1.85] text-gray-600">{renderWithBold(opt.summary)}</p>
           </button>
         ))}
       </div>

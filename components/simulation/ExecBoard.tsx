@@ -4,10 +4,10 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 const COLUMNS = [
-  { id: "todo", label: "할 일", labelEn: "To Do", tooltip: "아직 시작하지 않고 대기 중인 업무입니다." },
-  { id: "in_progress", label: "진행 중", labelEn: "In Progress", tooltip: "현재 담당자가 작업하고 있는 업무입니다." },
-  { id: "done", label: "완료", labelEn: "Done", tooltip: "작업과 검수가 모두 끝나 최종 완료된 업무입니다." },
-  { id: "blocker", label: "이슈 발생", labelEn: "Blocker", tooltip: "타 부서 협조 지연, 버그, 권한 문제 등으로 작업이 멈춘 '빨간불' 상태입니다. 리더가 가장 먼저 뛰어들어 해결해야 할 최우선 과제입니다." },
+  { id: "todo", label: "할 일", labelEn: "To Do", tooltip: "아직 시작 전인 대기 업무를 모아둔 칸입니다." },
+  { id: "in_progress", label: "진행 중", labelEn: "In Progress", tooltip: "담당자가 현재 작업 중인 업무를 보여주는 칸입니다." },
+  { id: "done", label: "완료", labelEn: "Done", tooltip: "작업과 검수가 끝나 완료된 업무를 확인하는 칸입니다." },
+  { id: "blocker", label: "이슈 발생", labelEn: "Blocker", tooltip: "진행이 막힌 이슈를 우선 해결하기 위해 모아둔 칸입니다." },
 ] as const;
 
 type ColumnId = (typeof COLUMNS)[number]["id"];
@@ -64,11 +64,13 @@ export function ExecBoard({ userName }: ExecBoardProps) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showIntroModal, setShowIntroModal] = useState(true);
   const [checkAttempted, setCheckAttempted] = useState(false);
+  const [lastCheckedSignature, setLastCheckedSignature] = useState<string | null>(null);
 
   const allCorrect = TICKETS.every((t) => placement[t.id] === t.correctColumn);
 
   const moveTicket = useCallback((ticketId: string, toColumn: PlacementId) => {
     setPlacement((prev) => ({ ...prev, [ticketId]: toColumn }));
+    setCheckAttempted(false);
   }, []);
 
   const handleDragStart = (e: React.DragEvent, ticketId: string) => {
@@ -102,10 +104,12 @@ export function ExecBoard({ userName }: ExecBoardProps) {
 
   const checkComplete = useCallback(() => {
     setCheckAttempted(true);
+    const signature = TICKETS.map((t) => `${t.id}:${placement[t.id] ?? POOL}`).join("|");
+    setLastCheckedSignature(signature);
     if (!allCorrect) return;
     setBoardComplete(true);
     setShowSuccessModal(true);
-  }, [allCorrect]);
+  }, [allCorrect, placement]);
 
   const goToE6 = useCallback(() => {
     router.push("/simulation?phase=ep6-scene");
@@ -117,36 +121,59 @@ export function ExecBoard({ userName }: ExecBoardProps) {
   }, {} as Record<PlacementId, Ticket[]>);
 
   const canCheck = TICKETS.every((t) => placement[t.id] !== POOL) && !boardComplete;
+  const placedCount = TICKETS.filter((t) => placement[t.id] !== POOL).length;
+  const placementSignature = TICKETS.map((t) => `${t.id}:${placement[t.id] ?? POOL}`).join("|");
+  const checkEnabled = canCheck && placementSignature !== lastCheckedSignature;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5 rounded-2xl bg-[#F3F4F6] p-4 sm:p-6">
       {/* 챗봇 선배 PM 가이드 팝업 */}
       {showIntroModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="board-intro-title"
         >
           <div
-            className="bg-white rounded-2xl p-6 shadow-xl max-w-lg text-left"
+            className="w-full max-w-2xl overflow-hidden rounded-3xl border border-white/20 bg-white shadow-[0_28px_80px_rgba(0,0,0,0.35)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <p id="board-intro-title" className="text-sm font-semibold text-[#172B4D] mb-3">챗봇 선배 PM의 가이드</p>
-            <div className="space-y-3 text-sm text-[#6B778C] leading-relaxed">
-              {INTRO_GUIDE_PARAGRAPHS.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
+            <div className="border-b border-[#E4003F]/15 bg-gradient-to-r from-[#E4003F] via-[#D1003B] to-[#B90034] px-6 py-4">
+              <p id="board-intro-title" className="text-[13px] font-extrabold tracking-[0.14em] text-white/80">
+                GUIDE
+              </p>
+              <h3 className="mt-1 text-xl font-extrabold tracking-tight text-white">챗봇 선배 PM의 가이드</h3>
             </div>
-            <p className="mt-4 text-xs text-[#6B778C]">
-              보드 칸(Column)에 마우스를 올리면 설명을 볼 수 있습니다.
-            </p>
-            <div className="flex justify-end mt-6">
+
+            <div className="grid gap-4 p-6 md:grid-cols-[130px_1fr] md:items-start">
+              <div className="mx-auto w-full max-w-[130px]">
+                <img
+                  src="/chatbot.png"
+                  alt="챗봇 선배 PM"
+                  className="h-auto w-full rounded-xl"
+                />
+                <p className="mt-2 text-center text-xs font-bold text-[#A2002D]">챗봇 선배 PM</p>
+              </div>
+
+              <div className="relative rounded-2xl border border-[#E4003F]/20 bg-[#FFF9FB] p-4 text-left">
+                <div className="absolute -left-2 top-8 hidden h-4 w-4 rotate-45 border-b border-l border-[#E4003F]/20 bg-[#FFF9FB] md:block" />
+                <div className="space-y-3 text-[14px] leading-relaxed text-[#374151]">
+                  {INTRO_GUIDE_PARAGRAPHS.map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </div>
+                <p className="mt-4 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-[#6B7280] ring-1 ring-[#E5E7EB]">
+                  보드 칸(Column)에 마우스를 올리면 설명을 볼 수 있습니다.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end border-t border-black/10 px-6 py-4">
               <button
                 type="button"
                 onClick={() => setShowIntroModal(false)}
-                className="rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
-                style={{ backgroundColor: "#0052CC" }}
+                className="rounded-xl bg-[#E4003F] px-5 py-2.5 text-sm font-bold text-white shadow-[0_12px_28px_rgba(228,0,63,0.28)] transition hover:bg-[#D1003B]"
               >
                 확인
               </button>
@@ -155,45 +182,40 @@ export function ExecBoard({ userName }: ExecBoardProps) {
         </div>
       )}
 
-      {/* 지라 스타일 헤더 */}
-      <div className="rounded-lg border border-[#DFE1E6] bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-2 text-xs text-[#6B778C] mb-1">
-          <span>프로젝트</span>
-          <span>/</span>
-          <span>매니지먼트 시뮬레이션</span>
-          <span>/</span>
-          <span className="text-[#172B4D] font-medium">보드</span>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold text-[#172B4D]">
-            {boardComplete ? "프로젝트 매니지먼트 보드 (Timeline 흐름)" : "튜토리얼: 프로젝트 매니지먼트 보드 세팅"}
-          </h2>
-          <div className="flex items-center gap-2">
-            {canCheck && (
-              <button
-                type="button"
-                onClick={checkComplete}
-                className="rounded px-3 py-1.5 text-sm font-medium text-white transition-colors hover:opacity-90"
-                style={{ backgroundColor: "#0052CC" }}
-              >
-                보드 세팅 확인
-              </button>
-            )}
+      {/* Jira-like board header */}
+      <div className="rounded-xl border border-[#E5E7EB] bg-white px-5 py-5 shadow-[0_10px_28px_rgba(17,24,39,0.08)]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-[22px] font-extrabold tracking-tight text-[#111827]">
+              {boardComplete ? "프로젝트 매니지먼트 보드 (Timeline 흐름)" : "프로젝트 매니지먼트 보드 세팅"}
+            </h2>
+            <p className="mt-1 text-[14px] font-medium text-[#4B5563]">보드 · 총 {TICKETS.length}개 티켓</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-[#FBCFE8] bg-[#FFF1F7] px-3 py-1.5 text-xs font-extrabold text-[#A2002D]">
+              배치 진행 {placedCount}/{TICKETS.length}
+            </span>
           </div>
         </div>
-        <hr className="mt-4 border-0 border-t border-[#DFE1E6]" />
+        <hr className="mt-4 border-0 border-t border-[#E5E7EB]" />
         {!boardComplete && (
-          <p className="mt-2 text-sm text-[#6B778C]">
-            위쪽: 4개의 칸 [할 일(To Do)] [진행 중(In Progress)] [완료(Done)] [이슈 발생(Blocker)] · 아래쪽: 널브러진 업무 포스트잇을 알맞은 칸으로 드래그 앤 드롭하세요.
-          </p>
+          <div className="mt-3 rounded-lg border border-[#F3D0DC] bg-[#FFF8FB] px-4 py-3">
+            <p className="text-[14px] font-semibold leading-relaxed text-[#374151]">
+              <span className="font-extrabold text-[#A2002D]">위쪽:</span> 4개의 칸 할 일(To Do), 진행 중(In Progress), 완료(Done), 이슈 발생(Blocker)
+            </p>
+            <p className="mt-1 text-[14px] font-semibold leading-relaxed text-[#374151]">
+              <span className="font-extrabold text-[#A2002D]">아래쪽:</span> 업무 티켓을 알맞은 칸으로 드래그 앤 드롭하세요.
+            </p>
+          </div>
         )}
       </div>
 
-      {/* 칸반 컬럼 (가로 스크롤 없이 4등분) */}
+      {/* Board columns */}
       {boardComplete && (
         <p className="text-sm font-medium text-[#4A4A4A]">셋팅 된 보드를 Timeline에 따라 볼 수 있도록 확인하세요.</p>
       )}
-      <div className="grid w-full min-w-0 grid-cols-4 gap-2">
+      <div className="grid w-full min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {COLUMNS.map((col) => {
           const count = ticketsByColumn[col.id]?.length ?? 0;
           return (
@@ -203,24 +225,24 @@ export function ExecBoard({ userName }: ExecBoardProps) {
               onDragOver={(e) => handleDragOver(e, col.id)}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, col.id)}
-              className={`flex min-w-0 flex-col rounded-lg border transition-colors ${
+              className={`flex min-w-0 flex-col rounded-xl border shadow-[0_3px_12px_rgba(17,24,39,0.04)] transition-colors ${
                 dragOverColumnId === col.id
-                  ? "border-[#0052CC] bg-[#DEEBFF]/50"
-                  : "border-[#DFE1E6] bg-[#F4F5F7]"
+                  ? "border-[#E4003F] bg-[#FFF1F7]"
+                  : "border-[#E5E7EB] bg-[#F8FAFC]"
               }`}
             >
-              <div
-                className="flex items-center justify-between border-b border-[#DFE1E6] px-2 py-1.5"
-                title={col.tooltip}
-              >
-                <span className="truncate text-xs font-semibold text-[#172B4D]">
+              <div className="flex items-center justify-between border-b border-[#E5E7EB] px-3 py-2.5">
+                <span className="group relative truncate text-[13px] font-extrabold tracking-wide text-[#1F2937]">
                   {col.label} ({col.labelEn})
+                  <span className="pointer-events-none absolute left-0 top-full z-30 mt-2 w-64 rounded-lg border border-[#F3D0DC] bg-white px-3 py-2 text-[12px] font-semibold leading-relaxed text-[#374151] opacity-0 shadow-[0_10px_24px_rgba(17,24,39,0.12)] transition-opacity duration-150 group-hover:opacity-100">
+                    {col.tooltip}
+                  </span>
                 </span>
-                <span className="flex h-5 min-w-[20px] flex-shrink-0 items-center justify-center rounded-full bg-[#DFE1E6] px-1.5 text-xs font-medium text-[#6B778C]">
+                <span className="flex h-5 min-w-[20px] flex-shrink-0 items-center justify-center rounded-full bg-[#FCE7F3] px-1.5 text-xs font-bold text-[#A2002D]">
                   {count}
                 </span>
               </div>
-              <div className="flex min-h-[80px] flex-col gap-2 p-2">
+              <div className="flex min-h-[220px] flex-col gap-2.5 p-3">
                 {ticketsByColumn[col.id]?.map((t) => {
                   const isBlinkingBlocker = t.id === "t8" && boardComplete;
                   return (
@@ -233,26 +255,39 @@ export function ExecBoard({ userName }: ExecBoardProps) {
                       tabIndex={isBlinkingBlocker ? 0 : undefined}
                       onClick={isBlinkingBlocker ? goToE6 : undefined}
                       onKeyDown={isBlinkingBlocker ? (e) => e.key === "Enter" && goToE6() : undefined}
-                      className={`rounded border border-[#DFE1E6] bg-white p-2 shadow-sm transition-shadow ${
+                      className={`relative rounded-lg border border-[#E5E7EB] bg-white p-3 shadow-[0_2px_8px_rgba(17,24,39,0.08)] transition ${
                         isBlinkingBlocker
-                          ? "cursor-pointer ring-2 ring-[#DE350B] animate-pulse hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0052CC]"
-                          : `cursor-grab active:cursor-grabbing hover:shadow-md active:opacity-90 ${draggingTicketId === t.id ? "opacity-50" : ""}`
+                          ? "cursor-pointer border-[#E4003F] bg-[#FFF1F7] ring-2 ring-[#E4003F] shadow-[0_0_0_2px_rgba(228,0,63,0.15),0_0_28px_rgba(228,0,63,0.45)] focus:outline-none focus:ring-2 focus:ring-[#E4003F]"
+                          : `cursor-grab active:cursor-grabbing hover:-translate-y-[1px] hover:shadow-md active:opacity-90 ${draggingTicketId === t.id ? "opacity-50" : ""}`
                       }`}
+                      style={
+                        isBlinkingBlocker
+                          ? {
+                              animation: "pulse 0.85s ease-in-out infinite, bounce 1.1s ease-in-out infinite",
+                            }
+                          : undefined
+                      }
                     >
+                    {isBlinkingBlocker && (
+                      <span className="absolute -right-2 -top-2 inline-flex items-center gap-1 rounded-full border border-red-200 bg-[#E4003F] px-2 py-0.5 text-[10px] font-extrabold text-white shadow-[0_6px_16px_rgba(228,0,63,0.45)]">
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-white animate-ping" />
+                        긴급
+                      </span>
+                    )}
                     <div className="flex items-start gap-1.5">
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium leading-snug text-[#172B4D] line-clamp-3">{t.text}</p>
+                        <p className="break-words text-[13px] font-semibold leading-5 text-[#111827]">{t.text}</p>
                         {getLabelFromText(t.text) && (
-                          <span className="mt-1.5 inline-block rounded bg-[#EAE6FF] px-1.5 py-0.5 text-xs font-medium text-[#403294]">
+                          <span className="mt-2 inline-block rounded bg-[#FCE7F3] px-1.5 py-0.5 text-[11px] font-extrabold text-[#9D174D]">
                             {getLabelFromText(t.text)}
                           </span>
                         )}
-                        <div className="mt-1.5 flex items-center justify-end">
-                          <span className="text-xs text-[#6B778C]">{getIssueKey(t.id)}</span>
+                        <div className="mt-2 flex items-center justify-end">
+                          <span className="text-[11px] font-semibold text-[#6B7280]">{getIssueKey(t.id)}</span>
                         </div>
                       </div>
                       {col.id === "blocker" && (
-                        <span className="flex-shrink-0 text-[#DE350B]" title="Blocker">
+                        <span className="flex-shrink-0 text-[#E4003F]" title="Blocker">
                           <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
@@ -270,65 +305,85 @@ export function ExecBoard({ userName }: ExecBoardProps) {
 
       {/* 미배치 티켓 (백로그 스타일) */}
       {!boardComplete && (
-      <div
-        onDragOver={(e) => handleDragOver(e, POOL)}
-        onDragLeave={handleDragLeave}
-        onDrop={(e) => handleDrop(e, POOL)}
-        className={`rounded-lg border-2 border-dashed p-3 transition-colors ${
-          dragOverColumnId === POOL ? "border-[#0052CC] bg-[#DEEBFF]/30" : "border-[#DFE1E6] bg-[#FAFBFC]"
-        }`}
-      >
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-sm font-semibold text-[#6B778C]">미배치 티켓</p>
-          <span className="rounded-full bg-[#DFE1E6] px-2 py-0.5 text-xs text-[#6B778C]">
-            {ticketsByColumn[POOL]?.length ?? 0}개
-          </span>
-        </div>
-        <p className="mb-2 text-xs text-[#6B778C]">드래그하여 위 칸반 칸에 배치하세요.</p>
-        <div className="flex flex-wrap gap-2">
-          {ticketsByColumn[POOL]?.map((t) => (
-            <div
-              key={t.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, t.id)}
-              onDragEnd={handleDragEnd}
-              className={`flex cursor-grab active:cursor-grabbing items-center gap-2 rounded border border-[#DFE1E6] bg-white p-2 shadow-sm transition-shadow hover:shadow-md active:opacity-90 ${
-                draggingTicketId === t.id ? "opacity-50" : ""
-              }`}
-            >
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-medium text-[#172B4D]">{t.text}</p>
-                <div className="mt-1 flex items-center gap-2">
-                  {getLabelFromText(t.text) && (
-                    <span className="inline-block rounded bg-[#EAE6FF] px-1.5 py-0.5 text-xs font-medium text-[#403294]">
-                      {getLabelFromText(t.text)}
-                    </span>
-                  )}
-                  <span className="text-xs text-[#6B778C]">{getIssueKey(t.id)}</span>
-                </div>
-              </div>
+        <div className="space-y-3">
+          <div
+            onDragOver={(e) => handleDragOver(e, POOL)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, POOL)}
+            className={`rounded-xl border-2 border-dashed p-4 transition-colors ${
+              dragOverColumnId === POOL ? "border-[#E4003F] bg-[#FFF1F7]" : "border-[#E5E7EB] bg-white"
+            }`}
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[15px] font-extrabold text-[#374151]">미배치 티켓</p>
+              <span className="rounded-full bg-[#FCE7F3] px-2 py-0.5 text-xs font-bold text-[#A2002D]">
+                {ticketsByColumn[POOL]?.length ?? 0}개
+              </span>
             </div>
-          ))}
+            <p className="mb-3 text-[13px] font-medium text-[#6B7280]">드래그하여 위 보드 칸에 배치하세요.</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {ticketsByColumn[POOL]?.map((t) => (
+                <div
+                  key={t.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, t.id)}
+                  onDragEnd={handleDragEnd}
+                  className={`flex cursor-grab items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white p-2.5 shadow-[0_2px_8px_rgba(17,24,39,0.08)] transition hover:-translate-y-[1px] hover:shadow-md active:cursor-grabbing active:opacity-90 ${
+                    draggingTicketId === t.id ? "opacity-50" : ""
+                  }`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words text-[13px] font-semibold leading-5 text-[#111827]">{t.text}</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      {getLabelFromText(t.text) && (
+                        <span className="inline-block rounded bg-[#FCE7F3] px-1.5 py-0.5 text-[11px] font-extrabold text-[#9D174D]">
+                          {getLabelFromText(t.text)}
+                        </span>
+                      )}
+                      <span className="text-[11px] font-medium text-[#6B778C]">{getIssueKey(t.id)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
-      </div>
       )}
 
       {checkAttempted && !allCorrect && canCheck && (
-        <div className="rounded-lg border border-[#FFAB00] bg-[#FFF4E6] px-4 py-3 text-sm text-[#7A4E00]">
+        <div className="rounded-lg border border-[#FFCF66] bg-[#FFF8E8] px-4 py-3 text-[14px] font-semibold text-[#7A4E00]">
           일부 티켓이 잘못된 칸에 있습니다. 티켓 문구의 힌트를 보고 다시 배치해 보세요.
+        </div>
+      )}
+      {!boardComplete && canCheck && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={checkComplete}
+            disabled={!checkEnabled}
+            className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-extrabold transition ${
+              checkEnabled
+                ? "border-[#111827] bg-[#111827] text-white shadow-[0_10px_24px_rgba(17,24,39,0.22)] hover:-translate-y-[1px] hover:bg-[#1F2937]"
+                : "cursor-not-allowed border-[#D1D5DB] bg-[#E5E7EB] text-[#9CA3AF]"
+            }`}
+          >
+            <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[12px] ${checkEnabled ? "bg-white/20" : "bg-white/70"}`}>✓</span>
+            보드 세팅 확인
+          </button>
         </div>
       )}
 
       {boardComplete && (
-        <div className="p-4 rounded-xl border border-[#E5E5E5] bg-[#F0FDF4] text-sm text-[#6B6B6B]">
-          <p className="font-medium text-[#4A4A4A] mb-2">훌륭합니다! 이제 프로젝트의 흐름이 한눈에 들어오네요.</p>
+        <div className="rounded-xl border border-[#BBF7D0] bg-[#F0FDF4] p-5 text-[14px] leading-relaxed text-[#374151]">
+          <p className="mb-2 text-[15px] font-extrabold text-[#166534]">훌륭합니다! 이제 프로젝트의 흐름이 한눈에 들어오네요.</p>
           <p className="mb-2">
             팀원들은 각자의 티켓을 붙잡고 실무에 돌입했습니다. 리더님은 전체 보드를 조망하며 티켓이 멈추지 않도록 장애물(Blocker)을 치워주시면 됩니다.
           </p>
-          <p className="text-red-600 font-medium mb-2">
+          <p className="mb-2 font-bold text-[#B91C1C]">
             [삐빅- 🚨] 앗, 방금 세팅을 마치자마자 [Blocker] 칸에 있던 티켓(북미 지역 데이터 연동)에서 긴급 알림이 울리기 시작했습니다! 담당자인 IT 김지훈 선임과 유관부서 간의 댓글 핑퐁이 심상치 않습니다.
           </p>
-          <p className="text-red-600 font-medium">
+          <p className="font-bold text-[#B91C1C]">
             빨리 붉게 깜빡이는 티켓을 클릭하여 상황을 해결하십시오!
           </p>
         </div>

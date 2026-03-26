@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import {
   getEp6Result,
@@ -22,7 +21,6 @@ interface Ep6PingpongResultProps {
 }
 
 export function Ep6PingpongResult({ userName }: Ep6PingpongResultProps) {
-  const router = useRouter();
   const { episode6Blocks } = useStore();
   const b = episode6Blocks ?? { block1: "B", block2: "E", block3: "D", block4: "B" };
 
@@ -37,37 +35,34 @@ export function Ep6PingpongResult({ userName }: Ep6PingpongResultProps) {
   const result = getEp6Result(b.block4, b.block2);
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-bold text-[#4A4A4A]">E6. 핑퐁 게임을 멈춰라! – 결과</h2>
+    <section className="mx-auto w-full max-w-4xl" aria-labelledby="ep6-result-title">
+      <div className="rounded-xl border border-white/15 bg-white/95 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-md sm:p-8">
+        <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-[#E4003F]">E6 RESULT</p>
+        <h2 id="ep6-result-title" className="mt-2 text-center text-2xl font-extrabold tracking-tight text-black/90 sm:text-3xl">
+          E6. 핑퐁 게임을 멈춰라! – 결과
+        </h2>
 
-      <div className="rounded-xl border border-[#E5E5E5] bg-white p-4">
-        <p className="text-sm font-medium text-[#4A4A4A] mb-2">[나의 커뮤니케이션 전략]</p>
-        <p className="text-sm text-[#6B6B6B] leading-relaxed">&quot;{composedMessage}&quot;</p>
-      </div>
-
-      <div className="rounded-xl border border-[#E5E5E5] bg-[#F9FAFB] p-4 space-y-4">
-        <p className="text-sm text-[#4A4A4A] leading-relaxed">{renderWithBold(result.text)}</p>
-        {result.kpiLabels.length > 0 && (
+        <div className="mt-8 space-y-4">
+          <div className="text-center">
+            <span className="inline-flex rounded-full bg-[#E4003F]/12 px-4 py-1.5 text-[16px] font-extrabold tracking-tight text-[#E4003F] ring-1 ring-[#E4003F]/25">
+              {result.endingTitle}
+            </span>
+          </div>
+          <p className="text-[15px] leading-[1.85] text-black/75">{renderWithBold(result.text)}</p>
           <div className="flex flex-wrap gap-2">
             {result.kpiLabels.map((label) => (
               <span
                 key={label}
-                className={`rounded px-2 py-1 text-xs font-medium ${
-                  label.includes("▼") ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"
+                className={`rounded-full px-3 py-1 text-[12px] font-extrabold ${
+                  label.includes("▼") ? "bg-red-50 text-red-700 ring-1 ring-red-200" : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
                 }`}
               >
                 [{label}]
               </span>
             ))}
           </div>
-        )}
+        </div>
       </div>
-
-      <div className="rounded-xl border border-[#E5E5E5] bg-white p-4">
-        <p className="text-xs font-medium text-[#4A4A4A] mb-2">챗봇 선배 PM의 조언</p>
-        <p className="text-sm text-[#6B6B6B] leading-relaxed">{result.advice}</p>
-      </div>
-
-    </div>
+    </section>
   );
 }

@@ -16,11 +16,17 @@ interface InitiationActionProps {
   stage?: "intro" | "alloc";
 }
 
+/** **텍스트** → <strong>텍스트</strong> */
+function renderWithBold(paragraph: string) {
+  const parts = paragraph.split(/\*\*(.+?)\*\*/g);
+  return parts.map((p, i) => (i % 2 === 1 ? <strong key={i}>{p}</strong> : p));
+}
+
 export function InitiationAction({ userName, stage = "alloc" }: InitiationActionProps) {
   const router = useRouter();
   const { initiationActionHours, setInitiationActionHours, applyKpiDelta, kpi, setKpiBeforeInitiation } = useStore();
-  const [openPmbokId, setOpenPmbokId] = useState<string | null>(null);
-  const [openImpactId, setOpenImpactId] = useState<string | null>(null);
+  const [openPmbokById, setOpenPmbokById] = useState<Record<string, boolean>>({});
+  const [openImpactById, setOpenImpactById] = useState<Record<string, boolean>>({});
 
   const getHours = (id: string) => {
     const v = initiationActionHours[id];
@@ -58,14 +64,14 @@ export function InitiationAction({ userName, stage = "alloc" }: InitiationAction
     <div className="mx-auto w-full max-w-4xl space-y-6 px-6 py-6">
       {/* Header card */}
       {stage === "intro" && (
-        <section className="rounded-3xl border border-white/15 bg-white/95 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-md sm:p-8">
+        <section className="rounded-[0.735rem] border border-white/15 bg-white/95 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-md sm:p-8">
           <h1 className="text-center text-xl sm:text-2xl font-extrabold tracking-tight text-[#E4003F]">
             일주일 뒤, 당장 투입입니다.
           </h1>
-          <p className="mt-4 text-[15px] leading-[1.85] text-black/75">{initiationScreenCopy.scenarioIntro}</p>
-          <p className="mt-3 text-[15px] leading-[1.85] text-black/75">{initiationScreenCopy.timeRule}</p>
+          <p className="mt-4 text-[15px] leading-[1.85] text-black/75">{renderWithBold(initiationScreenCopy.scenarioIntro)}</p>
+          <p className="mt-3 text-[15px] leading-[1.85] text-black/75">{renderWithBold(initiationScreenCopy.timeRule)}</p>
 
-          <div className="mt-6 overflow-hidden rounded-2xl border border-black/10 bg-[#f8f9fa] shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
+          <div className="mt-6 overflow-hidden rounded-[0.49rem] border border-black/10 bg-[#f8f9fa] shadow-[0_12px_40px_rgba(0,0,0,0.08)]">
             <div className="flex items-center gap-3 border-b border-black/10 bg-white/60 px-5 py-3">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#E4003F]/15 text-[#E4003F] ring-1 ring-black/10">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
@@ -78,7 +84,7 @@ export function InitiationAction({ userName, stage = "alloc" }: InitiationAction
               </div>
             </div>
             <div className="border-l-4 border-[#E4003F] px-5 py-4">
-              <p className="text-[14px] leading-[1.85] text-black/75">{initiationScreenCopy.pmbokExplanation}</p>
+              <p className="text-[14px] leading-[1.85] text-black/75">{renderWithBold(initiationScreenCopy.pmbokExplanation)}</p>
             </div>
           </div>
         </section>
@@ -94,16 +100,16 @@ export function InitiationAction({ userName, stage = "alloc" }: InitiationAction
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="text-[13px] font-extrabold text-black/70">총 배분 시간</p>
-                <p className={`mt-1 text-[16px] font-extrabold ${isValid ? "text-[#E4003F]" : isOver ? "text-red-600" : "text-black/85"}`}>
+                <p className={`mt-1 text-[16px] font-extrabold ${isValid ? "text-[#E4003F]" : isOver ? "text-[#E4003F]" : "text-black/85"}`}>
                   {total}시간 / {INITIATION_TOTAL_HOURS}시간
                   {!isValid && !isOver && <span className="ml-2 text-[13px] font-semibold text-black/60">(40시간 미만이면 ‘다음’ 가능)</span>}
-                  {isOver && <span className="ml-2 text-[13px] font-semibold text-red-600">(초과)</span>}
+                  {isOver && <span className="ml-2 text-[13px] font-semibold text-[#E4003F]">(초과)</span>}
                 </p>
               </div>
               <div className="w-full sm:w-[420px]">
                 <div className="h-3 w-full overflow-hidden rounded-full bg-black/10">
                   <div
-                    className={`h-full rounded-full transition-[width] duration-500 ${isValid ? "bg-[#E4003F]" : isOver ? "bg-red-500" : "bg-black/40"}`}
+                    className={`h-full rounded-full transition-[width] duration-500 ${isValid ? "bg-[#E4003F]" : isOver ? "bg-[#E4003F]" : "bg-black/40"}`}
                     style={{ width: `${progressPct}%` }}
                   />
                 </div>
@@ -112,7 +118,7 @@ export function InitiationAction({ userName, stage = "alloc" }: InitiationAction
           </div>
 
           <div className="space-y-4">
-            {initiationActions.map((action) => (
+            {initiationActions.map((action, idx) => (
               (() => {
                 const pmbok = action.pmbok;
                 const bStart = pmbok.indexOf("[");
@@ -120,19 +126,19 @@ export function InitiationAction({ userName, stage = "alloc" }: InitiationAction
                 const pmbokTitle = bStart >= 0 && bEnd > bStart ? pmbok.slice(bStart, bEnd + 1) : "PMBOK 지식";
                 const pmbokBody = bStart >= 0 && bEnd > bStart ? pmbok.slice(bEnd + 1).trim() : pmbok;
                 const isTouched = initiationActionHours[action.id] != null;
-                const isPmbokOpen = openPmbokId === action.id;
-                const isImpactOpen = openImpactId === action.id;
+                const isPmbokOpen = !!openPmbokById[action.id];
+                const isImpactOpen = !!openImpactById[action.id];
                 return (
               <div
                 key={action.id}
-                className={`rounded-2xl border bg-white/95 p-5 shadow-[0_10px_30px_rgba(0,0,0,0.06)] backdrop-blur-md transition ${
-                  isTouched ? "border-[#E4003F]/60 ring-1 ring-[#E4003F]/15" : "border-white/15"
+                className={`rounded-2xl border bg-white/95 p-5 shadow-[0_10px_30px_rgba(0,0,0,0.06)] backdrop-blur-md ${
+                  "border-white/15"
                 }`}
               >
                 <div className="flex flex-col gap-2">
                   <div className="min-w-0">
                     <p className="text-[18px] sm:text-[20px] font-extrabold tracking-tight text-black/90">
-                      {action.title}
+                      ({idx + 1}) {action.title}
                     </p>
                     <p className="mt-2 text-[15px] leading-[1.85] text-black/75">{action.description}</p>
                   </div>
@@ -143,13 +149,16 @@ export function InitiationAction({ userName, stage = "alloc" }: InitiationAction
                   <div className="rounded-xl border border-black/10 bg-[#f8f9fa] p-4">
                     <button
                       type="button"
-                      onClick={() => setOpenPmbokId((cur) => (cur === action.id ? null : action.id))}
+                      onClick={() => setOpenPmbokById((cur) => ({ ...cur, [action.id]: !cur[action.id] }))}
                       className="flex w-full items-center justify-between gap-3 text-left"
                       aria-expanded={isPmbokOpen}
                       aria-controls={`pmbok-${action.id}`}
                     >
                       <span className="text-[13px] font-extrabold text-black/85">PMBOK 지식</span>
-                      <span className="shrink-0 text-[12px] font-extrabold text-black/45" aria-hidden="true">
+                      <span
+                        className={`shrink-0 text-[12px] font-extrabold ${isPmbokOpen ? "text-black/45" : "text-[#E4003F]"}`}
+                        aria-hidden="true"
+                      >
                         {isPmbokOpen ? "−" : "+"}
                       </span>
                     </button>
@@ -168,28 +177,37 @@ export function InitiationAction({ userName, stage = "alloc" }: InitiationAction
                   <div className="rounded-xl border border-black/10 bg-[#f8f9fa] p-4">
                     <button
                       type="button"
-                      onClick={() => setOpenImpactId((cur) => (cur === action.id ? null : action.id))}
+                      onClick={() => setOpenImpactById((cur) => ({ ...cur, [action.id]: !cur[action.id] }))}
                       className="flex w-full items-center justify-between gap-3 text-left"
                       aria-expanded={isImpactOpen}
                       aria-controls={`impact-${action.id}`}
                     >
                       <span className="text-[13px] font-extrabold text-black/85">Impact</span>
-                      <span className="shrink-0 text-[12px] font-extrabold text-black/45" aria-hidden="true">
+                      <span
+                        className={`shrink-0 text-[12px] font-extrabold ${isImpactOpen ? "text-black/45" : "text-[#E4003F]"}`}
+                        aria-hidden="true"
+                      >
                         {isImpactOpen ? "−" : "+"}
                       </span>
                     </button>
-                    <div id={`impact-${action.id}`} className={isImpactOpen ? "mt-3 flex flex-wrap gap-2" : "hidden"} aria-hidden={!isImpactOpen}>
-                      {action.effect.map((e) => (
-                        <span
-                          key={e}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[13px] font-extrabold text-emerald-700 ring-1 ring-emerald-200"
-                        >
-                          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white">
-                            ▲
+                    <div
+                      id={`impact-${action.id}`}
+                      className={isImpactOpen ? "mt-3" : "hidden"}
+                      aria-hidden={!isImpactOpen}
+                    >
+                      <div className="flex flex-wrap content-start gap-2">
+                        {action.effect.map((e) => (
+                          <span
+                            key={e}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[13px] font-extrabold text-emerald-700 ring-1 ring-emerald-200"
+                          >
+                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white">
+                              ▲
+                            </span>
+                            {e.replace("대폭", "").replace("상승", "").trim()} <span className="text-emerald-600">상승</span>
                           </span>
-                          {e.replace("대폭", "").replace("상승", "").trim()} <span className="text-emerald-600">상승</span>
-                        </span>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>

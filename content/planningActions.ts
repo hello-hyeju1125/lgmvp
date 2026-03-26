@@ -1,10 +1,10 @@
 /** Screen 11. 기획 단계 40시간 액션 배분 */
 export const PLANNING_TOTAL_HOURS = 40;
-export const PLANNING_MIN_PER_ACTION = 5;
-export const PLANNING_MAX_PER_ACTION = 25;
+export const PLANNING_MIN_PER_ACTION = 3;
+export const PLANNING_MAX_PER_ACTION = 15;
 
-/** 1~5단계 = 5, 10, 15, 20, 25시간 */
-export const PLANNING_STEP_HOURS = [5, 10, 15, 20, 25] as const;
+/** 1~5단계 = 3, 6, 9, 12, 15시간 */
+export const PLANNING_STEP_HOURS = [3, 6, 9, 12, 15] as const;
 
 export const planningScreenCopy = {
   intro1:
@@ -17,7 +17,7 @@ export const planningScreenCopy = {
   popupKpiLabel: "지표의 변화:",
   popupKpiRise: "상승 ▲",
   popupOutro:
-    "액션 아이템 에너지 배분을 토대로, 이제 프로젝트의 실행력을 확보하는 본격적인 기획 단계에 접어들었습니다. 프로젝트의 전체적인 로드맵을 그려나가는 중요한 시점, 비상주 인력으로 참여 중인 유관 부서의 정태영 책임이 다소 무거운 표정으로 회의에 참석합니다.",
+    "액션 아이템 에너지 배분을 토대로,\n이제 프로젝트의 실행력을 확보하는 기획 단계에 접어들었습니다.\n프로젝트의 전체적인 로드맵을 그려나가는 중요한 시점,\n정태영 책임이 다소 무거운 표정으로 회의에 참석합니다",
 };
 
 export interface PlanningActionItem {

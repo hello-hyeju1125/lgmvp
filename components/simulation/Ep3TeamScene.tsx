@@ -1,70 +1,98 @@
 "use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
-import { ep3Scene, ep3Options, getEp3Result } from "@/content/episode3";
+import { ep3Scene, ep3Options } from "@/content/episode3";
 
 interface Ep3TeamSceneProps {
   userName: string;
 }
 
-export function Ep3TeamScene({ userName }: Ep3TeamSceneProps) {
-  const router = useRouter();
-  const { setEpisode3Choice, applyKpiDelta, planningActionHours } = useStore();
-  const [selected, setSelected] = useState<"A" | "B" | "C" | "D" | null>(null);
+/** **text** -> <strong>text</strong> */
+function renderWithBold(paragraph: string) {
+  const parts = paragraph.split(/\*\*(.+?)\*\*/g);
+  return parts.map((p, i) => (i % 2 === 1 ? <strong key={i}>{p}</strong> : p));
+}
 
-  const handleConfirm = () => {
-    if (!selected) return;
-    const result = getEp3Result(selected, planningActionHours["resource_assign"] ?? 0);
-    applyKpiDelta(result.kpi);
-    setEpisode3Choice(selected);
-    router.push("/simulation?phase=ep3-team-result");
-  };
+export function Ep3TeamScene({ userName }: Ep3TeamSceneProps) {
+  const { episode3Choice, setEpisode3Choice } = useStore();
+  const [isDialogueRevealed, setIsDialogueRevealed] = useState(false);
+  const [firstQuote, narration] = ep3Scene.dialogue;
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-bold text-[#4A4A4A]">{ep3Scene.title}</h2>
-      <p className="text-sm text-[#6B6B6B]">[상황] {ep3Scene.situation}</p>
+    <div className="mx-auto w-full max-w-3xl space-y-6">
+      <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-black/90">{ep3Scene.title}</h2>
+      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
+        <span className="text-black/90">[Situation]</span> {renderWithBold(ep3Scene.situation)}
+      </p>
 
-      <div className="border border-[#E5E5E5] rounded-xl p-4 space-y-3 bg-[#F9FAFB]">
-        {ep3Scene.dialogue.map((line, i) => (
-          <p key={i} className="text-sm text-[#6B6B6B]">
-            {line}
-          </p>
-        ))}
+      <div className="rounded-2xl border border-black/10 bg-gray-50 p-5 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
+        <div className="border-l-4 border-[#E4003F] pl-4">
+          <p className="text-[13px] font-extrabold text-black/85">정태영 책임</p>
+
+          {!isDialogueRevealed ? (
+            <button
+              type="button"
+              onClick={() => setIsDialogueRevealed(true)}
+              className="group relative mt-3 w-full text-left"
+              aria-label="대화 펼치기"
+            >
+              <div className="relative overflow-hidden rounded-xl bg-white/60 px-4 py-3 ring-1 ring-black/10 transition-all group-hover:bg-white/80 group-hover:ring-[#E4003F]/35">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-extrabold text-black/70 underline decoration-black/15 decoration-dotted underline-offset-4 group-hover:decoration-[#E4003F]/50">
+                      대화 내용 펼치기
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-[14px] leading-[1.75] text-black/40 blur-[0.6px]">
+                      {renderWithBold(firstQuote ?? "")}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-[#E4003F]/10 px-3 py-1 text-[12px] font-extrabold text-[#E4003F] ring-1 ring-black/10 transition group-hover:bg-[#E4003F]/15">
+                    Click
+                  </span>
+                </div>
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(280px_120px_at_18%_35%,rgba(228,0,63,0.12),transparent_60%)] opacity-70" />
+              </div>
+            </button>
+          ) : (
+            <p className="mt-2 text-[16px] leading-[1.85] text-black/80">{renderWithBold(firstQuote ?? "")}</p>
+          )}
+        </div>
       </div>
 
-      <p className="text-sm font-medium text-[#4A4A4A]">[Action] {ep3Scene.action}</p>
+      {narration ? (
+        <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
+          {renderWithBold(narration)}
+        </p>
+      ) : null}
+
+      <div className="py-[1.8rem] flex items-center" aria-hidden="true">
+        <div className="h-px w-full bg-black/10" />
+      </div>
+
+      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
+        <span className="text-black/90">[Action]</span> {renderWithBold(ep3Scene.action)}
+      </p>
 
       <div className="space-y-3">
         {ep3Options.map((opt) => (
           <button
             key={opt.id}
             type="button"
-            onClick={() => setSelected(opt.id)}
-            className={`w-full text-left p-4 rounded-xl border-2 transition-colors ${
-              selected === opt.id ? "border-[#6B6B6B] bg-[#F9FAFB]" : "border-[#E5E5E5] hover:border-[#6B6B6B]/50"
+            onClick={() => setEpisode3Choice(opt.id)}
+            className={`w-full text-left rounded-2xl border-2 bg-white p-5 transition-all cursor-pointer hover:-translate-y-1 hover:shadow-lg ${
+              episode3Choice === opt.id
+                ? "border-[#E4003F] shadow-[0_14px_50px_rgba(228,0,63,0.14)]"
+                : "border-black/10 hover:border-[#E4003F]"
             }`}
           >
-            <p className="font-medium text-[#4A4A4A]">
+            <p className="text-[18px] font-bold leading-tight text-gray-900">
               옵션 {opt.id}. {opt.title}
             </p>
-            <p className="text-sm text-[#6B6B6B] mt-1">{opt.summary}</p>
+            <p className="mt-2 text-[16px] leading-[1.85] text-gray-600">{renderWithBold(opt.summary)}</p>
           </button>
         ))}
       </div>
 
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={handleConfirm}
-          disabled={!selected}
-          className="px-6 py-2.5 rounded-xl bg-[#6B6B6B] text-white text-sm font-medium hover:bg-[#4A4A4A] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          선택한 의사결정대로 행동하시겠습니까?
-        </button>
-      </div>
     </div>
   );
 }

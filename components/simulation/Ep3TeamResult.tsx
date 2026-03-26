@@ -31,52 +31,59 @@ function ResultBlock({
   onToggle: () => void;
   isMyChoice: boolean;
 }) {
+  const header = (
+    <span className="text-[15px] font-extrabold text-black/85">
+      결과 {id}. {optionTitle}
+      {isMyChoice && (
+        <span className="ml-2 inline-flex rounded-full bg-[#E4003F]/10 px-2.5 py-0.5 text-[12px] font-extrabold text-[#E4003F] ring-1 ring-[#E4003F]/20">
+          나의 선택
+        </span>
+      )}
+    </span>
+  );
+
   return (
-    <div className="rounded-xl border border-[#E5E5E5] overflow-hidden bg-white">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-center justify-between gap-2 p-4 text-left hover:bg-[#F9FAFB] transition-colors"
-      >
-        <span className="text-sm font-medium text-[#4A4A4A]">
-          결과 {id}. {optionTitle}
-          {isMyChoice && (
-            <span className="ml-2 text-xs font-semibold text-[#464775] bg-[#E8EBFA] px-2 py-0.5 rounded">
-              나의 선택
-            </span>
-          )}
-        </span>
-        <span className="text-[#6B6B6B] shrink-0" aria-hidden>
-          {isOpen ? "▲" : "▼"}
-        </span>
-      </button>
+    <div className="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
+      {isMyChoice ? (
+        <div className="flex items-center justify-between gap-2 bg-[#f8f9fa] p-4">{header}</div>
+      ) : (
+        <button type="button" onClick={onToggle} className="flex w-full items-center justify-between gap-2 p-4 text-left transition-colors hover:bg-gray-50">
+          {header}
+          <span className="shrink-0 text-black/45" aria-hidden>
+            {isOpen ? "▲" : "▼"}
+          </span>
+        </button>
+      )}
       {isOpen && (
-        <div className="border-t border-[#E5E5E5] p-4 space-y-4 bg-[#FAFAFA]">
-          <p className="text-sm text-[#4A4A4A] leading-relaxed">{renderWithBold(text)}</p>
+        <div className="space-y-4 border-t border-black/10 bg-[#f8f9fa] p-4">
+          <p className="text-[15px] leading-[1.85] text-black/75">{renderWithBold(text)}</p>
           <div className="flex flex-wrap gap-2">
             {kpiLabels.map((label) => (
               <span
                 key={label}
-                className={`rounded px-2 py-1 text-xs font-medium ${
-                  label.includes("▼") ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"
+                className={`rounded-full px-3 py-1 text-[12px] font-extrabold ${
+                  label.includes("▼") ? "bg-red-50 text-red-700 ring-1 ring-red-200" : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
                 }`}
               >
                 [{label}]
               </span>
             ))}
           </div>
-          <div className="rounded-lg border border-[#E5E5E5] bg-white p-4">
-            <p className="text-xs font-medium text-[#4A4A4A] mb-3">챗봇 선배 PM의 조언</p>
-            <div className="flex gap-3">
-              <div className="shrink-0 w-9 h-9 rounded-full bg-[#E8EBFA] flex items-center justify-center text-[#464775] font-bold text-sm">
-                PM
-              </div>
-              <div className="space-y-2 min-w-0">
-                {adviceParagraphs.map((para, i) => (
-                  <p key={i} className="text-sm text-[#6B6B6B] leading-relaxed">
-                    {renderWithBold(para)}
-                  </p>
-                ))}
+          <div className="flex items-start gap-3">
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-[#E4003F]/10 ring-1 ring-black/10">
+              <img src="/chatbot.png" alt="챗봇 선배 PM" className="h-full w-full object-cover" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="mb-2 text-[13px] font-extrabold text-black/85">챗봇 선배 PM</p>
+              <div className="relative rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
+                <div className="absolute left-0 top-5 -translate-x-1/2 rotate-45 h-3 w-3 border border-black/10 bg-white" aria-hidden="true" />
+                <div className="space-y-2">
+                  {adviceParagraphs.map((para, i) => (
+                    <p key={i} className="text-[14px] leading-[1.85] text-black/70">
+                      {renderWithBold(para)}
+                    </p>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -85,9 +92,6 @@ function ResultBlock({
     </div>
   );
 }
-
-const EP3_INTRO =
-  "선택이 완료되었습니다. 기획 단계에서 엑셀 칸을 채우는 것보다 어려운 것은, 결국 '사람의 마음과 시간'을 얻어내는 일입니다. 당신의 선택이 불러온 결과에 대해 확인해 보십시오.";
 
 interface Ep3TeamResultProps {
   userName: string;
@@ -102,12 +106,12 @@ export function Ep3TeamResult({ userName }: Ep3TeamResultProps) {
 
   if (!episode3Choice) {
     return (
-      <div className="text-center py-8">
-        <p className="text-[#6B6B6B]">선택 정보가 없습니다.</p>
+      <div className="mx-auto w-full max-w-3xl py-8 text-center">
+        <p className="text-[15px] text-black/70">선택 정보가 없습니다.</p>
         <button
           type="button"
           onClick={() => router.push("/simulation?phase=ep3-scene")}
-          className="mt-4 text-[#6B6B6B] underline"
+          className="mt-4 text-[15px] font-semibold text-[#E4003F] underline underline-offset-2"
         >
           옵션 선택으로 돌아가기
         </button>
@@ -119,21 +123,20 @@ export function Ep3TeamResult({ userName }: Ep3TeamResultProps) {
   const otherIds: Ep3Choice[] = (["A", "B", "C", "D"] as const).filter((c) => c !== episode3Choice);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="ep3-result-title"
-    >
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-[#E5E5E5] bg-white shadow-xl">
-        <div className="p-6 space-y-5">
-          <h2 id="ep3-result-title" className="text-lg font-bold text-[#252423]">
-            E3. 소속 팀 업무가 먼저 아닙니까? – 결과
-          </h2>
-          <p className="text-sm text-[#4A4A4A] leading-relaxed">{EP3_INTRO}</p>
+    <section className="mx-auto w-full max-w-4xl" aria-labelledby="ep3-result-title">
+      <div className="rounded-xl border border-white/15 bg-white/95 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-md sm:p-8">
+        <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-[#E4003F]">E3 RESULT</p>
+        <h2 id="ep3-result-title" className="mt-2 text-center text-2xl font-extrabold tracking-tight text-black/90 sm:text-3xl">
+          E3. 소속 팀 업무가 먼저 아닙니까? – 결과
+        </h2>
+        <p className="mt-4 text-[15px] leading-[1.85] text-black/75">
+          선택이 반영되었습니다. 기획 단계에서 엑셀 칸을 채우는 것보다 어려운 것은, 결국 사람의 마음과 시간을 얻어내는 일입니다.
+          당신의 선택이 어떤 트레이드오프(Trade-off)를 발생시켰으며, 상단의 5가지 지표가 어떻게 변화했는지 확인해 보십시오.
+        </p>
 
-          <p className="text-sm font-medium text-[#252423]">나의 의사결정 결과 확인하기</p>
+        <p className="mt-8 text-[15px] font-extrabold text-black/85">나의 의사결정 결과 확인하기</p>
 
+        <div className="mt-4 space-y-4">
           <ResultBlock
             id={episode3Choice}
             optionTitle={myResult.optionTitle}
@@ -162,8 +165,7 @@ export function Ep3TeamResult({ userName }: Ep3TeamResultProps) {
             );
           })}
         </div>
-
       </div>
-    </div>
+    </section>
   );
 }

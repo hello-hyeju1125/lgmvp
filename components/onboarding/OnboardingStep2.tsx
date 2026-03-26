@@ -148,10 +148,12 @@ export function OnboardingStep2({}: OnboardingStep2Props) {
 
   return (
     <div className="flex flex-col bg-transparent">
-      <header className="flex-shrink-0 border-b border-white/10 bg-black/45 px-5 py-3 backdrop-blur-md">
-        <h1 className="text-center text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.55)]">
-          프로젝트 구성원
-        </h1>
+      <header className="flex-shrink-0 border-b border-white/10 bg-black/45 px-6 backdrop-blur-md">
+        <div className="mx-auto w-full max-w-4xl py-4">
+          <h1 className="text-center text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.55)]">
+            프로젝트 구성원
+          </h1>
+        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto px-6 py-6">

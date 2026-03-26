@@ -32,7 +32,7 @@ function RevealChip({
       aria-label="클릭하여 내용 보기"
       className={`inline-flex items-center justify-center align-baseline rounded-md px-2 py-0.5 mx-0.5 select-none outline-none transition ${
         isRevealed
-          ? "bg-black/5 text-black font-extrabold border border-black/10"
+          ? "bg-[#E4003F] text-white font-extrabold border border-[#E4003F]"
           : "cursor-pointer border border-[#BBBBBB]/80 bg-white text-[#6b6b6b] shadow-[0_0_0_1px_rgba(165,0,52,0.12)] hover:border-[#a50034] hover:text-black hover:bg-white/90 focus:border-[#a50034] focus:ring-4 focus:ring-[#a50034]/20 animate-pulse"
       }`}
     >
@@ -91,10 +91,12 @@ export function OnboardingStepProjectOverview({}: OnboardingStepProjectOverviewP
   return (
     <div className="flex flex-col bg-transparent">
       {/* 상단: onboarding 공통 menu bar 스타일 */}
-      <header className="flex-shrink-0 border-b border-white/10 bg-black/45 px-5 py-3 backdrop-blur-md">
-        <h1 className="text-center text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.55)]">
-          프로젝트 개요
-        </h1>
+      <header className="flex-shrink-0 border-b border-white/10 bg-black/45 px-6 backdrop-blur-md">
+        <div className="mx-auto w-full max-w-4xl py-4">
+          <h1 className="text-center text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.55)]">
+            프로젝트 개요
+          </h1>
+        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto px-6 py-6">
@@ -118,7 +120,7 @@ export function OnboardingStepProjectOverview({}: OnboardingStepProjectOverviewP
                   <IconLayers />
                 </span>
                 <div>
-                  <h3 className="text-lg sm:text-xl font-extrabold text-[#E4003F]">프로젝트 배경</h3>
+                  <h3 className="text-lg sm:text-xl font-extrabold text-black/90">프로젝트 배경</h3>
                 </div>
               </div>
 
@@ -159,7 +161,7 @@ export function OnboardingStepProjectOverview({}: OnboardingStepProjectOverviewP
                   <IconSpark />
                 </span>
                 <div>
-                  <h3 className="text-lg sm:text-xl font-extrabold text-[#E4003F]">프로젝트 목적</h3>
+                  <h3 className="text-lg sm:text-xl font-extrabold text-black/90">프로젝트 목적</h3>
                 </div>
               </div>
 
@@ -200,7 +202,7 @@ export function OnboardingStepProjectOverview({}: OnboardingStepProjectOverviewP
                   <IconTarget />
                 </span>
                 <div>
-                  <h3 className="text-lg sm:text-xl font-extrabold text-[#E4003F]">프로젝트 성공 요건 (KPI)</h3>
+                  <h3 className="text-lg sm:text-xl font-extrabold text-black/90">프로젝트 성공 요건 (KPI)</h3>
                 </div>
               </div>
 
@@ -224,7 +226,10 @@ export function OnboardingStepProjectOverview({}: OnboardingStepProjectOverviewP
                         산출물 품질 (Quality)
                       </p>
                       <p className="mt-2 text-[14px] leading-relaxed text-black/70">
-                        “현업이 즉시 활용하며 만족할 수 있는 실효성 높고 완성도 있는 AI 대시보드를 구축하였는가?”{" "}
+                        <span className="italic">
+                          “현업이 즉시 활용하며 만족할 수 있는 실효성 높고 완성도 있는 AI 대시보드를 구축하였는가?”
+                        </span>
+                        <br />
                         현업(CS/마케팅)의 데이터 처리 공수를 <span className="font-extrabold text-black/80">30% 이상</span> 단축할 수 있는{" "}
                         ‘AI VOC 대시보드’ 프로토타입의 정상 구동 및 아웃풋의 완성도를 평가합니다.
                       </p>
@@ -234,7 +239,10 @@ export function OnboardingStepProjectOverview({}: OnboardingStepProjectOverviewP
                         일정 준수 (Delivery)
                       </p>
                       <p className="mt-2 text-[14px] leading-relaxed text-black/70">
-                        “주어진 제한 시간 내에 지연 없이 프로젝트 마일스톤을 달성하고 결과물을 적기에 납품하였는가?”{" "}
+                        <span className="italic">
+                          “주어진 제한 시간 내에 지연 없이 프로젝트 마일스톤을 달성하고 결과물을 적기에 납품하였는가?”
+                        </span>
+                        <br />
                         프로젝트 착수부터 대시보드 프로토타입 오픈까지의 전체 일정을 체계적으로 관리하여,{" "}
                         <span className="font-extrabold text-black/80">‘6개월’</span>이라는 기한 내에 목표를 완수하는 진척도 관리 역량을 평가합니다.
                       </p>
@@ -256,7 +264,10 @@ export function OnboardingStepProjectOverview({}: OnboardingStepProjectOverviewP
                         팀 몰입도 (Team Engagement)
                       </p>
                       <p className="mt-2 text-[14px] leading-relaxed text-black/70">
-                        “팀원들의 잠재력을 발굴하고, 하나의 목표를 향해 자발적으로 몰입하는 팀 문화를 만들었는가?”{" "}
+                        <span className="italic">
+                          “팀원들의 잠재력을 발굴하고, 하나의 목표를 향해 자발적으로 몰입하는 팀 문화를 만들었는가?”
+                        </span>
+                        <br />
                         People Manager로서 프로젝트 팀원 개개인의 동기를 부여하고 역량을 끌어올려,{" "}
                         <span className="font-extrabold text-black/80">‘팀 몰입도 70% 이상’</span>의 주도적이고 건강한 조직 문화를 조성하는 것을 목표로 합니다.
                       </p>
@@ -266,10 +277,13 @@ export function OnboardingStepProjectOverview({}: OnboardingStepProjectOverviewP
                         이해관계자 조율 (Stakeholder Alignment)
                       </p>
                       <p className="mt-2 text-[14px] leading-relaxed text-black/70">
-                        “이해관계가 얽힌 유관부서 및 상위 조직과의 갈등을 해결하고, 적극적인 협조와 지원을 이끌어냈는가?”{" "}
+                        <span className="italic">
+                          “이해관계가 얽힌 유관부서 및 상위 조직과의 갈등을 해결하고, 적극적인 협조와 지원을 이끌어냈는가?”
+                        </span>
+                        <br />
                         CS, 마케팅 등 타 부서와의 원활한 소통 및 이해관계 조율을 통해{" "}
-                        <span className="font-extrabold text-black/80">‘유관부서 협조율 80% 이상’</span>을 달성하며,
-                        프로젝트의 강력한 추진 동력을 확보하는 능력을 평가합니다.
+                        <span className="font-extrabold text-black/80">‘유관부서 협조율 80% 이상’</span>을 달성하며, 프로젝트의 강력한 추진 동력을
+                        확보하는 능력을 평가합니다.
                       </p>
                     </div>
                   </div>

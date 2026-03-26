@@ -21,10 +21,12 @@ export function OnboardingStep0({}: OnboardingStep0Props) {
   return (
     <div className="flex flex-col bg-transparent">
       {/* Header (centered, cinematic tone) */}
-      <header className="flex-shrink-0 border-b border-white/10 bg-black/45 px-5 py-3 backdrop-blur-md">
-        <h1 className="text-center text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.55)]">
-          Welcome to the Simulation!
-        </h1>
+      <header className="flex-shrink-0 border-b border-white/10 bg-black/45 px-6 backdrop-blur-md">
+        <div className="mx-auto w-full max-w-4xl py-4">
+          <h1 className="text-center text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.55)]">
+            Welcome to the Simulation!
+          </h1>
+        </div>
       </header>
 
       {/* 본문: 카드 영역 */}

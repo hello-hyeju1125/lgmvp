@@ -16,7 +16,7 @@ export function PrevNextNav({ prevHref, nextHref, nextDisabled, onNextClick }: P
         <div className="flex w-full items-center justify-between">
           <Link
             href={prevHref}
-            className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-3 text-[15px] font-semibold text-[#E4003F] shadow-[0_14px_40px_rgba(0,0,0,0.45)] transition hover:bg-white/90 active:scale-[0.99] min-w-[120px]"
+            className="inline-flex items-center justify-center rounded-[0.35rem] bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/90 active:scale-[0.99] min-w-[120px]"
           >
             이전
           </Link>
@@ -25,10 +25,10 @@ export function PrevNextNav({ prevHref, nextHref, nextDisabled, onNextClick }: P
               type="button"
               onClick={onNextClick}
               disabled={!!nextDisabled}
-              className={`inline-flex items-center justify-center rounded-xl px-4 py-3 text-[15px] font-semibold shadow-[0_14px_40px_rgba(0,0,0,0.45)] transition active:scale-[0.99] min-w-[120px] ${
+              className={`inline-flex items-center justify-center rounded-[0.35rem] px-4 py-3 text-[15px] font-semibold shadow-[0_14px_40px_rgba(0,0,0,0.45)] transition active:scale-[0.99] min-w-[120px] ${
                 nextDisabled
-                  ? "cursor-not-allowed bg-white/30 text-white/70"
-                  : "bg-white text-[#E4003F] hover:bg-white/90"
+                  ? "cursor-not-allowed bg-[#E4003F]/35 text-white/80 shadow-none"
+                  : "bg-[#E4003F] text-white hover:bg-[#E4003F]/90 shadow-[0_14px_40px_rgba(228,0,63,0.28)]"
               }`}
             >
               다음
@@ -36,7 +36,7 @@ export function PrevNextNav({ prevHref, nextHref, nextDisabled, onNextClick }: P
           ) : (
             <Link
               href={nextHref}
-              className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-3 text-[15px] font-semibold text-[#E4003F] shadow-[0_14px_40px_rgba(0,0,0,0.45)] transition hover:bg-white/90 active:scale-[0.99] min-w-[120px]"
+              className="inline-flex items-center justify-center rounded-[0.35rem] bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/90 active:scale-[0.99] min-w-[120px]"
             >
               다음
             </Link>

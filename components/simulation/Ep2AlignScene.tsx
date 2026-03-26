@@ -7,14 +7,20 @@ interface Ep2AlignSceneProps {
   userName: string;
 }
 
+/** **text** → <strong>text</strong> */
+function renderWithBold(paragraph: string) {
+  const parts = paragraph.split(/\*\*(.+?)\*\*/g);
+  return parts.map((p, i) => (i % 2 === 1 ? <strong key={i}>{p}</strong> : p));
+}
+
 export function Ep2AlignScene({ userName: _userName }: Ep2AlignSceneProps) {
   const { episode2AlignChoice, setEpisode2AlignChoice } = useStore();
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6">
       <h2 className="text-2xl font-extrabold tracking-tight text-black/90 sm:text-3xl">{ep2AlignScene.title}</h2>
-      <p className="text-[16px] leading-[1.85] text-black/75">
-        <span className="font-extrabold text-black/85">[Situation]</span> {ep2AlignScene.situation}
+      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
+        <span className="text-black/90">[Situation]</span> {renderWithBold(ep2AlignScene.situation)}
       </p>
 
       <div className="rounded-2xl border border-black/10 bg-gray-50 p-5 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
@@ -22,14 +28,18 @@ export function Ep2AlignScene({ userName: _userName }: Ep2AlignSceneProps) {
           <p className="text-[13px] font-extrabold text-black/85">회의 중</p>
           {ep2AlignScene.dialogue.map((line, i) => (
             <p key={i} className="mt-2 text-[16px] leading-[1.85] text-black/80">
-              {line}
+              {renderWithBold(line)}
             </p>
           ))}
         </div>
       </div>
 
-      <p className="mt-12 text-[18px] font-extrabold leading-[1.85] text-black/90">
-        <span className="text-black/90">[Action]</span> {ep2AlignScene.action}
+      <div className="py-[1.8rem] flex items-center" aria-hidden="true">
+        <div className="h-px w-full bg-black/10" />
+      </div>
+
+      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
+        <span className="text-black/90">[Action]</span> {renderWithBold(ep2AlignScene.action)}
       </p>
 
       <div className="space-y-3">
@@ -47,7 +57,7 @@ export function Ep2AlignScene({ userName: _userName }: Ep2AlignSceneProps) {
             <p className="text-[18px] font-bold leading-tight text-gray-900">
               옵션 {opt.id}. {opt.title}
             </p>
-            <p className="mt-2 text-[16px] leading-[1.85] text-gray-600">{opt.summary}</p>
+            <p className="mt-2 text-[16px] leading-[1.85] text-gray-600">{renderWithBold(opt.summary)}</p>
           </button>
         ))}
       </div>
