@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      maxWidth: {
+        "8xl": "90rem",
+      },
       fontFamily: {
         lgsmart: [
           '"LG Smart UI 2.0"',

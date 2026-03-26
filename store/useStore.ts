@@ -65,6 +65,10 @@ interface AppState {
   kpiBeforePlanning: KpiState | null;
   setKpiBeforePlanning: (k: KpiState | null) => void;
 
+  /** 실행 D-1 팝업에서 "지표 변화" 표시용 (적용 직전 KPI 스냅샷) */
+  kpiBeforeExecution: KpiState | null;
+  setKpiBeforeExecution: (k: KpiState | null) => void;
+
   episode1Choice: Episode1Choice;
   setEpisode1Choice: (c: Episode1Choice) => void;
 
@@ -154,6 +158,9 @@ export const useStore = create<AppState>()(
 
       kpiBeforePlanning: null,
       setKpiBeforePlanning: (k) => set({ kpiBeforePlanning: k }),
+
+      kpiBeforeExecution: null,
+      setKpiBeforeExecution: (k) => set({ kpiBeforeExecution: k }),
 
       episode1Choice: null,
       setEpisode1Choice: (c) => set({ episode1Choice: c }),
