@@ -11,12 +11,12 @@ type Props = {
 
 export function PrevNextNav({ prevHref, nextHref, nextDisabled, onNextClick }: Props) {
   return (
-    <footer className="mt-auto sticky bottom-0 z-40 border-t border-white/10 bg-[#0B0F19] px-6">
-      <div className="mx-auto w-full max-w-4xl px-0 py-2">
-        <div className="flex w-full items-center justify-between">
+    <footer className="force-bg-transparent relative z-30 w-full px-6 py-6">
+      <div className="force-bg-transparent relative z-30 mx-auto w-full max-w-4xl px-0">
+        <div className="force-bg-transparent flex w-full items-center justify-between gap-6">
           <Link
             href={prevHref}
-            className="inline-flex items-center justify-center rounded-[0.35rem] bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/90 active:scale-[0.99] min-w-[120px]"
+            className="neo-btn-secondary inline-flex min-w-[140px] items-center justify-center px-8 py-3 text-[16px] font-bold shadow-[4px_4px_0px_#111111] transition duration-150 ease-out hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#111111] active:translate-x-[4px] active:translate-y-[4px] active:shadow-[0px_0px_0px_#111111]"
           >
             이전
           </Link>
@@ -25,10 +25,10 @@ export function PrevNextNav({ prevHref, nextHref, nextDisabled, onNextClick }: P
               type="button"
               onClick={onNextClick}
               disabled={!!nextDisabled}
-              className={`inline-flex items-center justify-center rounded-[0.35rem] px-4 py-3 text-[15px] font-semibold shadow-[0_14px_40px_rgba(0,0,0,0.45)] transition active:scale-[0.99] min-w-[120px] ${
+              className={`inline-flex min-w-[140px] items-center justify-center px-8 py-3 text-[16px] font-bold transition duration-150 ease-out ${
                 nextDisabled
-                  ? "cursor-not-allowed bg-[#E4003F]/35 text-white/80 shadow-none"
-                  : "bg-[#E4003F] text-white hover:bg-[#E4003F]/90 shadow-[0_14px_40px_rgba(228,0,63,0.28)]"
+                  ? "neo-btn-disabled cursor-not-allowed shadow-none"
+                  : "neo-btn-primary shadow-[4px_4px_0px_#111111] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#111111] active:translate-x-[4px] active:translate-y-[4px] active:shadow-[0px_0px_0px_#111111]"
               }`}
             >
               다음
@@ -36,7 +36,7 @@ export function PrevNextNav({ prevHref, nextHref, nextDisabled, onNextClick }: P
           ) : (
             <Link
               href={nextHref}
-              className="inline-flex items-center justify-center rounded-[0.35rem] bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/90 active:scale-[0.99] min-w-[120px]"
+              className="neo-btn-primary inline-flex min-w-[140px] items-center justify-center px-8 py-3 text-[16px] font-bold shadow-[4px_4px_0px_#111111] transition duration-150 ease-out hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#111111] active:translate-x-[4px] active:translate-y-[4px] active:shadow-[0px_0px_0px_#111111]"
             >
               다음
             </Link>

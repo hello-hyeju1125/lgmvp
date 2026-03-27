@@ -29,14 +29,14 @@ export function ExecD1Popup({ userName }: ExecD1PopupProps) {
 
   return (
     <section aria-labelledby="exec-d1-title">
-      <div className="rounded-3xl border border-white/15 bg-white/95 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-md sm:p-8">
+      <div className="ds-modal-panel">
         <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-[#E4003F]">D-1 RECAP</p>
         <h2 id="exec-d1-title" className="mt-2 text-center text-xl sm:text-2xl font-extrabold tracking-tight text-black/90">
           {executionScreenCopy.popupTitle}
         </h2>
         <p className="mt-4 whitespace-pre-line text-center text-[15px] leading-[1.85] text-black/75">{executionScreenCopy.popupIntro}</p>
 
-        <div className="mt-6 rounded-2xl border border-black/10 bg-[#f8f9fa] p-5">
+        <div className="ds-soft-panel mt-6">
           <p className="text-[13px] font-extrabold text-black/85">{executionScreenCopy.popupBadgesLabel}</p>
           <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
             {badges.length > 0 ? (
@@ -54,7 +54,7 @@ export function ExecD1Popup({ userName }: ExecD1PopupProps) {
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-black/10 bg-[#f8f9fa] p-5">
+        <div className="ds-soft-panel mt-4">
           <p className="text-[13px] font-extrabold text-black/85">{executionScreenCopy.popupKpiLabel}</p>
           {increased.length > 0 ? (
             <ul className="mt-3 space-y-2 text-[14px] leading-[1.85] text-black/75">

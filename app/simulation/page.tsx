@@ -55,8 +55,8 @@ import { MonitoringSeniorTips } from "@/components/simulation/MonitoringSeniorTi
 import { MonitoringRampup } from "@/components/simulation/MonitoringRampup";
 import { ClosingScene } from "@/components/simulation/ClosingScene";
 import { ClosingResult } from "@/components/simulation/ClosingResult";
-import { initiationActions, INITIATION_TOTAL_HOURS, INITIATION_STEP_HOURS, getInitiationKpiDelta } from "@/content/initiationActions";
-import { planningActions, PLANNING_TOTAL_HOURS, PLANNING_STEP_HOURS, getPlanningKpiDelta } from "@/content/planningActions";
+import { initiationActions, getInitiationKpiDelta } from "@/content/initiationActions";
+import { planningActions, getPlanningKpiDelta } from "@/content/planningActions";
 import { ep1Options, ep1Results } from "@/content/episode1";
 import { ep2AlignOptions, ep2AlignResults } from "@/content/episode2Align";
 import { ep3Options, getEp3Result } from "@/content/episode3";
@@ -64,7 +64,8 @@ import { ep4Options, getEp4Result } from "@/content/episode4";
 import { ep5Options, getEp5Result } from "@/content/episode5";
 import { ep6Block1Options, ep6Block2Options, ep6Block3Options, ep6Block4Options, getEp6Result } from "@/content/episode6";
 import { ep7Options, getEp7Result } from "@/content/episode7";
-import { EXECUTION_STEP_HOURS, EXECUTION_TOTAL_HOURS, executionActions, getExecutionKpiDelta } from "@/content/executionActions";
+import { executionActions, getExecutionKpiDelta } from "@/content/executionActions";
+import { teamMembers } from "@/content/team";
 
 const VALID_PHASES = [
   "initiation-action",
@@ -122,6 +123,13 @@ const VALID_PHASES = [
 
 const PROCESS_STEPS = ["착수", "기획", "실행", "감시/통제", "종료"] as const;
 type ProcessStep = (typeof PROCESS_STEPS)[number];
+const MODAL_OVERLAY_CLASS = "ds-modal-overlay";
+const MODAL_FRAME_CLASS = "ds-modal-frame";
+const MODAL_HEAD_CLASS = "ds-modal-head";
+const MODAL_HEAD_LABEL_CLASS = "ds-modal-head-label";
+const MODAL_HEAD_TITLE_CLASS = "ds-modal-head-title";
+const BTN_SUBTLE_CLASS = "ds-btn-subtle";
+const BTN_PRIMARY_CLASS = "ds-btn-primary";
 
 function getProcessStep(phase: string): ProcessStep {
   if (phase.startsWith("initiation")) return "착수";
@@ -139,7 +147,7 @@ function getProcessStep(phase: string): ProcessStep {
   return "착수";
 }
 
-function Stepper({ current }: { current: ProcessStep }) {
+function Stepper({ current, onOpenMembers }: { current: ProcessStep; onOpenMembers: () => void }) {
   const helpByStep: Record<ProcessStep, string> = {
     착수: "프로젝트를 시작하기 위한 목표·범위·이해관계자를 정리하고 추진 기반을 만드는 단계입니다.",
     기획: "일정·범위·자원·리스크 계획을 수립해 실행 가능한 로드맵으로 구체화하는 단계입니다.",
@@ -149,42 +157,57 @@ function Stepper({ current }: { current: ProcessStep }) {
   };
 
   return (
-    <div className="bg-[#0B0F19] px-6">
+    <div className="bg-white px-6 py-3">
       <div className="mx-auto w-full max-w-4xl">
-        <div className="flex h-12 items-center justify-center gap-2 text-[14px] sm:text-[15px]">
-          {PROCESS_STEPS.map((label, idx) => {
-            const isCurrent = label === current;
-            const isFuture = PROCESS_STEPS.indexOf(current) < idx;
-            return (
-              <div key={label} className="flex items-center gap-2">
-                <span className="relative group">
-                  <span
-                    className={`pb-1 ${
-                      isCurrent
-                        ? "font-extrabold text-[#E4003F] border-b-2 border-[#E4003F]"
-                        : isFuture
-                          ? "font-semibold text-white/35"
-                          : "font-semibold text-white/80"
-                    }`}
-                  >
-                    {label}
-                  </span>
-                  <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-[260px] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                    <span className="block rounded-[0.35rem] border border-white/10 bg-black/85 px-3 py-2 text-[12px] font-semibold leading-relaxed text-white/90 shadow-[0_14px_40px_rgba(0,0,0,0.45)] backdrop-blur">
-                      <span className="font-extrabold text-[#E4003F]">{label}</span>
-                      <span className="text-white/70"> · </span>
-                      {helpByStep[label]}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-center">
+          <div className="min-w-0">
+            <p className="text-[11px] font-extrabold tracking-[0.12em] text-black/50">프로젝트 5단계</p>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-[13px] sm:text-[14px]">
+              {PROCESS_STEPS.map((label, idx) => {
+                const isCurrent = label === current;
+                const isFuture = PROCESS_STEPS.indexOf(current) < idx;
+                return (
+                  <div key={label} className="flex items-center gap-2">
+                    <span className="relative group">
+                      <span
+                        className={`pb-0.5 ${
+                          isCurrent
+                            ? "font-extrabold !text-black border-b-[3px] !border-b-[#89E586]"
+                            : isFuture
+                              ? "font-semibold text-black/35"
+                              : "font-semibold text-black/75"
+                        }`}
+                      >
+                        {label}
+                      </span>
+                      <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-[260px] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                        <span className="block rounded-[0.35rem] border border-black/10 bg-white px-3 py-2 text-[12px] font-semibold leading-relaxed text-black/85 shadow-[0_14px_40px_rgba(0,0,0,0.15)]">
+                          <span className="font-extrabold text-[#3374F6]">{label}</span>
+                          <span className="text-black/50"> · </span>
+                          {helpByStep[label]}
+                        </span>
+                      </span>
                     </span>
-                  </span>
-                </span>
-                {idx !== PROCESS_STEPS.length - 1 && (
-                  <span className="text-white/25" aria-hidden="true">
-                    &gt;
-                  </span>
-                )}
-              </div>
-            );
-          })}
+                    {idx !== PROCESS_STEPS.length - 1 && (
+                      <span className="text-black/25" aria-hidden="true">
+                        &gt;
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex justify-start md:justify-end">
+            <button
+              type="button"
+              onClick={onOpenMembers}
+              className="inline-flex items-center justify-center rounded-md bg-[#EEF2F8] px-4 py-2 text-[13px] font-bold !text-[#3374F6] transition hover:bg-[#E4EAF5]"
+            >
+              구성원 정보
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -226,6 +249,7 @@ function SimulationContent() {
   const [ep7ConfirmOpen, setEp7ConfirmOpen] = useState(false);
   const [ep8ConfirmOpen, setEp8ConfirmOpen] = useState(false);
   const [execConfirmOpen, setExecConfirmOpen] = useState(false);
+  const [membersModalOpen, setMembersModalOpen] = useState(false);
 
   const phase = useMemo(() => {
     const raw = searchParams.get("phase") || "initiation-action";
@@ -315,32 +339,30 @@ function SimulationContent() {
     if (phase !== "initiation-action") return 0;
     const getHours = (id: string) => {
       const v = initiationActionHours[id];
-      if (typeof v === "number" && (INITIATION_STEP_HOURS as readonly number[]).includes(v)) return v;
-      return INITIATION_STEP_HOURS[0];
+      return typeof v === "number" ? v : 0;
     };
     return initiationActions.reduce((s, a) => s + getHours(a.id), 0);
   }, [phase, initiationActionHours]);
-  const initiationExceed = Math.max(0, initiationTotal - INITIATION_TOTAL_HOURS);
+  const initiationSelectedCount = Math.round(initiationTotal / 8);
+  const initiationExceed = Math.max(0, initiationTotal - 16);
   const planningTotal = useMemo(() => {
     if (phase !== "plan-action") return 0;
     const getHours = (id: string) => {
       const v = planningActionHours[id];
-      if (typeof v === "number" && (PLANNING_STEP_HOURS as readonly number[]).includes(v)) return v;
-      return PLANNING_STEP_HOURS[0];
+      return typeof v === "number" ? v : 0;
     };
     return planningActions.reduce((s, a) => s + getHours(a.id), 0);
   }, [phase, planningActionHours]);
-  const planningExceed = Math.max(0, planningTotal - PLANNING_TOTAL_HOURS);
+  const planningSelectedCount = Math.round(planningTotal / 8);
   const executionTotal = useMemo(() => {
     if (phase !== "exec-action") return 0;
     const getHours = (id: string) => {
       const v = executionActionHours[id];
-      if (typeof v === "number" && (EXECUTION_STEP_HOURS as readonly number[]).includes(v)) return v;
-      return EXECUTION_STEP_HOURS[0];
+      return typeof v === "number" ? v : 0;
     };
     return executionActions.reduce((s, a) => s + getHours(a.id), 0);
   }, [phase, executionActionHours]);
-  const executionExceed = Math.max(0, executionTotal - EXECUTION_TOTAL_HOURS);
+  const executionSelectedCount = Math.round(executionTotal / 8);
 
   const handleInitiationNext = () => {
     if (phase !== "initiation-action") return;
@@ -355,7 +377,7 @@ function SimulationContent() {
     const hours: Record<string, number> = {};
     initiationActions.forEach((a) => {
       const v = initiationActionHours[a.id];
-      hours[a.id] = typeof v === "number" && (INITIATION_STEP_HOURS as readonly number[]).includes(v) ? v : INITIATION_STEP_HOURS[0];
+      hours[a.id] = typeof v === "number" ? v : 0;
     });
     setInitiationActionHours(hours);
     setKpiBeforeInitiation({ ...kpi });
@@ -370,7 +392,7 @@ function SimulationContent() {
     const hours: Record<string, number> = {};
     planningActions.forEach((a) => {
       const v = planningActionHours[a.id];
-      hours[a.id] = typeof v === "number" && (PLANNING_STEP_HOURS as readonly number[]).includes(v) ? v : PLANNING_STEP_HOURS[0];
+      hours[a.id] = typeof v === "number" ? v : 0;
     });
     setPlanningActionHours(hours);
     setKpiBeforePlanning({ ...kpi });
@@ -392,7 +414,7 @@ function SimulationContent() {
     const hours: Record<string, number> = {};
     executionActions.forEach((a) => {
       const v = executionActionHours[a.id];
-      hours[a.id] = typeof v === "number" && (EXECUTION_STEP_HOURS as readonly number[]).includes(v) ? v : EXECUTION_STEP_HOURS[0];
+      hours[a.id] = typeof v === "number" ? v : 0;
     });
     setExecutionActionHours(hours);
     setKpiBeforeExecution({ ...kpi });
@@ -530,9 +552,9 @@ function SimulationContent() {
         usePhotoBackground
           ? "relative bg-[url('/mainbackground.jpg')] bg-cover bg-center bg-no-repeat"
           : useRecapBackground
-            ? "bg-[#070A12]"
+            ? "bg-white"
             : "bg-white"
-      }`}
+      } simulation-flat`}
     >
       {usePhotoBackground && (
         <>
@@ -541,7 +563,7 @@ function SimulationContent() {
         </>
       )}
       <header className="sticky top-0 z-50">
-        <Stepper current={processStep} />
+        <Stepper current={processStep} onOpenMembers={() => setMembersModalOpen(true)} />
         <KpiGauges />
       </header>
       <div className={`mx-auto w-full ${containerMaxWidth} flex-1 ${containerPaddingX} py-6`}>
@@ -598,47 +620,30 @@ function SimulationContent() {
         {phase === "closing-result" && <ClosingResult userName={userName} />}
       </div>
       {phase === "initiation-action" && initiationStage === "alloc" && initiationConfirmOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
-          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-            <div className={`px-6 py-5 ${initiationExceed > 0 ? "bg-[#0B0F19]" : "bg-[#0B0F19]"}`}>
-              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">
-                {initiationExceed > 0 ? "배분 시간이 초과되었습니다" : "이 선택 그대로 진행할까요?"}
-              </h3>
+        <div className={MODAL_OVERLAY_CLASS} role="dialog" aria-modal="true">
+          <div className={MODAL_FRAME_CLASS}>
+            <div className={MODAL_HEAD_CLASS}>
+              <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
+              <h3 className={MODAL_HEAD_TITLE_CLASS}>이 선택 그대로 진행할까요?</h3>
             </div>
             <div className="px-6 py-5 text-center">
-              {initiationExceed > 0 ? (
-                <div className="space-y-3">
-                  <p className="text-[15px] leading-[1.85] text-black/75">
-                    현재 총 배분 시간은 <span className="font-extrabold text-black/90">{initiationTotal}시간</span>입니다.
-                    기준 시간(40시간)보다 <span className="font-extrabold text-[#E4003F]">{initiationExceed}시간</span> 초과되었습니다.
-                  </p>
-                  <div className="rounded-2xl border border-black/10 bg-[#f8f9fa] p-4">
-                    <p className="mt-2 text-[14px] leading-[1.85] text-black/75">
-                      초과한 {initiationExceed}시간만큼 <span className="font-extrabold">리더의 에너지가 추가로 소진</span>됩니다.
-                      <br />
-                      그래도 이 의사결정을 그대로 진행하시겠습니까?
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-[15px] leading-[1.85] text-black/75">
-                  현재 총 배분 시간은 <span className="font-extrabold text-black/90">{initiationTotal}시간</span>입니다.
-                  이 선택 그대로 진행하시겠습니까?
-                </p>
-              )}
+              <p className="text-[15px] leading-[1.85] text-black/75">
+                현재 <span className="font-extrabold text-black/90">{initiationSelectedCount}개</span>의 액션 아이템을 선택했습니다.
+                <br />
+                이 선택 그대로 진행하시겠습니까?
+              </p>
               <div className="mt-6 flex items-center justify-center gap-3">
                 <button
                   type="button"
                   onClick={() => setInitiationConfirmOpen(false)}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
+                  className={BTN_SUBTLE_CLASS}
                 >
                   아니오
                 </button>
                 <button
                   type="button"
                   onClick={commitInitiationAndGoNext}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
+                  className={BTN_PRIMARY_CLASS}
                 >
                   네
                 </button>
@@ -652,31 +657,14 @@ function SimulationContent() {
           <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
             <div className="bg-[#0B0F19] px-6 py-5">
               <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">
-                {planningExceed > 0 ? "배분 시간이 초과되었습니다" : "이 선택 그대로 진행할까요?"}
-              </h3>
+              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 선택 그대로 진행할까요?</h3>
             </div>
             <div className="px-6 py-5 text-center">
-              {planningExceed > 0 ? (
-                <div className="space-y-3">
-                  <p className="text-[15px] leading-[1.85] text-black/75">
-                    현재 총 배분 시간은 <span className="font-extrabold text-black/90">{planningTotal}시간</span>입니다.
-                    기준 시간(40시간)보다 <span className="font-extrabold text-[#E4003F]">{planningExceed}시간</span> 초과되었습니다.
-                  </p>
-                  <div className="rounded-2xl border border-black/10 bg-[#f8f9fa] p-4">
-                    <p className="mt-2 text-[14px] leading-[1.85] text-black/75">
-                      초과 시간은 이후 일정 안정성에 부담으로 작용할 수 있습니다.
-                      <br />
-                      그래도 이 의사결정을 그대로 진행하시겠습니까?
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-[15px] leading-[1.85] text-black/75">
-                  현재 총 배분 시간은 <span className="font-extrabold text-black/90">{planningTotal}시간</span>입니다.
-                  이 선택 그대로 진행하시겠습니까?
-                </p>
-              )}
+              <p className="text-[15px] leading-[1.85] text-black/75">
+                현재 <span className="font-extrabold text-black/90">{planningSelectedCount}개</span>의 액션 아이템을 선택했습니다.
+                <br />
+                이 선택 그대로 진행하시겠습니까?
+              </p>
               <div className="mt-6 flex items-center justify-center gap-3">
                 <button
                   type="button"
@@ -702,31 +690,14 @@ function SimulationContent() {
           <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
             <div className="bg-[#0B0F19] px-6 py-5">
               <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">
-                {executionExceed > 0 ? "배분 시간이 초과되었습니다" : "이 선택 그대로 진행할까요?"}
-              </h3>
+              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 선택 그대로 진행할까요?</h3>
             </div>
             <div className="px-6 py-5 text-center">
-              {executionExceed > 0 ? (
-                <div className="space-y-3">
-                  <p className="text-[15px] leading-[1.85] text-black/75">
-                    현재 총 배분 시간은 <span className="font-extrabold text-black/90">{executionTotal}시간</span>입니다.
-                    기준 시간(80시간)보다 <span className="font-extrabold text-[#E4003F]">{executionExceed}시간</span> 초과되었습니다.
-                  </p>
-                  <div className="rounded-2xl border border-black/10 bg-[#f8f9fa] p-4">
-                    <p className="mt-2 text-[14px] leading-[1.85] text-black/75">
-                      초과 시간은 실행 단계의 집중력 저하와 우선순위 혼선으로 이어질 수 있습니다.
-                      <br />
-                      그래도 이 의사결정을 그대로 진행하시겠습니까?
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-[15px] leading-[1.85] text-black/75">
-                  현재 총 배분 시간은 <span className="font-extrabold text-black/90">{executionTotal}시간</span>입니다.
-                  이 선택 그대로 진행하시겠습니까?
-                </p>
-              )}
+              <p className="text-[15px] leading-[1.85] text-black/75">
+                현재 <span className="font-extrabold text-black/90">{executionSelectedCount}개</span>의 액션 아이템을 선택했습니다.
+                <br />
+                이 선택 그대로 진행하시겠습니까?
+              </p>
               <div className="mt-6 flex items-center justify-center gap-3">
                 <button
                   type="button"
@@ -1025,6 +996,37 @@ function SimulationContent() {
                 >
                   네
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {membersModalOpen && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/55 px-6 backdrop-blur-sm" role="dialog" aria-modal="true">
+          <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.35)]">
+            <div className="flex items-center justify-between border-b border-black/10 px-5 py-4">
+              <h3 className="text-[18px] font-extrabold text-black">구성원 정보</h3>
+              <button
+                type="button"
+                onClick={() => setMembersModalOpen(false)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/15 text-black/70 hover:bg-black/5"
+                aria-label="구성원 정보 닫기"
+              >
+                ×
+              </button>
+            </div>
+            <div className="max-h-[65vh] overflow-y-auto px-5 py-4">
+              <div className="space-y-3">
+                {teamMembers.map((member) => (
+                  <div key={member.id} className="rounded-xl border border-black/10 p-4">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <p className="text-[16px] font-extrabold text-black">{member.name}</p>
+                      <p className="text-[13px] font-bold text-black/60">{member.role}</p>
+                    </div>
+                    <p className="mt-2 text-[13px] text-black/70">{member.position}</p>
+                    <p className="mt-1 text-[13px] leading-relaxed text-black/65">{member.description}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

@@ -3,66 +3,77 @@
 @tailwind utilities;
 
 :root {
-  --color-bg: #ffffff;
-  --color-text: #6B6B6B;
-  --color-text-strong: #4A4A4A;
-  --color-border: #E5E5E5;
-}
-
-/* LG Smart UI 2.0 - self-hosted
-   Note: The "LGSmHa*.ttf / LGSMHATB.TTF" files include Korean glyphs.
-*/
-@font-face {
-  font-family: "LG Smart UI 2.0";
-  src:
-    local("LG Smart_H"),
-    local("LG Smart_H Regular"),
-    local("LG스마트체2.0"),
-    local("LG스마트체"),
-    url("/fonts/lgsmart2/LGSmHaR.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: block;
+  --wire-bg: #ffffff;
+  --wire-text: #000000;
+  --wire-border: #e5e7eb;
 }
 
 @font-face {
-  font-family: "LG Smart UI 2.0";
-  src:
-    local("LG Smart_H Light"),
-    local("LG스마트체 Light"),
-    url("/fonts/lgsmart2/LGSmHaL.ttf") format("truetype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: block;
-}
-
-@font-face {
-  font-family: "LG Smart UI 2.0";
-  src:
-    local("LG Smart_H SemiBold"),
-    local("LG스마트체 SemiBold"),
-    url("/fonts/lgsmart2/LGSmHaSB.ttf") format("truetype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: block;
-}
-
-@font-face {
-  font-family: "LG Smart UI 2.0";
-  src:
-    local("LG Smart_H2.0 B"),
-    local("LG Smart_H2.0"),
-    local("LG스마트체2.0 Bold"),
-    url("/fonts/lgsmart2/LGSMHATB.TTF") format("truetype");
+  font-family: "Gmarket Sans";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff") format("woff");
   font-weight: 700;
   font-style: normal;
-  font-display: block;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Elice Digital Baeum";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/EliceDigitalBaeum_Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SUIT Variable";
+  src: url("https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/variable/woff2/SUIT-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  font-family: "LG Smart UI 2.0", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background-color: var(--wire-bg);
+  color: var(--wire-text);
+  font-family: "SUIT Variable", "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Elice Digital Baeum", "Gmarket Sans", "SUIT Variable", "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-weight: 700;
+}
+
+/* Extreme wireframe mode: black text, white surfaces, no accents/shadows. */
+:where(body, body *) {
+  color: var(--wire-text) !important;
+  border-color: var(--wire-border) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+:where(body, main, section, article, aside, nav, header, footer, div, form, fieldset, ul, ol, li, p, span, a, button, input, textarea, select) {
+  background-color: var(--wire-bg) !important;
+}
+
+button,
+[role="button"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid var(--wire-border) !important;
+}
+
+.selected-action-card,
+.kpi-bar-track,
+.kpi-bar-fill-kpi,
+.kpi-bar-fill-energy {
+  background-color: #ffffff !important;
+  border-color: var(--wire-border) !important;
 }
 
 @keyframes risk-sweep {
@@ -83,3 +94,408 @@ body {
 .animate-ui-shake {
   animation: ui-shake 220ms ease-in-out 1;
 }
+
+@keyframes card-select-pop {
+  0% {
+    transform: scale(0.995);
+    box-shadow: 0 0 0 0 rgba(137, 229, 134, 0.32);
+  }
+  55% {
+    transform: scale(1.004);
+    box-shadow: 0 0 0 6px rgba(137, 229, 134, 0.16);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(137, 229, 134, 0);
+  }
+}
+
+.animate-card-select-pop {
+  animation: card-select-pop 230ms ease-out 1;
+}
+
+@layer components {
+  .ds-result-shell {
+    @apply rounded-md bg-white p-2 sm:p-4;
+    box-shadow: none;
+  }
+
+  .ds-result-card {
+    @apply overflow-visible rounded-md bg-transparent;
+    box-shadow: none;
+  }
+
+  .ds-result-card-header {
+    @apply flex items-center justify-between gap-2 pb-2;
+    background-color: transparent;
+  }
+
+  .ds-result-card-body {
+    @apply space-y-4 border-t border-black/5 pt-4;
+    background-color: transparent;
+  }
+
+  .ds-pick-badge {
+    @apply ml-2 inline-flex rounded-md border px-2 py-0.5 text-[12px] font-extrabold;
+    background-color: #ffffff;
+    color: #000000;
+    border-color: var(--wire-border);
+  }
+
+  .ds-modal-panel {
+    @apply rounded-md border border-black/5 bg-white p-6 sm:p-8;
+    box-shadow: none;
+  }
+
+  .ds-soft-panel {
+    @apply rounded-md p-4;
+    background-color: transparent;
+  }
+
+  .ds-modal-overlay {
+    @apply fixed inset-0 z-[80] flex items-center justify-center bg-white px-6;
+    backdrop-filter: none;
+  }
+
+  .ds-modal-frame {
+    @apply w-full max-w-xl overflow-hidden rounded-md border border-black/5 bg-white;
+    box-shadow: none;
+  }
+
+  .ds-modal-head {
+    @apply px-6 py-4;
+  }
+
+  .ds-modal-head-label {
+    @apply text-center text-[12px] font-extrabold tracking-[0.16em] text-black;
+  }
+
+  .ds-modal-head-title {
+    @apply mt-1 text-center text-[18px] font-extrabold tracking-tight text-black;
+  }
+
+  .ds-btn-subtle {
+    @apply inline-flex min-w-[120px] items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2.5 text-[15px] font-semibold text-black transition;
+  }
+
+  .ds-btn-primary {
+    @apply inline-flex min-w-[120px] items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2.5 text-[15px] font-semibold text-black transition;
+  }
+}
+
+/* Flat & Clean overrides for legacy utility chains in simulation dialogs */
+[role="dialog"][aria-modal="true"] {
+  backdrop-filter: none;
+}
+
+[role="dialog"][aria-modal="true"] > div {
+  border-radius: 6px !important;
+  border-color: var(--wire-border) !important;
+  box-shadow: none !important;
+}
+
+[role="dialog"] [class*="bg-[#0B0F19]"] {
+  background-color: #ffffff !important;
+}
+
+[role="dialog"] [class*="text-white/70"] {
+  color: #000000 !important;
+}
+
+[role="dialog"] [class*="tracking-tight text-white"] {
+  color: #000000 !important;
+}
+
+[role="dialog"] [class*="bg-[#f1f3f5]"] {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+}
+
+[role="dialog"] [class*="bg-[#e9ecef]"] {
+  background-color: #ffffff !important;
+}
+
+[role="dialog"] [class*="bg-[#E4003F]"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+[role="dialog"] [class*="rounded-2xl"],
+[role="dialog"] [class*="rounded-3xl"],
+[role="dialog"] [class*="rounded-xl"] {
+  border-radius: 6px !important;
+}
+
+/* Global Flat & Clean mapping for simulation area */
+.simulation-flat [class*="bg-[#E4003F]"],
+.simulation-flat [class*="bg-[#D10039]"],
+.simulation-flat [class*="bg-[#C9003A]"],
+.simulation-flat [class*="bg-[#B0003A]"] {
+  background-color: #ffffff !important;
+}
+
+.simulation-flat [class*="hover:bg-[#E4003F]"],
+.simulation-flat [class*="hover:bg-[#D10039]"] {
+  background-color: #ffffff !important;
+}
+
+.simulation-flat [class*="text-[#E4003F]"],
+.simulation-flat [class*="text-[#1E3A5F]"],
+.simulation-flat [class*="text-[#A50034]"],
+.simulation-flat [class*="text-[#C9003A]"] {
+  color: #000000 !important;
+}
+
+.simulation-flat [class*="ring-[#E4003F]"],
+.simulation-flat [class*="border-[#E4003F]"],
+.simulation-flat [class*="border-[#D10039]"] {
+  border-color: var(--wire-border) !important;
+}
+
+.simulation-flat [class*="bg-[#0B0F19]"],
+.simulation-flat [class*="bg-[#070A12]"],
+.simulation-flat [class*="bg-black"] {
+  background-color: #ffffff !important;
+}
+
+.simulation-flat [class*="text-white"],
+.simulation-flat [class*="text-amber-"],
+.simulation-flat [class*="text-red-"] {
+  color: #000000 !important;
+}
+
+.simulation-flat [class*="bg-[#f8f9fa]"],
+.simulation-flat [class*="bg-[#f1f3f5]"],
+.simulation-flat [class*="bg-[#E5E7EB]"],
+.simulation-flat [class*="bg-[#F3F4F6]"] {
+  background-color: #ffffff !important;
+}
+
+.simulation-flat [class*="hover:bg-[#e9ecef]"] {
+  background-color: #ffffff !important;
+}
+
+.simulation-flat [class*="rounded-3xl"],
+.simulation-flat [class*="rounded-2xl"],
+.simulation-flat [class*="rounded-xl"],
+.simulation-flat [class*="rounded-lg"] {
+  border-radius: 6px !important;
+}
+
+.simulation-flat [class*="shadow-["],
+.simulation-flat [class*="shadow-xl"],
+.simulation-flat [class*="shadow-lg"],
+.simulation-flat [class*="shadow-md"],
+.simulation-flat [class*="shadow-sm"] {
+  box-shadow: none !important;
+}
+
+.simulation-flat [class*="border-white/"],
+.simulation-flat [class*="border-black/10"],
+.simulation-flat [class*="border-black/15"] {
+  border-color: var(--wire-border) !important;
+}
+
+.simulation-flat [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+}
+
+/* Neo-brutal token utilities for opening page */
+.neo-page {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  font-family: "SUIT Variable", "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+}
+
+.neo-page * {
+  color: #111111 !important;
+  border-color: #111111 !important;
+}
+
+.neo-display {
+  font-family: "Elice Digital Baeum", "Gmarket Sans", "SUIT Variable", "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+}
+
+.neo-solid-shadow {
+  box-shadow: 4px 4px 0px #111111 !important;
+}
+
+.neo-solid-shadow-pressed {
+  box-shadow: 0px 0px 0px #111111 !important;
+}
+
+.neo-btn-primary {
+  background-color: #89e586 !important;
+  color: #111111 !important;
+  border: 2px solid #111111 !important;
+}
+
+.neo-btn-secondary {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  border: 2px solid #111111 !important;
+}
+
+.neo-text-white {
+  color: #ffffff !important;
+}
+
+.neo-text-black {
+  color: #111111 !important;
+}
+
+.neo-bg-lime {
+  background-color: #89e586 !important;
+}
+
+.neo-bg-blue {
+  background-color: #3374f6 !important;
+}
+
+.neo-bg-soft-blue {
+  background-color: #f0f4ff !important;
+}
+
+.neo-bg-red {
+  background-color: #ff4b4b !important;
+}
+
+.neo-btn-disabled {
+  background-color: #f5f5f5 !important;
+  color: #999999 !important;
+  border: 2px solid #111111 !important;
+  box-shadow: none !important;
+}
+
+.neo-no-bg {
+  background-color: transparent !important;
+}
+
+.mask-tape-hidden {
+  background-color: #000000 !important;
+  color: #000000 !important;
+}
+
+.mask-tape-revealed {
+  background-color: #89E586 !important;
+  color: #111111 !important;
+}
+
+/* Pop / Neo-brutal card system (overrides wireframe !important) */
+.pop-page-pattern {
+  background-color: #ffffff !important;
+  background-image: radial-gradient(#111111 1px, transparent 1px) !important;
+  background-size: 18px 18px !important;
+}
+
+.pop-panel {
+  background-color: #ffffff !important;
+  border: 4px solid #111111 !important;
+  box-shadow: 12px 12px 0px #111111 !important;
+}
+
+.pop-card {
+  border: 4px solid #111111 !important;
+  box-shadow: 8px 8px 0px #111111 !important;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out !important;
+}
+
+.pop-card:hover {
+  transform: translate(4px, 4px) !important;
+  box-shadow: 4px 4px 0px #111111 !important;
+}
+
+.pop-card:active {
+  transform: translate(8px, 8px) !important;
+  box-shadow: 0px 0px 0px #111111 !important;
+}
+
+.pop-bg-blue { background-color: #60A5FA !important; }   /* blue-400 */
+.pop-bg-red { background-color: #F87171 !important; }    /* red-400 */
+.pop-bg-yellow { background-color: #FACC15 !important; } /* yellow-400 */
+.pop-bg-green { background-color: #4ADE80 !important; }  /* green-400 */
+.pop-bg-purple { background-color: #C084FC !important; } /* purple-400 */
+.pop-bg-lilac-soft { background-color: #F3E8FF !important; }
+.pop-bg-yellow-soft { background-color: #FFF7CC !important; }
+.pop-bg-sky-soft { background-color: #DBEAFE !important; }
+.sticker-purple { background-color: #A855F7 !important; }
+.sticker-yellow { background-color: #FFD12A !important; }
+.sticker-blue { background-color: #3374F6 !important; }
+
+.pop-tape {
+  background-color: #000000 !important;
+  color: #000000 !important;
+}
+
+.pop-highlight {
+  background-color: #89E586 !important;
+  color: #111111 !important;
+  font-weight: 800 !important;
+}
+
+/* ── Project Overview hardcoded inline classes override ── */
+/* bg-[#FFB8E0], bg-[#ADF1FF], bg-[#89E586] on cards */
+[class*="bg-[#FFB8E0]"] { background-color: #FFB8E0 !important; }
+[class*="bg-[#ADF1FF]"] { background-color: #ADF1FF !important; }
+[class*="bg-[#89E586]"]  { background-color: #89E586 !important; }
+[class*="bg-[#F4F4F4]"]  { background-color: #F4F4F4 !important; }
+[class*="bg-[#FF4B4B]"]  { background-color: #FF4B4B !important; }
+[class*="bg-[#FFD12A]"]  { background-color: #FFD12A !important; }
+
+/* border-4 + shadow on cards / panels */
+[class*="border-4"] {
+  border-width: 4px !important;
+  border-style: solid !important;
+}
+[class*="shadow-[8px_8px_0px_#111111]"]  { box-shadow: 8px 8px 0px #111111 !important; }
+[class*="shadow-[12px_12px_0px_#111111]"] { box-shadow: 12px 12px 0px #111111 !important; }
+[class*="shadow-[6px_6px_0px_#111111]"]  { box-shadow: 6px 6px 0px #111111 !important; }
+[class*="shadow-[4px_4px_0px_#111111]"]  { box-shadow: 4px 4px 0px #111111 !important; }
+[class*="shadow-[3px_3px_0px_#111111]"]  { box-shadow: 3px 3px 0px #111111 !important; }
+
+/* page background */
+[class*="bg-[#F0F0F0]"] { background-color: #F0F0F0 !important; }
+
+/* modal backdrop */
+[class*="bg-black/50"] { background-color: rgba(0,0,0,0.5) !important; }
+
+/* button overrides */
+[class*="bg-black"] { background-color: #111111 !important; }
+.text-white { color: #ffffff !important; }
+
+/* Step4 members board: remove forced white patches */
+.members-page :where(div, p, span, button, section) {
+  background-color: transparent !important;
+}
+
+.members-page .members-titlebar {
+  background-color: #F4F4F4 !important;
+}
+
+.members-page .members-popup {
+  background-color: #ffffff !important;
+  border-color: #111111 !important;
+  border-width: 4px !important;
+  border-style: solid !important;
+}
+
+/* Re-apply intended backgrounds inside members page */
+.members-page .sticker-purple { background-color: #A855F7 !important; }
+.members-page .sticker-yellow { background-color: #FFD12A !important; }
+.members-page .sticker-blue { background-color: #3374F6 !important; }
+.members-page .leadership-sticker { background-color: #1E3A8A !important; }
+.members-page .pop-bg-lilac-soft { background-color: #F3E8FF !important; }
+.members-page .pop-bg-yellow-soft { background-color: #FFF7CC !important; }
+.members-page .pop-bg-sky-soft { background-color: #DBEAFE !important; }
+.members-page .pop-bg-blue { background-color: #60A5FA !important; }
+.members-page .pop-bg-red { background-color: #F87171 !important; }
+.members-page .pop-bg-green { background-color: #4ADE80 !important; }
+.members-page .pop-bg-purple { background-color: #C084FC !important; }
+.members-page .neo-bg-blue { background-color: #3374F6 !important; }
+
+/* macOS titlebar traffic lights in members page */
+.members-page .title-dot-red { background-color: #FF5F57 !important; }
+.members-page .title-dot-yellow { background-color: #FEBC2E !important; }
+.members-page .title-dot-green { background-color: #28C840 !important; }

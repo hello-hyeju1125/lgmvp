@@ -5,9 +5,9 @@ import { useStore } from "@/store/useStore";
 import { useRouter } from "next/navigation";
 import { useMemo, Suspense } from "react";
 import { OnboardingStep0 } from "@/components/onboarding/OnboardingStep0";
-import { OnboardingStep1 } from "@/components/onboarding/OnboardingStep1";
+import OnboardingStep1 from "@/components/onboarding/OnboardingStep1";
 import { OnboardingStepTeamsMessage } from "@/components/onboarding/OnboardingStepTeamsMessage";
-import { OnboardingStepProjectOverview } from "@/components/onboarding/OnboardingStepProjectOverview";
+import OnboardingStepProjectOverview from "@/components/onboarding/OnboardingStepProjectOverview";
 import { OnboardingStep2 } from "@/components/onboarding/OnboardingStep2";
 import { OnboardingStep3 } from "@/components/onboarding/OnboardingStep3";
 import { PrevNextNav } from "@/components/common/PrevNextNav";
@@ -36,19 +36,18 @@ function OnboardingContent() {
   const nextHref = step < 5 ? `/onboarding?step=${step + 1}` : "/simulation?phase=initiation-action";
 
   return (
-    <main className="relative min-h-screen flex flex-col bg-[url('/mainbackground.jpg')] bg-cover bg-center bg-no-repeat">
-      {/* Stronger overlays for readability on onboarding */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1200px_600px_at_30%_10%,rgba(0,0,0,0.7),transparent_60%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/90 via-black/80 to-black/95" />
+    <main className="neo-page relative min-h-screen flex flex-col bg-white">
       <div className="relative flex-1">
         {step === 0 && <OnboardingStep0 onNext={goNext} />}
-        {step === 1 && <OnboardingStep1 onNext={goNext} userName={nickname || "PM"} />}
+        {step === 1 && <OnboardingStep1 onNext={goNext} />}
         {step === 2 && <OnboardingStepTeamsMessage onNext={goNext} userName={nickname || "PM"} />}
         {step === 3 && <OnboardingStepProjectOverview onNext={goNext} />}
         {step === 4 && <OnboardingStep2 onNext={goNext} userName={nickname || "PM"} />}
         {step === 5 && <OnboardingStep3 onNext={goNext} userName={nickname || "PM"} />}
       </div>
-      <PrevNextNav prevHref={prevHref} nextHref={nextHref} />
+      <div className="relative z-30">
+        <PrevNextNav prevHref={prevHref} nextHref={nextHref} />
+      </div>
     </main>
   );
 }

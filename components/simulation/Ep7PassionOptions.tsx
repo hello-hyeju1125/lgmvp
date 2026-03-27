@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { ep7Options, getEp7Result } from "@/content/episode7";
+import EpisodeOptions from "@/components/shared/EpisodeOptions";
 
 interface Ep7PassionOptionsProps {
   userName: string;
@@ -11,8 +13,11 @@ interface Ep7PassionOptionsProps {
 export function Ep7PassionOptions({ userName }: Ep7PassionOptionsProps) {
   const router = useRouter();
   const { setEpisode7Choice, applyKpiDelta, executionActionHours } = useStore();
+  const [selected, setSelected] = useState<"A" | "B" | "C" | "D" | null>(null);
 
-  const handleSelect = (choice: "A" | "B" | "C" | "D") => {
+  const handleNext = () => {
+    if (!selected) return;
+    const choice = selected;
     setEpisode7Choice(choice);
     const vocHours = executionActionHours["voc_data"] ?? 0;
     const refHours = executionActionHours["ref_benchmark"] ?? 0;
@@ -22,21 +27,16 @@ export function Ep7PassionOptions({ userName }: Ep7PassionOptionsProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-bold text-[#4A4A4A]">E7. 길 잃은 열정 – 옵션</h2>
-      <div className="space-y-3">
-        {ep7Options.map((opt) => (
-          <button
-            key={opt.id}
-            type="button"
-            onClick={() => handleSelect(opt.id)}
-            className="w-full text-left p-4 rounded-xl border border-[#E5E5E5] bg-[#F9FAFB] hover:border-[#6B6B6B] hover:bg-[#F0F0F0] transition-colors"
-          >
-            <p className="font-medium text-[#4A4A4A] text-sm">옵션 {opt.id}: {opt.title}</p>
-            <p className="text-xs text-[#6B6B6B] mt-2">{opt.summary}</p>
-          </button>
-        ))}
-      </div>
-    </div>
+    <EpisodeOptions
+      title="E7. 길 잃은 열정 - 옵션"
+      options={ep7Options.map((opt) => ({
+        id: opt.id,
+        label: `옵션 ${opt.id}. ${opt.title}`,
+        description: opt.summary,
+      }))}
+      selectedOption={selected}
+      onSelect={(optionId) => setSelected(optionId as "A" | "B" | "C" | "D")}
+      onNext={handleNext}
+    />
   );
 }

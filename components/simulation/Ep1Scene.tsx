@@ -2,6 +2,7 @@
 
 import { useStore } from "@/store/useStore";
 import { ep1Scene, ep1Options } from "@/content/episode1";
+import EpisodeScene from "@/components/shared/EpisodeScene";
 
 function replaceUserName(text: string, name: string) {
   return text.replace(/\{User_Name\}/g, name);
@@ -66,43 +67,19 @@ export function Ep1Scene({ userName }: Ep1SceneProps) {
   const [firstQuote, narration, secondQuote] = ep1Scene.dialogue;
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6">
-      <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-black/90">{ep1Scene.title}</h2>
-      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
-        <span className="text-black/90">[Situation]</span> {renderWithBold(ep1Scene.situation)}
-      </p>
-
+    <EpisodeScene title={ep1Scene.title} situation={ep1Scene.situation}>
       {firstQuote ? quoteLines([firstQuote], "first") : null}
-      {narration ? <p className="text-[16px] leading-[1.85] text-black/75">{renderWithBold(replaceUserName(narration, userName))}</p> : null}
+      {narration ? <p className="text-base leading-7 text-black">{renderWithBold(replaceUserName(narration, userName))}</p> : null}
       {secondQuote ? quoteLines([secondQuote], "second") : null}
-
-      <div className="py-[1.8rem] flex items-center" aria-hidden="true">
-        <div className="h-px w-full bg-black/10" />
-      </div>
-
-      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
-        <span className="text-black/90">[Action]</span> {renderWithBold(ep1Scene.action)}
-      </p>
-
+      <p className="text-lg font-extrabold text-black">[Action] {renderWithBold(ep1Scene.action)}</p>
       <div className="space-y-3">
         {ep1Options.map((opt) => (
-          <button
-            key={opt.id}
-            type="button"
-            onClick={() => setEpisode1Choice(opt.id)}
-            className={`w-full text-left rounded-2xl border-2 bg-white p-5 transition-all cursor-pointer hover:-translate-y-1 hover:shadow-lg ${
-              episode1Choice === opt.id
-                ? "border-[#E4003F] shadow-[0_14px_50px_rgba(228,0,63,0.14)]"
-                : "border-black/10 hover:border-[#E4003F]"
-            }`}
-          >
-            <p className="text-[18px] font-bold leading-tight text-gray-900">
-              옵션 {opt.id}. {opt.title}
-            </p>
-            <p className="mt-2 text-[16px] leading-[1.85] text-gray-600">{renderWithBold(opt.summary)}</p>
+          <button key={opt.id} type="button" onClick={() => setEpisode1Choice(opt.id)} className={`w-full rounded-xl border bg-white p-4 text-left ${episode1Choice === opt.id ? "border-black" : "border-gray-200"}`}>
+            <p className="text-base font-bold text-black">옵션 {opt.id}. {opt.title}</p>
+            <p className="mt-1 text-sm leading-7 text-black">{renderWithBold(opt.summary)}</p>
           </button>
         ))}
       </div>
-    </div>
+    </EpisodeScene>
   );
 }

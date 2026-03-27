@@ -1,126 +1,242 @@
 "use client";
 
-import { useState } from "react";
-import { mailContent, emailBodyParts } from "@/content/mail";
-import { useStore } from "@/store/useStore";
+import React, { useState } from "react";
 
-interface OnboardingStep1Props {
-  onNext: () => void;
-  userName: string;
+interface CardItem {
+  id: number;
+  icon: string;
+  title: string;
+  detail: string;
+  colorClass: string;
 }
 
-function replaceUserName(text: string, name: string) {
-  return text.replace(/\{User_Name\}/g, name);
-}
+const VOC_CARDS: CardItem[] = [
+  {
+    id: 1,
+    icon: "VOC",
+    title: "파편화된 VOC 대응 한계",
+    detail:
+      "현재 전 세계 각 채널에서 쏟아지는 방대한 VOC를 기존의 파편화된 방식으로 분석하고 대응하는 데에는 이미 한계에 이르렀습니다.",
+    colorClass: "pop-bg-blue",
+  },
+  {
+    id: 2,
+    icon: "AI",
+    title: "고객 목소리 통합 분석 필요",
+    detail:
+      "흩어져 있는 고객의 목소리를 AI로 통합 분석하여 전사적으로 활용할 수 있는 체계가 반드시 필요합니다.",
+    colorClass: "pop-bg-yellow",
+  },
+  {
+    id: 3,
+    icon: "KPI",
+    title: "의사결정 속도·정확도 혁신 목표",
+    detail:
+      "AI 기반 통합 분석을 통해 현업의 의사결정 속도와 정확도를 혁신적으로 끌어올리는 것이 이번 프로젝트의 핵심 목표입니다.",
+    colorClass: "pop-bg-red",
+  },
+  {
+    id: 4,
+    icon: "DB",
+    title: "6개월 내 대시보드 오픈 및 현업 적용",
+    detail:
+      "팀을 조율하고 이끄는 리더로서 6개월 내에 가시적인 성과(통합 대시보드 오픈 및 현업 적용)를 창출해 주시길 기대합니다.",
+    colorClass: "pop-bg-green",
+  },
+  {
+    id: 5,
+    icon: "PM",
+    title: "탁월한 문제 해결 능력과 데이터 인사이트",
+    detail:
+      "그동안 보여주신 탁월한 문제 해결 능력과 데이터 기반의 인사이트가 이번 프로젝트를 성공으로 이끌 가장 중요한 열쇠라고 판단했습니다.",
+    colorClass: "pop-bg-purple",
+  },
+];
 
-function MailIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M4 6h16v12H4z" />
-      <path d="m4 7 8 6 8-6" />
-    </svg>
-  );
-}
-
-export function OnboardingStep1({ userName }: OnboardingStep1Props) {
+export default function EmailMission({ onNext }: { onNext?: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
-  const revealedEmail = useStore((s) => s.onboardingStep1Revealed);
-  const revealEmail = useStore((s) => s.revealOnboardingStep1);
-  const displaySubject = mailContent.subject;
-
-  const reveal = (index: number) => revealEmail(index);
-
-  const openMail = () => {
-    setIsOpen((v) => !v);
-  };
+  const [activeCard, setActiveCard] = useState<CardItem | null>(null);
 
   return (
-    <div className="flex flex-col bg-transparent">
-      <header className="flex-shrink-0 border-b border-white/10 bg-black/45 px-6 backdrop-blur-md">
-        <div className="mx-auto w-full max-w-4xl py-4">
-          <h1 className="text-center text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.55)]">
-            프로젝트 리더로 보임된 당신
-          </h1>
+    <div
+      className="max-w-4xl mx-auto overflow-hidden font-sans"
+      style={{
+        border: "2px solid #111111",
+        boxShadow: "8px 8px 0px #111111",
+        backgroundColor: "#ffffff",
+      }}
+    >
+      {/* 타이틀 바 */}
+      <div
+        className="border-b-2 border-black px-4 py-3 flex items-center justify-center relative"
+        style={{ backgroundColor: "#F4F4F4" }}
+      >
+        <div className="absolute left-4 flex space-x-2">
+          <span
+            className="w-4 h-4 rounded-full border-2 border-black inline-block"
+            style={{ backgroundColor: "#FF4B4B" }}
+          />
+          <span
+            className="w-4 h-4 rounded-full border-2 border-black inline-block"
+            style={{ backgroundColor: "#FFD12A" }}
+          />
+          <span
+            className="w-4 h-4 rounded-full border-2 border-black inline-block"
+            style={{ backgroundColor: "#89E586" }}
+          />
         </div>
-      </header>
+        <div className="font-black text-lg tracking-wide">New Message</div>
+      </div>
 
-      <div className="px-5 pt-10 pb-3">
-        <div className="mx-auto max-w-3xl space-y-4">
-          <div className="rounded-2xl bg-black/55 p-4 sm:p-5 shadow-[0_18px_60px_rgba(0,0,0,0.6)] backdrop-blur-md">
-            <div className="mb-3">
-              <img
-                src="/mail-arrived.svg"
-                alt="이메일 도착"
-                className="w-full h-auto max-h-32 sm:max-h-36 object-contain opacity-90"
-              />
-            </div>
-            <div className="flex min-h-[44px] items-center justify-center py-3">
-              <div className="flex items-center gap-2 text-white/90">
-                <span className="text-[#BBBBBB]">
-                  <MailIcon />
-                </span>
-                <p className="font-semibold">이메일이 도착했습니다</p>
-              </div>
-            </div>
+      {/* 이메일 헤더 */}
+      <div
+        className="border-b-2 border-black flex flex-col text-base"
+        style={{ backgroundColor: "#ffffff" }}
+      >
+        <div className="border-b-2 border-black px-6 py-4 flex items-center">
+          <span className="font-bold w-28" style={{ color: "#555555" }}>보낸사람</span>
+          <span className="font-medium">고객가치혁신팀 팀장</span>
+        </div>
+        <div className="border-b-2 border-black px-6 py-4 flex items-center">
+          <span className="font-bold w-28" style={{ color: "#555555" }}>받는사람</span>
+          <span className="font-medium">신임 프로젝트 리더(PM)</span>
+        </div>
+        <div className="border-b-2 border-black px-6 py-4 flex items-center">
+          <span className="font-bold w-28" style={{ color: "#555555" }}>날짜</span>
+          <span className="font-medium" style={{ color: "#666666" }}>2024.10.18 14:32 (KST)</span>
+        </div>
+        <div className="px-6 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center min-w-0">
+            <span className="font-bold w-28 shrink-0" style={{ color: "#555555" }}>제목</span>
+            <span
+              className="font-bold px-2 py-1"
+              style={{ backgroundColor: "rgba(51,116,246,0.15)" }}
+            >
+              [인사발령] 글로벌 VOC 통합 분석 AI 도입 프로젝트 리더(PM) 선임의 건
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsOpen((v) => !v)}
+            className="shrink-0 font-bold border-2 border-black px-4 py-1 transition-all hover:translate-x-[1px] hover:translate-y-[1px]"
+            style={{
+              backgroundColor: "#ffffff",
+              boxShadow: "2px 2px 0px #111111",
+            }}
+          >
+            {isOpen ? "닫기" : "열기"}
+          </button>
+        </div>
+      </div>
 
-            <div className="mt-3 overflow-hidden rounded-xl border-2 border-[#BBBBBB]/40 bg-black/30 transition hover:border-[#E4003F]">
-              <button
-                type="button"
-                onClick={openMail}
-                className="w-full px-4 py-3 text-left"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="break-keep text-[15px] sm:text-[16px] font-semibold text-white">
-                      {displaySubject}
-                    </p>
-                    <p className="mt-1 text-[13px] text-[#BBBBBB]">
-                      보낸사람: {mailContent.from}
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-[#6b6b6b] text-sm font-semibold">
-                    {isOpen ? "닫기" : "열기"}
-                  </span>
-                </div>
-              </button>
+      {/* 본문: 카드 그리드 */}
+      {isOpen ? (
+        <div className="p-10 pb-16" style={{ backgroundColor: "#ffffff" }}>
+          {/* 타이틀 박스 */}
+          <div
+            className="inline-block border-4 border-black px-6 py-3 mb-8"
+            style={{ boxShadow: "6px 6px 0px #111111", backgroundColor: "#ffffff" }}
+          >
+            <span className="neo-display font-extrabold text-2xl">01 고객사의 의견</span>
+          </div>
 
-              {isOpen && (
-                <div className="border-t border-white/10 px-4 py-4">
-                  <div className="break-keep whitespace-pre-line text-[15px] sm:text-[16px] leading-[1.8] text-white/90">
-                    {emailBodyParts.map((part, i) => (
-                      <span key={i}>
-                        {part.hidden ? (
-                          <span
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => reveal(i)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                reveal(i);
-                              }
-                            }}
-                            aria-label="클릭하여 내용 보기"
-                            className={`inline-flex items-center justify-center align-baseline rounded-md px-2 py-0.5 mx-0.5 select-none outline-none transition-all duration-200 ease-out ${
-                              revealedEmail[i]
-                                ? "bg-[#E4003F]/12 text-white font-semibold border border-[#E4003F]/25 shadow-[0_0_0_1px_rgba(228,0,63,0.12)]"
-                                : "cursor-pointer border border-[#E4003F]/45 bg-[radial-gradient(120px_60px_at_20%_30%,rgba(228,0,63,0.22),rgba(255,255,255,0.06)_55%,rgba(255,255,255,0.03))] text-white/85 shadow-[0_0_0_1px_rgba(228,0,63,0.18),0_14px_40px_rgba(228,0,63,0.12)] animate-[pulse_1.15s_ease-in-out_infinite] hover:-translate-y-[1px] hover:scale-[1.02] hover:border-[#E4003F] hover:text-white hover:shadow-[0_0_0_1px_rgba(228,0,63,0.28),0_18px_55px_rgba(228,0,63,0.22)] focus:border-[#E4003F] focus:ring-4 focus:ring-[#E4003F]/30"
-                            }`}
-                          >
-                            {revealedEmail[i] ? replaceUserName(part.text, userName) : "클릭하여 내용 보기"}
-                          </span>
-                        ) : (
-                          replaceUserName(part.text, userName)
-                        )}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+          {/* 2×2 + 하단 1 그리드 */}
+          <div className="grid grid-cols-2 gap-6">
+            {VOC_CARDS.slice(0, 4).map((card) => (
+              <VocCard key={card.id} card={card} onOpen={setActiveCard} />
+            ))}
+          </div>
+          <div className="mt-6 flex justify-center">
+            <div className="w-1/2">
+              <VocCard card={VOC_CARDS[4]} onOpen={setActiveCard} />
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div
+          className="p-12 pb-24 text-center text-[16px] font-semibold"
+          style={{ backgroundColor: "#ffffff", color: "#666666" }}
+        >
+          열기 버튼을 눌러 메일 본문을 확인하세요.
+        </div>
+      )}
+
+      {/* 모달 */}
+      {activeCard && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
+          style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+          onClick={() => setActiveCard(null)}
+        >
+          <div
+            className="relative max-w-lg w-full p-10 border-4 border-black"
+            style={{
+              backgroundColor: "#ffffff",
+              boxShadow: "12px 12px 0px #111111",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 닫기 버튼 */}
+            <button
+              type="button"
+              onClick={() => setActiveCard(null)}
+              className="absolute top-4 right-4 w-10 h-10 border-4 border-black font-extrabold text-lg flex items-center justify-center transition-all hover:translate-x-[2px] hover:translate-y-[2px]"
+              style={{
+                backgroundColor: "#ffffff",
+                boxShadow: "4px 4px 0px #111111",
+              }}
+            >
+              X
+            </button>
+
+            {/* 아이콘 + 타이틀 */}
+            <div className="flex items-center gap-4 mb-6">
+              <span
+                className="border-4 border-black px-3 py-1 font-black text-xl tracking-widest shrink-0"
+                style={{ backgroundColor: "#111111", color: "#ffffff" }}
+              >
+                {activeCard.icon}
+              </span>
+              <div className="neo-display font-extrabold text-xl leading-snug">
+                {activeCard.title}
+              </div>
+            </div>
+
+            <hr className="border-t-2 border-black mb-6" />
+
+            <p className="text-lg leading-relaxed font-sans">{activeCard.detail}</p>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function VocCard({
+  card,
+  onOpen,
+}: {
+  card: CardItem;
+  onOpen: (c: CardItem) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(card)}
+      className={`pop-card ${card.colorClass} w-full text-left p-6 cursor-pointer flex flex-col gap-4`}
+    >
+      {/* 텍스트 아이콘 뱃지 */}
+      <span
+        className="border-4 border-black px-3 py-1 font-black text-lg tracking-widest inline-block"
+        style={{
+          backgroundColor: "#111111",
+          color: "#ffffff",
+          boxShadow: "3px 3px 0px #444444",
+        }}
+      >
+        {card.icon}
+      </span>
+      <span className="neo-display font-extrabold text-lg leading-snug">{card.title}</span>
+    </button>
   );
 }

@@ -10,6 +10,7 @@ import {
   ep6Block4Options,
 } from "@/content/episode6";
 import { useEffect } from "react";
+import EpisodeScene from "@/components/shared/EpisodeScene";
 
 interface Ep6PingpongSceneProps {
   userName: string;
@@ -37,12 +38,7 @@ export function Ep6PingpongScene({ userName }: Ep6PingpongSceneProps) {
   }, [b1, b2, b3, b4, setEpisode6Blocks]);
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6">
-      <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-black/90">{ep6Scene.title}</h2>
-      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
-        <span className="text-black/90">[Situation]</span> {renderWithBold(ep6Scene.situation)}
-      </p>
-
+    <EpisodeScene title={ep6Scene.title} situation={ep6Scene.situation}>
       <div className="rounded-2xl border border-black/10 bg-gray-50 p-5 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
         <div className="flex items-center justify-between">
           <p className="text-[13px] font-extrabold text-black/85">프로젝트 보드 댓글 히스토리</p>
@@ -79,11 +75,6 @@ export function Ep6PingpongScene({ userName }: Ep6PingpongSceneProps) {
       </div>
 
       <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">{renderWithBold(ep6Scene.systemPrompt)}</p>
-
-      <div className="py-[1.8rem] flex items-center" aria-hidden="true">
-        <div className="h-px w-full bg-black/10" />
-      </div>
-
       <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
         <span className="text-black/90">[Action]</span> 블록을 조합해 커뮤니케이션 전략을 완성하세요.
       </p>
@@ -165,7 +156,6 @@ export function Ep6PingpongScene({ userName }: Ep6PingpongSceneProps) {
           </div>
         </section>
       </div>
-
-    </div>
+    </EpisodeScene>
   );
 }

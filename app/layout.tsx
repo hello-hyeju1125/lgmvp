@@ -19,23 +19,8 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
         />
-        {/* Preload LG Smart UI 2.0 TTF files present in public/fonts/lgsmart2 */}
-        <link
-          rel="preload"
-          href="/fonts/lgsmart2/LGSmHaR.ttf"
-          as="font"
-          type="font/ttf"
-          crossOrigin=""
-        />
-        <link
-          rel="preload"
-          href="/fonts/lgsmart2/LGSMHATB.TTF"
-          as="font"
-          type="font/ttf"
-          crossOrigin=""
-        />
       </head>
-      <body className="antialiased min-h-screen bg-white text-[#6B6B6B] font-lgsmart">
+      <body className="antialiased min-h-screen bg-white text-black font-body">
         {children}
       </body>
     </html>
