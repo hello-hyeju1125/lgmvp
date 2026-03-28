@@ -302,6 +302,210 @@ button,
   backdrop-filter: none !important;
 }
 
+/* Simulation HUD — compact single-row layout */
+.simulation-flat .simulation-hud .sim-hud-level-active {
+  background-color: #89e586 !important;
+  color: #111111 !important;
+  border: 1px solid #111111 !important;
+}
+.simulation-flat .simulation-hud .sim-hud-team-btn {
+  background-color: #ffd12a !important;
+  color: #111111 !important;
+  border: 2px solid #111111 !important;
+  box-shadow: 3px 3px 0 #111111 !important;
+}
+.simulation-flat .simulation-hud .sim-hud-team-btn:hover {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 2px 2px 0 #111111 !important;
+}
+.simulation-hud .kpi-bar-track {
+  background-color: #ebebeb !important;
+  border: 2px solid #111111 !important;
+  border-radius: 0 !important;
+}
+.simulation-hud .kpi-bar-fill-kpi,
+.simulation-hud .kpi-bar-fill-energy {
+  background-color: #89e586 !important;
+}
+.simulation-hud .sim-hud-tooltip {
+  background-color: #111111 !important;
+  border: 1px solid #111111 !important;
+  box-shadow: none !important;
+}
+.simulation-flat .simulation-hud .sim-hud-tooltip,
+.simulation-flat .simulation-hud .sim-hud-tooltip * {
+  color: #ffffff !important;
+}
+.simulation-flat .simulation-hud .sim-hud-tooltip :where(div, p, span, strong, em, small) {
+  background-color: transparent !important;
+}
+.simulation-flat .simulation-hud .sim-hud-tooltip .sim-hud-tooltip-muted {
+  color: rgba(255, 255, 255, 0.58) !important;
+}
+
+/* Initiation action page: clear wireframe white surfaces in cards/panels */
+.initiation-action-page .initiation-clear-bg,
+.initiation-action-page .action-card-idle,
+.initiation-action-page .action-card-disabled {
+  background-color: transparent !important;
+}
+.initiation-action-page .briefing-shell {
+  background-color: transparent !important;
+}
+.initiation-action-page .briefing-head {
+  background-color: #ff4b4b !important;
+}
+.initiation-action-page .briefing-head :where(div, p, span, h1, h2, h3) {
+  background-color: transparent !important;
+}
+.initiation-action-page .briefing-head-title,
+.initiation-action-page .briefing-head-icon {
+  color: #ffffff !important;
+}
+.initiation-action-page .briefing-body {
+  background-color: #ffffff !important;
+  border: 2px solid #111111 !important;
+}
+.initiation-action-page .dossier-label {
+  background-color: #111111 !important;
+  color: #ffffff !important;
+}
+.initiation-action-page .action-card-selected {
+  border-width: 6px !important;
+  border-style: solid !important;
+  border-color: #ff4b4b !important;
+  background-color: #89e586 !important;
+  box-shadow: 6px 6px 0 #111111 !important;
+}
+.initiation-action-page .action-card-system {
+  background-color: #f3f3f3 !important;
+}
+.initiation-action-page .action-card-system :where(div, p, span, strong, small):not(.pmbok-tag):not(.impact-tag) {
+  background-color: transparent !important;
+}
+.initiation-action-page .pmbok-tag {
+  background-color: #dbeafe !important;
+  color: #111111 !important;
+}
+.initiation-action-page .impact-tag {
+  background-color: #fff4c2 !important;
+  color: #111111 !important;
+}
+
+/* Initiation D-1 recap: reward + score + red-line tension */
+.initiation-d1-page .d1-shell :where(div, p, span, ul, li, a) {
+  background-color: transparent !important;
+}
+.initiation-d1-page .d1-shell {
+  background-color: #ffffff !important;
+  box-shadow: 10px 10px 0 #111111 !important;
+  border-color: #111111 !important;
+}
+.initiation-d1-page .d1-panel {
+  background-color: #ffffff !important;
+  border-color: #111111 !important;
+}
+.initiation-d1-page .d1-label {
+  color: #ff4b4b !important;
+}
+.initiation-d1-page .d1-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 2px solid #111111 !important;
+  border-radius: 999px !important;
+  padding: 0.375rem 0.75rem;
+  font-size: 12px;
+  font-weight: 800;
+  border-color: #111111 !important;
+}
+.initiation-d1-page .d1-badge-pink {
+  background-color: #111111 !important;
+  color: #ff7ad9 !important;
+}
+.initiation-d1-page .d1-badge-blue {
+  background-color: #111111 !important;
+  color: #72d7ff !important;
+}
+.initiation-d1-page .d1-score-neon,
+.initiation-d1-page .d1-score-neon * {
+  color: #89e586 !important;
+  font-weight: 800 !important;
+}
+.initiation-d1-page .d1-redline {
+  background-color: #ff4b4b !important;
+  border-color: #111111 !important;
+}
+.initiation-d1-page .d1-redline,
+.initiation-d1-page .d1-redline * {
+  color: #111111 !important;
+}
+.initiation-d1-page .d1-redline-btn {
+  background-color: #111111 !important;
+  color: #ffffff !important;
+  box-shadow: 4px 4px 0 #111111 !important;
+  border-color: #111111 !important;
+}
+
+/* Ep1 visual novel split scene */
+.ep1-novel-page .ep1-manhwa-panel {
+  background-color: #ffe9e9 !important;
+  background-image: radial-gradient(circle at 1px 1px, rgba(17, 17, 17, 0.16) 1px, transparent 0) !important;
+  background-size: 10px 10px !important;
+}
+.ep1-novel-page .ep1-speech-bubble {
+  background-color: #ffffff !important;
+  box-shadow: 5px 5px 0 #111111 !important;
+}
+.ep1-novel-page .ep1-speech-bubble :where(div, p, span, strong) {
+  background-color: transparent !important;
+}
+.ep1-novel-page .ep1-narration-strip {
+  background-color: #f6f6f6 !important;
+}
+.ep1-novel-page .ep1-tactical-panel {
+  background-color: #ffffff !important;
+}
+.ep1-novel-page .ep1-option-card-idle {
+  background-color: #ffffff !important;
+}
+.ep1-novel-page .ep1-option-card-idle:hover {
+  background-color: #ffd12a !important;
+  box-shadow: 4px 4px 0 #111111 !important;
+}
+.ep1-novel-page .ep1-option-card-selected {
+  background-color: #ffd12a !important;
+  box-shadow: 5px 5px 0 #111111 !important;
+}
+.ep1-novel-page .ep1-sfx {
+  position: absolute;
+  font-family: "Elice Digital Baeum", "Gmarket Sans", "SUIT Variable", sans-serif;
+  font-weight: 800;
+  color: rgba(228, 0, 63, 0.2) !important;
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+  text-shadow: 1px 1px 0 rgba(17, 17, 17, 0.15);
+}
+.ep1-novel-page .ep1-sfx-1 {
+  top: 0.8rem;
+  right: 1rem;
+  font-size: 2rem;
+}
+.ep1-novel-page .ep1-sfx-2 {
+  bottom: 1.4rem;
+  left: 0.8rem;
+  font-size: 2.3rem;
+}
+.ep1-novel-page .ep1-sfx-3 {
+  top: 45%;
+  right: 0.6rem;
+  font-size: 1.5rem;
+}
+.ep1-novel-page :where(div, p, span, strong, section, article):not(.ep1-sfx) {
+  background-color: transparent !important;
+}
+
 /* Neo-brutal token utilities for opening page */
 .neo-page {
   background-color: #ffffff !important;
@@ -440,6 +644,12 @@ button,
 [class*="bg-[#FFB8E0]"] { background-color: #FFB8E0 !important; }
 [class*="bg-[#ADF1FF]"] { background-color: #ADF1FF !important; }
 [class*="bg-[#89E586]"]  { background-color: #89E586 !important; }
+/* KPI overview cards — wireframe div rule strips non-!important Tailwind bg */
+[class*="bg-[#CFE8FF]"] { background-color: #CFE8FF !important; }
+[class*="bg-[#FFDEE8]"] { background-color: #FFDEE8 !important; }
+[class*="bg-[#FFFBEB]"] { background-color: #FFFBEB !important; }
+[class*="bg-[#FFF59E]"] { background-color: #FFF59E !important; }
+[class*="bg-[#FAFAFA]"] { background-color: #FAFAFA !important; }
 [class*="bg-[#F4F4F4]"]  { background-color: #F4F4F4 !important; }
 [class*="bg-[#FF4B4B]"]  { background-color: #FF4B4B !important; }
 [class*="bg-[#FFD12A]"]  { background-color: #FFD12A !important; }
@@ -454,9 +664,20 @@ button,
 [class*="shadow-[6px_6px_0px_#111111]"]  { box-shadow: 6px 6px 0px #111111 !important; }
 [class*="shadow-[4px_4px_0px_#111111]"]  { box-shadow: 4px 4px 0px #111111 !important; }
 [class*="shadow-[3px_3px_0px_#111111]"]  { box-shadow: 3px 3px 0px #111111 !important; }
+[class*="shadow-[20px_20px_0px_#000000]"] { box-shadow: 20px 20px 0px #000000 !important; }
+[class*="shadow-[14px_14px_0px_#000000]"] { box-shadow: 14px 14px 0px #000000 !important; }
+[class*="shadow-[10px_10px_0px_#111111]"] { box-shadow: 10px 10px 0px #111111 !important; }
 
 /* page background */
 [class*="bg-[#F0F0F0]"] { background-color: #F0F0F0 !important; }
+
+/* Project overview step: KPI panels & cards (semantic classes, beats wireframe div) */
+.project-overview-page .kpi-surface-work {
+  background-color: #cfe8ff !important;
+}
+.project-overview-page .kpi-surface-people {
+  background-color: #ffdee8 !important;
+}
 
 /* modal backdrop */
 [class*="bg-black/50"] { background-color: rgba(0,0,0,0.5) !important; }
@@ -464,6 +685,68 @@ button,
 /* button overrides */
 [class*="bg-black"] { background-color: #111111 !important; }
 .text-white { color: #ffffff !important; }
+
+/* Step5 tutorial manual — strip wireframe white behind text/icons; re-apply chrome + chips */
+.tutorial-manual-page :where(div, p, span, h1, h2, h3, article, section, strong) {
+  background-color: transparent !important;
+}
+
+.tutorial-manual-page .manual-chrome {
+  background-color: #d4d4d4 !important;
+}
+.tutorial-manual-page .manual-titlebar {
+  background-color: #f4f4f4 !important;
+}
+.tutorial-manual-page .manual-tabstrip {
+  background-color: #c8c8c8 !important;
+}
+/* White canvas for tab content — transparent would show manual-chrome #d4d4d4 */
+.tutorial-manual-page .manual-tab-panel {
+  background-color: #ffffff !important;
+}
+.tutorial-manual-page .manual-tab-active {
+  background-color: #89e586 !important;
+}
+.tutorial-manual-page .manual-tab-inactive {
+  background-color: #a8a8a8 !important;
+}
+.tutorial-manual-page .manual-tab-inactive:hover {
+  background-color: #b8b8b8 !important;
+}
+.tutorial-manual-page .manual-progress-track {
+  background-color: #e5e5e5 !important;
+}
+.tutorial-manual-page .manual-dot-red {
+  background-color: #ff5f57 !important;
+}
+.tutorial-manual-page .manual-dot-yellow {
+  background-color: #febc2e !important;
+}
+.tutorial-manual-page .manual-dot-green {
+  background-color: #28c840 !important;
+}
+
+.tutorial-manual-page [class*="bg-[#CFE8FF]"] {
+  background-color: #cfe8ff !important;
+}
+.tutorial-manual-page [class*="bg-[#FFDEE8]"] {
+  background-color: #ffdee8 !important;
+}
+.tutorial-manual-page [class*="bg-[#FFF59E]"] {
+  background-color: #fff59e !important;
+}
+.tutorial-manual-page [class*="bg-[#89E586]"] {
+  background-color: #89e586 !important;
+}
+.tutorial-manual-page [class*="bg-[#ADF1FF]"] {
+  background-color: #adf1ff !important;
+}
+.tutorial-manual-page [class*="bg-[#FFD12A]"] {
+  background-color: #ffd12a !important;
+}
+.tutorial-manual-page [class*="bg-[#111]"] {
+  background-color: #111111 !important;
+}
 
 /* Step4 members board: remove forced white patches */
 .members-page :where(div, p, span, button, section) {
@@ -479,6 +762,26 @@ button,
   border-color: #111111 !important;
   border-width: 4px !important;
   border-style: solid !important;
+}
+
+/* Step4 modal backdrop — solid black (focus on dialog) */
+.members-page .members-modal-backdrop {
+  background-color: #000000 !important;
+}
+
+/* Step4 character modal — comic panel (deep blue halftone) */
+.members-page .members-popup-panel {
+  background-color: #102a4c !important;
+  background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.12) 1.5px, transparent 0) !important;
+  background-size: 9px 9px !important;
+  border-color: #111111 !important;
+  border-width: 4px !important;
+  border-style: solid !important;
+}
+
+.members-page .members-popup-comic-inner {
+  background-color: #fefce8 !important;
+  color: #111111 !important;
 }
 
 /* Re-apply intended backgrounds inside members page */

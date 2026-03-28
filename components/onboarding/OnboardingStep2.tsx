@@ -25,6 +25,23 @@ type PersonCard = {
 
 type PopupData = PersonCard | null;
 
+/** 2–3 paragraphs for scannability */
+function splitIntoParagraphs(text: string, maxParagraphs = 3): string[] {
+  const t = text.trim();
+  if (!t) return [];
+  const byNewline = t.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+  if (byNewline.length >= 2) return byNewline.slice(0, maxParagraphs);
+  const sentences = t.split(/(?<=[.!?…])\s+/).map((s) => s.trim()).filter(Boolean);
+  if (sentences.length <= 2) return [t];
+  const n = Math.min(maxParagraphs, sentences.length);
+  const chunk = Math.ceil(sentences.length / n);
+  const out: string[] = [];
+  for (let i = 0; i < sentences.length; i += chunk) {
+    out.push(sentences.slice(i, i + chunk).join(" "));
+  }
+  return out.slice(0, maxParagraphs);
+}
+
 const avatarById: Record<string, string> = {
   kimhyukgi: "/images/characters/kimhyukgi.png",
   choisungmin: "/images/characters/choi.png",
@@ -169,42 +186,109 @@ export function OnboardingStep2({}: OnboardingStep2Props) {
         </div>
       </div>
 
-      {/* Floating popup */}
+      {/* Comic-book panel modal */}
       {popup && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-transparent backdrop-blur-[2px]"
+          className="members-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
           onClick={() => setPopup(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="인물 상세 정보"
+          role="presentation"
         >
           <div
-            className="members-popup max-w-4xl w-[96%] bg-white border-4 border-black shadow-[20px_20px_0px_#111111] p-8"
+            className="members-popup members-popup-panel relative w-full max-w-5xl overflow-visible border-4 border-black shadow-[20px_20px_0px_#000000]"
             style={{ borderColor: "#111111", borderWidth: "4px", borderStyle: "solid" }}
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="member-popup-title"
           >
-            <p className="text-base font-bold text-gray-600">{popup.group}</p>
-            <h3 className="neo-display mt-1 text-4xl font-extrabold">{popup.name}</h3>
-            <p className="mt-2 text-lg font-bold text-gray-600">{popup.roleLabel}</p>
-            <p className="mt-5 italic text-xl text-gray-800 leading-relaxed whitespace-pre-wrap">"{popup.quote}"</p>
-
-            {popup.type === "member" && popup.memberData && (
-              <div className="mt-6 space-y-3 text-base text-gray-800 leading-relaxed">
-                <p><strong>기본 정보:</strong> {popup.memberData.age}세 / {popup.memberData.gender} / {popup.memberData.years}년 차</p>
-                <p><strong>기존 업무:</strong> {popup.memberData.dept} {popup.memberData.position}</p>
-                <p><strong>특징:</strong> {popup.memberData.description}</p>
-                <p><strong>#성격_해시태그:</strong> {popup.memberData.tags.join(" ")}</p>
+            <section className="relative z-[1] flex flex-col items-stretch gap-0 lg:flex-row lg:items-end lg:pb-2 lg:pl-2 lg:pr-5 lg:pt-4">
+              {/* Portrait — large, breaks out of frame on desktop */}
+              <div className="relative flex shrink-0 justify-center px-4 pt-6 lg:w-[38%] lg:min-w-[220px] lg:justify-start lg:px-0 lg:pt-0">
+                <div className="relative z-20 w-[78%] max-w-[280px] sm:max-w-[300px] lg:absolute lg:bottom-0 lg:left-0 lg:w-[125%] lg:max-w-[min(380px,42vw)] lg:translate-x-[-10%] lg:translate-y-[8%]">
+                  <div className="relative aspect-[3/4] w-full overflow-hidden border-4 border-black bg-[#1a1a1a] shadow-[14px_14px_0px_#000000]">
+                    <Image
+                      src={popup.imagePath}
+                      alt={popup.name}
+                      fill
+                      className="object-cover object-top"
+                      sizes="(max-width: 1024px) 300px, 380px"
+                      priority
+                    />
+                  </div>
+                </div>
               </div>
-            )}
 
-            {popup.type === "stakeholder" && popup.stakeholderData && (
-              <div className="mt-6 space-y-3 text-base text-gray-800 leading-relaxed">
-                <p><strong>소속:</strong> {popup.stakeholderData.position}</p>
-                <p><strong>특징:</strong> {popup.stakeholderData.description}</p>
-                <p><strong>#성격_해시태그:</strong> {popup.stakeholderData.tags.join(" ")}</p>
+              {/* Text stack — cream inset panel, SUIT body */}
+              <div className="members-popup-comic-inner relative z-10 mx-4 mb-5 mt-2 flex min-h-0 min-w-0 flex-1 flex-col border-4 border-black p-8 shadow-[8px_8px_0px_#111111] sm:p-10 lg:mx-4 lg:mb-7 lg:mt-6 lg:ml-10">
+                <p className="font-sans text-xs font-bold uppercase tracking-[0.12em] text-[#2d4a6f]">{popup.group}</p>
+                <h2 id="member-popup-title" className="neo-display mt-2 text-3xl font-extrabold leading-tight text-[#111] sm:text-4xl">
+                  {popup.name}
+                </h2>
+                <p className="mt-2 font-sans text-sm font-bold text-neutral-800">{popup.roleLabel}</p>
+
+                <div className="mt-7 space-y-6 font-sans text-lg font-medium leading-relaxed text-[#111]">
+                  {splitIntoParagraphs(popup.quote, 3).map((para, i) => (
+                    <p key={`q-${i}`} className="italic">
+                      &ldquo;{para}&rdquo;
+                    </p>
+                  ))}
+                </div>
+
+                {popup.type === "member" && popup.memberData && (
+                  <div className="mt-9 space-y-6 font-sans text-base font-medium leading-relaxed text-[#111]">
+                    <p>
+                      <span className="font-bold">기본 정보:</span>{" "}
+                      {popup.memberData.age}세 / {popup.memberData.gender} / {popup.memberData.years}년 차
+                    </p>
+                    <p>
+                      <span className="font-bold">기존 업무:</span>{" "}
+                      {popup.memberData.dept} {popup.memberData.position}
+                    </p>
+                    {splitIntoParagraphs(popup.memberData.description, 3).map((para, i) => (
+                      <p key={`d-${i}`}>
+                        {i === 0 ? (
+                          <>
+                            <span className="font-bold">특징:</span> {para}
+                          </>
+                        ) : (
+                          para
+                        )}
+                      </p>
+                    ))}
+                    <p>
+                      <span className="font-black">#성격_해시태그:</span>{" "}
+                      {popup.memberData.tags.join(" ")}
+                    </p>
+                  </div>
+                )}
+
+                {popup.type === "stakeholder" && popup.stakeholderData && (
+                  <div className="mt-9 space-y-6 font-sans text-base font-medium leading-relaxed text-[#111]">
+                    <p>
+                      <span className="font-bold">소속:</span> {popup.stakeholderData.position}
+                    </p>
+                    {splitIntoParagraphs(popup.stakeholderData.description, 3).map((para, i) => (
+                      <p key={`s-${i}`}>{para}</p>
+                    ))}
+                    <p>
+                      <span className="font-black">#성격_해시태그:</span>{" "}
+                      {popup.stakeholderData.tags.join(" ")}
+                    </p>
+                  </div>
+                )}
+
+                <div className="mt-10 flex justify-center border-t-2 border-dashed border-neutral-300 pt-8">
+                  <button
+                    type="button"
+                    onClick={() => setPopup(null)}
+                    className="inline-flex min-w-[200px] items-center justify-center border-4 border-black px-12 py-4 font-sans text-lg font-black text-[#111] shadow-[6px_6px_0px_#111111] transition duration-150 ease-out hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[3px_3px_0px_#111111] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                    style={{ backgroundColor: "#89E586" }}
+                  >
+                    인물 파악 완료
+                  </button>
+                </div>
               </div>
-            )}
-
+            </section>
           </div>
         </div>
       )}

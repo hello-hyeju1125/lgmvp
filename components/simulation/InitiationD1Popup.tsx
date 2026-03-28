@@ -3,6 +3,9 @@
 import { useStore } from "@/store/useStore";
 import { initiationActions, initiationScreenCopy, INITIATION_STEP_HOURS } from "@/content/initiationActions";
 import type { KpiState } from "@/store/useStore";
+import Link from "next/link";
+import { AlertTriangle, ArrowRight, BellRing, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface InitiationD1PopupProps {
   userName: string;
@@ -34,57 +37,92 @@ export function InitiationD1Popup({ userName }: InitiationD1PopupProps) {
   const before = kpiBeforeInitiation ?? kpi;
   const kpiKeys: (keyof KpiState)[] = ["quality", "delivery", "teamEngagement", "stakeholderAlignment", "leaderEnergy"];
   const increased = kpiKeys.filter((key) => kpi[key] > before[key]);
+  const [displayed, setDisplayed] = useState<Record<keyof KpiState, number>>({
+    quality: before.quality,
+    delivery: before.delivery,
+    teamEngagement: before.teamEngagement,
+    stakeholderAlignment: before.stakeholderAlignment,
+    leaderEnergy: before.leaderEnergy,
+  });
+
+  useEffect(() => {
+    const start = performance.now();
+    const duration = 900;
+    let raf = 0;
+
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - (1 - t) * (1 - t);
+      setDisplayed({
+        quality: Math.round(before.quality + (kpi.quality - before.quality) * eased),
+        delivery: Math.round(before.delivery + (kpi.delivery - before.delivery) * eased),
+        teamEngagement: Math.round(before.teamEngagement + (kpi.teamEngagement - before.teamEngagement) * eased),
+        stakeholderAlignment: Math.round(before.stakeholderAlignment + (kpi.stakeholderAlignment - before.stakeholderAlignment) * eased),
+        leaderEnergy: Math.round(before.leaderEnergy + (kpi.leaderEnergy - before.leaderEnergy) * eased),
+      });
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [before, kpi]);
 
   return (
-    <section aria-labelledby="initiation-d1-title">
-      <div className="rounded-3xl border border-white/15 bg-white/95 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-md sm:p-8">
-        <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-[#E4003F]">D-1 RECAP</p>
-        <h2
-          id="initiation-d1-title"
-          className="mt-2 text-center text-xl sm:text-2xl font-extrabold tracking-tight text-black/90"
-        >
+    <section className="initiation-d1-page" aria-labelledby="initiation-d1-title">
+      <div className="d1-shell border-4 border-black p-6 sm:p-8">
+        <p className="d1-label text-center font-sans text-[11px] font-black tracking-[0.18em]">LEVEL UP RECAP</p>
+        <h2 id="initiation-d1-title" className="mt-2 text-center font-alice text-2xl font-black tracking-tight sm:text-3xl">
           {initiationScreenCopy.popupTitle}
         </h2>
-        <p className="mt-4 text-center text-[15px] leading-[1.85] text-black/75">{initiationScreenCopy.popupIntro}</p>
+        <p className="mt-4 text-center font-sans text-[15px] font-semibold leading-[1.8]">{initiationScreenCopy.popupIntro}</p>
 
-        <div className="mt-6 rounded-2xl border border-black/10 bg-[#f8f9fa] p-5">
-          <p className="text-[13px] font-extrabold text-black/85">{initiationScreenCopy.popupBadgesLabel}</p>
-          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <div className="d1-panel mt-6 border-2 border-black bg-white p-5">
+          <p className="font-sans text-[13px] font-black">{initiationScreenCopy.popupBadgesLabel}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
             {badges.length > 0 ? (
-              badges.map((b) => (
-                <span
-                  key={b}
-                  className="inline-flex items-center justify-center rounded-full bg-[#1E3A5F]/10 px-3 py-1 text-[13px] font-extrabold text-[#1E3A5F] ring-1 ring-black/10"
-                >
-                  🏅 [{b}]
+              badges.map((b, idx) => (
+                <span key={b} className={`d1-badge ${idx % 2 === 0 ? "d1-badge-pink" : "d1-badge-blue"}`}>
+                  <Sparkles className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
+                  {b}
                 </span>
               ))
             ) : (
-              <span className="text-[13px] font-semibold text-black/55">선택한 액션이 없습니다.</span>
+              <span className="font-sans text-[13px] font-semibold text-black/55">선택한 액션이 없습니다.</span>
             )}
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-black/10 bg-[#f8f9fa] p-5">
-          <p className="text-[13px] font-extrabold text-black/85">{initiationScreenCopy.popupKpiLabel}</p>
+        <div className="d1-panel mt-4 border-2 border-black bg-white p-5">
+          <p className="font-sans text-[13px] font-black">{initiationScreenCopy.popupKpiLabel}</p>
           {increased.length > 0 ? (
-            <ul className="mt-3 space-y-2 text-[14px] leading-[1.85] text-black/75">
+            <ul className="mt-3 space-y-2 font-sans text-[14px] font-semibold leading-[1.8]">
               {increased.map((key) => (
                 <li key={key}>
-                  <span className="font-extrabold text-black/90">{KPI_LABELS[key]}</span> {before[key]}점 ➔{" "}
-                  <span className="font-extrabold text-black/90">{kpi[key]}점</span>{" "}
-                  <span className="font-extrabold text-emerald-700">({initiationScreenCopy.popupKpiRise})</span>
+                  <span className="font-black">{KPI_LABELS[key]}</span>{" "}
+                  <span>{before[key]}점</span>{" "}
+                  <span className="d1-score-neon">
+                    <ArrowRight className="inline-block h-4 w-4 align-[-1px]" strokeWidth={2.8} aria-hidden /> {displayed[key]}점 (
+                    {initiationScreenCopy.popupKpiRise})
+                  </span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-3 text-[13px] font-semibold text-black/55">변동된 지표가 없습니다.</p>
+            <p className="mt-3 font-sans text-[13px] font-semibold text-black/55">변동된 지표가 없습니다.</p>
           )}
         </div>
 
-        <p className="mt-6 text-center text-[17px] font-extrabold leading-[1.85] text-black/85">
-          {initiationScreenCopy.popupOutro}
-        </p>
+        <div className="d1-redline mt-6 border-4 border-black p-4 sm:p-5">
+          <p className="flex items-center gap-2 font-sans text-[17px] font-black sm:text-[19px]">
+            <BellRing className="h-5 w-5" strokeWidth={2.7} aria-hidden />
+            {initiationScreenCopy.popupOutro}
+          </p>
+          <div className="mt-4 flex justify-end">
+            <Link href="/simulation?phase=ep1-scene" className="d1-redline-btn inline-flex items-center gap-2 border-2 border-black px-4 py-2.5 font-sans text-[14px] font-black">
+              상무님 호출 응답하기
+              <span aria-hidden>⚡</span>
+            </Link>
+          </div>
+        </div>
       </div>
     </section>
   );

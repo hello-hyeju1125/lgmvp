@@ -149,65 +149,57 @@ function getProcessStep(phase: string): ProcessStep {
 
 function Stepper({ current, onOpenMembers }: { current: ProcessStep; onOpenMembers: () => void }) {
   const helpByStep: Record<ProcessStep, string> = {
-    착수: "프로젝트를 시작하기 위한 목표·범위·이해관계자를 정리하고 추진 기반을 만드는 단계입니다.",
-    기획: "일정·범위·자원·리스크 계획을 수립해 실행 가능한 로드맵으로 구체화하는 단계입니다.",
-    실행: "계획에 따라 작업을 수행하고 팀을 운영하며 산출물을 만들어 내는 단계입니다.",
-    "감시/통제": "진척·품질·리스크를 모니터링하고 편차를 조정해 계획대로 되돌리는 단계입니다.",
-    종료: "성과를 인수·정리하고 회고를 통해 지식을 남기며 프로젝트를 마무리하는 단계입니다.",
+    착수: "프로젝트 목표·범위·이해관계자를 정리해 시작 기반을 만듭니다.",
+    기획: "일정·자원·리스크 계획을 세워 실행 가능한 로드맵으로 구체화합니다.",
+    실행: "계획에 맞춰 작업을 수행하고 팀을 운영해 산출물을 만듭니다.",
+    "감시/통제": "진척과 품질을 점검하고 편차를 조정해 계획 궤도로 복귀시킵니다.",
+    종료: "성과를 인수·정리하고 회고를 통해 프로젝트를 마무리합니다.",
   };
 
   return (
-    <div className="bg-white px-6 py-3">
-      <div className="mx-auto w-full max-w-4xl">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-center">
-          <div className="min-w-0">
-            <p className="text-[11px] font-extrabold tracking-[0.12em] text-black/50">프로젝트 5단계</p>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-[13px] sm:text-[14px]">
-              {PROCESS_STEPS.map((label, idx) => {
-                const isCurrent = label === current;
-                const isFuture = PROCESS_STEPS.indexOf(current) < idx;
-                return (
-                  <div key={label} className="flex items-center gap-2">
-                    <span className="relative group">
-                      <span
-                        className={`pb-0.5 ${
-                          isCurrent
-                            ? "font-extrabold !text-black border-b-[3px] !border-b-[#89E586]"
-                            : isFuture
-                              ? "font-semibold text-black/35"
-                              : "font-semibold text-black/75"
-                        }`}
-                      >
-                        {label}
-                      </span>
-                      <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-[260px] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                        <span className="block rounded-[0.35rem] border border-black/10 bg-white px-3 py-2 text-[12px] font-semibold leading-relaxed text-black/85 shadow-[0_14px_40px_rgba(0,0,0,0.15)]">
-                          <span className="font-extrabold text-[#3374F6]">{label}</span>
-                          <span className="text-black/50"> · </span>
-                          {helpByStep[label]}
+    <div className="bg-white px-4 py-2.5 sm:px-6">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="mb-1 font-sans text-[9px] font-bold uppercase tracking-[0.14em] text-black/45 sm:text-[10px]">
+            프로젝트 매니지먼트 5단계
+          </p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {PROCESS_STEPS.map((label, idx) => {
+              const isCurrent = label === current;
+              return (
+                <span key={label} className="inline-flex items-center gap-1.5">
+                  <span className="group relative inline-flex">
+                    <span
+                      className={`rounded-sm px-2 py-1 font-sans text-[11px] font-bold leading-none sm:text-xs ${
+                        isCurrent ? "sim-hud-level-active" : "text-black/55"
+                      }`}
+                    >
+                      {idx + 1}. {label}
+                    </span>
+                    <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-[min(260px,calc(100vw-2rem))] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                      <span className="sim-hud-tooltip block px-2.5 py-2 text-left font-sans text-[11px] font-semibold text-white">
+                        <span className="font-black text-[#89E586]">
+                          {idx + 1}. {label}
                         </span>
+                        <span className="sim-hud-tooltip-muted"> · </span>
+                        {helpByStep[label]}
                       </span>
                     </span>
-                    {idx !== PROCESS_STEPS.length - 1 && (
-                      <span className="text-black/25" aria-hidden="true">
-                        &gt;
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                  </span>
+                  {idx !== PROCESS_STEPS.length - 1 ? <span className="text-[11px] text-black/30">-</span> : null}
+                </span>
+              );
+            })}
           </div>
-
-          <div className="flex justify-start md:justify-end">
-            <button
-              type="button"
-              onClick={onOpenMembers}
-              className="inline-flex items-center justify-center rounded-md bg-[#EEF2F8] px-4 py-2 text-[13px] font-bold !text-[#3374F6] transition hover:bg-[#E4EAF5]"
-            >
-              구성원 정보
-            </button>
-          </div>
+        </div>
+        <div className="shrink-0">
+          <button
+            type="button"
+            onClick={onOpenMembers}
+            className="sim-hud-team-btn inline-flex items-center justify-center rounded-sm px-4 py-2 font-sans text-xs font-black tracking-tight text-[#111] sm:px-4.5 sm:text-sm"
+          >
+            팀원 프로필
+          </button>
         </div>
       </div>
     </div>
@@ -268,7 +260,7 @@ function SimulationContent() {
     }
   }, [searchParams, router]);
 
-  const usePhotoBackground = phase === "initiation-d1" || phase === "planning-d1" || phase === "exec-d1";
+  const usePhotoBackground = phase === "planning-d1" || phase === "exec-d1";
   const useRecapBackground =
     phase === "initiation-recap" ||
     phase === "initiation-senior-tips" ||
@@ -298,8 +290,7 @@ function SimulationContent() {
     return s === "intro" || s === "alloc" ? (s as "intro" | "alloc") : "intro";
   }, [phase, searchParams]);
   const prevHref = useMemo(() => {
-    if (phase === "initiation-action" && initiationStage === "alloc") return "/simulation?phase=initiation-action&stage=intro";
-    if (phase === "initiation-d1") return "/simulation?phase=initiation-action&stage=alloc";
+    if (phase === "initiation-d1") return "/simulation?phase=initiation-action";
     if (phase === "plan-action" && planningStage === "alloc") return "/simulation?phase=plan-action&stage=intro";
     if (phase === "plan-action") return "/simulation?phase=initiation-rampup";
     if (phase === "planning-d1") return "/simulation?phase=plan-action&stage=alloc";
@@ -313,7 +304,7 @@ function SimulationContent() {
     if (phase === "ep5-result") return "/simulation?phase=ep5-scene";
     if (phaseIdx > 0) return `/simulation?phase=${VALID_PHASES[phaseIdx - 1]}`;
     return "/onboarding?step=5";
-  }, [phaseIdx, phase, initiationStage, planningStage, execStage]);
+  }, [phaseIdx, phase, planningStage, execStage]);
   const nextHref = useMemo(() => {
     if (phase === "initiation-rampup") return "/simulation?phase=plan-action";
     if (phase === "plan-action" && planningStage === "intro") return "/simulation?phase=plan-action&stage=alloc";
@@ -366,10 +357,6 @@ function SimulationContent() {
 
   const handleInitiationNext = () => {
     if (phase !== "initiation-action") return;
-    if (initiationStage === "intro") {
-      router.push("/simulation?phase=initiation-action&stage=alloc");
-      return;
-    }
     setInitiationConfirmOpen(true);
   };
 
@@ -562,7 +549,7 @@ function SimulationContent() {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-black/45 to-black/70" />
         </>
       )}
-      <header className="sticky top-0 z-50">
+      <header className="simulation-hud sticky top-0 z-50 bg-white">
         <Stepper current={processStep} onOpenMembers={() => setMembersModalOpen(true)} />
         <KpiGauges />
       </header>
@@ -619,7 +606,7 @@ function SimulationContent() {
         {phase === "closing-scene" && <ClosingScene userName={userName} />}
         {phase === "closing-result" && <ClosingResult userName={userName} />}
       </div>
-      {phase === "initiation-action" && initiationStage === "alloc" && initiationConfirmOpen && (
+      {phase === "initiation-action" && initiationConfirmOpen && (
         <div className={MODAL_OVERLAY_CLASS} role="dialog" aria-modal="true">
           <div className={MODAL_FRAME_CLASS}>
             <div className={MODAL_HEAD_CLASS}>
@@ -1035,6 +1022,7 @@ function SimulationContent() {
       <PrevNextNav
         prevHref={prevHref}
         nextHref={nextHref}
+        hideNext={phase === "initiation-d1"}
         nextDisabled={
           (phase === "ep1-scene" && !episode1Choice) ||
           (phase === "ep2-scene" && !episode2AlignChoice) ||

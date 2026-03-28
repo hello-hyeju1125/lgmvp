@@ -1,123 +1,82 @@
 "use client";
 
 import { useStore } from "@/store/useStore";
+import type { KpiState } from "@/store/useStore";
+import { Calendar, Handshake, Target, Users, Zap } from "lucide-react";
+
+const KPI_ROWS: {
+  field: keyof Pick<KpiState, "quality" | "delivery" | "teamEngagement" | "stakeholderAlignment" | "leaderEnergy">;
+  label: string;
+  Icon: typeof Target;
+  help: string;
+}[] = [
+  {
+    field: "quality",
+    label: "산출물 품질",
+    Icon: Target,
+    help: "결과물의 완성도와 실효성을 나타내는 품질 지표입니다.",
+  },
+  {
+    field: "delivery",
+    label: "일정 준수",
+    Icon: Calendar,
+    help: "계획한 마일스톤을 제때 달성하고 있는지를 보여줍니다.",
+  },
+  {
+    field: "teamEngagement",
+    label: "팀 몰입도",
+    Icon: Users,
+    help: "팀원들이 목표에 자발적으로 참여하고 협업에 몰입하는 수준입니다.",
+  },
+  {
+    field: "stakeholderAlignment",
+    label: "이해관계자 조율",
+    Icon: Handshake,
+    help: "유관부서·임원진의 협조와 프로젝트 지지도 수준을 의미합니다.",
+  },
+  {
+    field: "leaderEnergy",
+    label: "리더 에너지",
+    Icon: Zap,
+    help: "리더가 의사결정과 실행을 지속할 수 있는 한정 자원입니다.",
+  },
+];
 
 export function KpiGauges() {
   const { kpi } = useStore();
 
-  const items = [
-    {
-      label: "산출물 품질",
-      value: kpi.quality,
-      kind: "kpi" as const,
-      icon: (
-        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <path d="M12 3l7 4v10l-7 4-7-4V7l7-4z" />
-          <path d="M8.5 12l2.2 2.2L15.5 9.5" />
-        </svg>
-      ),
-      help: "산출물의 완성도와 실효성을 나타내며 높을수록 현업 적용 가능성이 커집니다.",
-    },
-    {
-      label: "일정 준수",
-      value: kpi.delivery,
-      kind: "kpi" as const,
-      icon: (
-        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <circle cx="12" cy="12" r="8" />
-          <path d="M12 8v4l3 2" />
-        </svg>
-      ),
-      help: "계획된 마일스톤을 제때 달성하고 있는지를 보여주는 일정 진행 지표입니다.",
-    },
-    {
-      label: "팀 몰입도",
-      value: kpi.teamEngagement,
-      kind: "kpi" as const,
-      icon: (
-        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <circle cx="9" cy="9" r="3" />
-          <circle cx="16" cy="10" r="2.5" />
-          <path d="M4.5 18c.7-2.4 2.6-4 4.5-4s3.8 1.6 4.5 4" />
-          <path d="M13 18c.4-1.5 1.6-2.5 3-2.5 1.4 0 2.6 1 3 2.5" />
-        </svg>
-      ),
-      help: "팀원들이 목표에 얼마나 자발적으로 참여하고 협업에 몰입하는지를 의미합니다.",
-    },
-    {
-      label: "이해관계자 조율",
-      value: kpi.stakeholderAlignment,
-      kind: "kpi" as const,
-      icon: (
-        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <path d="M4 7h12" />
-          <path d="M13 4l3 3-3 3" />
-          <path d="M20 17H8" />
-          <path d="M11 14l-3 3 3 3" />
-        </svg>
-      ),
-      help: "유관부서와 임원진의 협조 수준 및 프로젝트 지지도를 나타내는 지표입니다.",
-    },
-    {
-      label: "리더 에너지",
-      value: kpi.leaderEnergy,
-      kind: "energy" as const,
-      icon: (
-        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
-          <path d="M13.4 2.2c.6 0 1 .55.88 1.13l-1.04 5.1h6.12c.82 0 1.2 1.01.58 1.55L10.7 21.7c-.55.65-1.6.1-1.45-.73l1.03-5.16H4.1c-.82 0-1.2-1.01-.58-1.55L12.8 2.5c.17-.2.4-.3.6-.3Z" />
-        </svg>
-      ),
-      help: "리더가 의사결정과 실행을 지속할 수 있는 시간·체력 자원의 잔량을 뜻합니다.",
-    },
-  ] as const;
-
   return (
-    <div className="bg-white px-6 py-3">
-      <div className="mx-auto w-full max-w-4xl">
-        <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-5">
-          {items.map(({ label, value, kind, icon, help }) => {
-            const clamped = Math.max(0, Math.min(100, value));
-            const isEnergy = kind === "energy";
+    <div className="border-b border-black/20 bg-white px-4 py-2.5 sm:px-6">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="grid grid-cols-5 items-center gap-2">
+          {KPI_ROWS.map(({ field, label, Icon, help }) => {
+            const value = Math.max(0, Math.min(100, kpi[field]));
+            const isEnergy = field === "leaderEnergy";
             return (
-              <div key={label} className="group relative min-w-0" aria-label={`${label}: ${help}`}>
-                <div className="flex min-w-0 items-center gap-1.5">
-                  <span
-                    className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                      isEnergy ? "bg-[#E4003F]/12 text-[#E4003F]" : "bg-[#89E586]/20 text-[#3F9C3C]"
-                    }`}
-                    aria-hidden="true"
-                  >
-                    {icon}
+              <div key={field} className="group relative min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center text-[#111]" aria-hidden>
+                    <Icon className="h-5 w-5" strokeWidth={2.5} />
                   </span>
-                  <span className="truncate text-[12px] font-extrabold text-black/80">
-                    {label}
-                  </span>
+                  <div className="kpi-bar-track h-2 w-full overflow-hidden rounded-none border-2 border-black">
+                    <div
+                      className={`h-full transition-[width] duration-1000 ease-out ${isEnergy ? "kpi-bar-fill-energy" : "kpi-bar-fill-kpi"}`}
+                      style={{ width: `${value}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="kpi-bar-track mt-2 h-2.5 w-full overflow-hidden rounded-full">
-                  <div
-                    className={`kpi-bar-fill h-full rounded-full transition-[width] duration-500 ${isEnergy ? "kpi-bar-fill-energy" : "kpi-bar-fill-kpi"}`}
-                    style={{ width: `${clamped}%` }}
-                  />
-                </div>
-
-                <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-[240px] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                  <div className="rounded-[0.35rem] border border-black/10 bg-white px-3 py-2 text-[12px] font-semibold leading-relaxed text-black/85 shadow-[0_14px_40px_rgba(0,0,0,0.15)]">
-                    <span
-                      className="font-extrabold"
-                      style={{ color: isEnergy ? "#000000" : "#89E586", backgroundColor: "transparent" }}
-                    >
-                      {label}
-                    </span>
-                    <span className="text-black/45"> · </span>
-                    <span className="font-extrabold">{Math.round(value)}%</span>
-                    <br />
-                    {help}
+                <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-max min-w-[120px] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                  <div className="sim-hud-tooltip min-w-[220px] max-w-[260px] px-2.5 py-2 text-left font-sans text-[11px] font-semibold text-white">
+                    <span className="font-black text-[#89E586]">{label}</span>
+                    <span className="sim-hud-tooltip-muted"> · </span>
+                    <span className="font-black">{Math.round(value)}%</span>
+                    <p className="mt-1 leading-relaxed">{help}</p>
                   </div>
                 </div>
               </div>
             );
           })}
-        </div>
+          </div>
       </div>
     </div>
   );

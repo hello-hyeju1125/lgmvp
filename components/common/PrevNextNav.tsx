@@ -7,9 +7,10 @@ type Props = {
   nextHref: string;
   nextDisabled?: boolean;
   onNextClick?: () => void;
+  hideNext?: boolean;
 };
 
-export function PrevNextNav({ prevHref, nextHref, nextDisabled, onNextClick }: Props) {
+export function PrevNextNav({ prevHref, nextHref, nextDisabled, onNextClick, hideNext }: Props) {
   return (
     <footer className="force-bg-transparent relative z-30 w-full px-6 py-6">
       <div className="force-bg-transparent relative z-30 mx-auto w-full max-w-4xl px-0">
@@ -20,7 +21,9 @@ export function PrevNextNav({ prevHref, nextHref, nextDisabled, onNextClick }: P
           >
             이전
           </Link>
-          {onNextClick ? (
+          {hideNext ? (
+            <div />
+          ) : onNextClick ? (
             <button
               type="button"
               onClick={onNextClick}

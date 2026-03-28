@@ -37,9 +37,9 @@ function OnboardingContent() {
 
   return (
     <main className="neo-page relative min-h-screen flex flex-col bg-white">
-      <div className="relative flex-1">
+      <div className="relative flex min-h-0 flex-1 flex-col">
         {step === 0 && <OnboardingStep0 onNext={goNext} />}
-        {step === 1 && <OnboardingStep1 onNext={goNext} />}
+        {step === 1 && <OnboardingStep1 onNext={goNext} userName={nickname || "PM"} />}
         {step === 2 && <OnboardingStepTeamsMessage onNext={goNext} userName={nickname || "PM"} />}
         {step === 3 && <OnboardingStepProjectOverview onNext={goNext} />}
         {step === 4 && <OnboardingStep2 onNext={goNext} userName={nickname || "PM"} />}
