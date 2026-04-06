@@ -12,9 +12,18 @@ const config: Config = {
         "8xl": "90rem",
       },
       fontFamily: {
+        sans: [
+          "Paperlogy",
+          "SUIT Variable",
+          "Pretendard Variable",
+          "Pretendard",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "system-ui",
+          "sans-serif",
+        ],
         display: [
-          '"Elice Digital Baeum"',
-          '"Gmarket Sans"',
+          "Paperlogy",
           "SUIT Variable",
           "Pretendard Variable",
           "Pretendard",
@@ -24,8 +33,7 @@ const config: Config = {
           "sans-serif",
         ],
         heading: [
-          '"Gmarket Sans"',
-          '"Elice Digital Baeum"',
+          "Paperlogy",
           "SUIT Variable",
           "Pretendard Variable",
           "Pretendard",
@@ -35,6 +43,7 @@ const config: Config = {
           "sans-serif",
         ],
         body: [
+          "Paperlogy",
           "SUIT Variable",
           "Pretendard Variable",
           "Pretendard",
@@ -44,6 +53,7 @@ const config: Config = {
           "sans-serif",
         ],
         pretendard: [
+          "Paperlogy",
           "SUIT Variable",
           "Pretendard Variable",
           "Pretendard",

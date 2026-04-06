@@ -28,10 +28,10 @@ export interface KpiState {
 }
 
 const INITIAL_KPI: KpiState = {
-  quality: 50,
-  delivery: 50,
-  teamEngagement: 50,
-  stakeholderAlignment: 50,
+  quality: 75,
+  delivery: 75,
+  teamEngagement: 75,
+  stakeholderAlignment: 75,
   leaderEnergy: 100,
 };
 
@@ -57,6 +57,13 @@ interface AppState {
   applyKpiDelta: (delta: Partial<Record<keyof KpiState, number>>) => void;
   resetKpi: () => void;
 
+  /** 각 의사결정 단계별 KPI 적용 여부 추적 — 최초 1회만 반영 */
+  committedPhases: Record<string, boolean>;
+  markCommitted: (phase: string) => void;
+
+  /** 시뮬레이션 전체 초기화 (리플레이용) */
+  resetSimulation: () => void;
+
   /** 착수 D-1 팝업에서 "지표 변화" 표시용 (적용 직전 KPI 스냅샷) */
   kpiBeforeInitiation: KpiState | null;
   setKpiBeforeInitiation: (k: KpiState | null) => void;
@@ -68,6 +75,38 @@ interface AppState {
   /** 실행 D-1 팝업에서 "지표 변화" 표시용 (적용 직전 KPI 스냅샷) */
   kpiBeforeExecution: KpiState | null;
   setKpiBeforeExecution: (k: KpiState | null) => void;
+
+  /** E1 결과 HUD 애니메이션용 (선택 직전 KPI — applyKpiDelta 이전 값) */
+  kpiBeforeEp1Result: KpiState | null;
+  setKpiBeforeEp1Result: (k: KpiState | null) => void;
+
+  /** E2 결과 HUD 애니메이션용 */
+  kpiBeforeEp2Result: KpiState | null;
+  setKpiBeforeEp2Result: (k: KpiState | null) => void;
+
+  /** E3 결과 HUD 애니메이션용 */
+  kpiBeforeEp3Result: KpiState | null;
+  setKpiBeforeEp3Result: (k: KpiState | null) => void;
+
+  /** E4 결과 HUD 애니메이션용 */
+  kpiBeforeEp4Result: KpiState | null;
+  setKpiBeforeEp4Result: (k: KpiState | null) => void;
+
+  /** E5 결과 HUD 애니메이션용 */
+  kpiBeforeEp5Result: KpiState | null;
+  setKpiBeforeEp5Result: (k: KpiState | null) => void;
+
+  /** E6 결과 HUD 애니메이션용 */
+  kpiBeforeEp6Result: KpiState | null;
+  setKpiBeforeEp6Result: (k: KpiState | null) => void;
+
+  /** E7 결과 HUD 애니메이션용 */
+  kpiBeforeEp7Result: KpiState | null;
+  setKpiBeforeEp7Result: (k: KpiState | null) => void;
+
+  /** E10 결과 HUD 애니메이션용 */
+  kpiBeforeEp10Result: KpiState | null;
+  setKpiBeforeEp10Result: (k: KpiState | null) => void;
 
   episode1Choice: Episode1Choice;
   setEpisode1Choice: (c: Episode1Choice) => void;
@@ -153,6 +192,44 @@ export const useStore = create<AppState>()(
         })),
       resetKpi: () => set({ kpi: INITIAL_KPI }),
 
+      committedPhases: {},
+      markCommitted: (phase) =>
+        set((s) => ({
+          committedPhases: { ...s.committedPhases, [phase]: true },
+        })),
+
+      resetSimulation: () =>
+        set({
+          kpi: INITIAL_KPI,
+          committedPhases: {},
+          kpiBeforeInitiation: null,
+          kpiBeforePlanning: null,
+          kpiBeforeExecution: null,
+          kpiBeforeEp1Result: null,
+          kpiBeforeEp2Result: null,
+          kpiBeforeEp3Result: null,
+          kpiBeforeEp4Result: null,
+          kpiBeforeEp5Result: null,
+          kpiBeforeEp6Result: null,
+          kpiBeforeEp7Result: null,
+          kpiBeforeEp10Result: null,
+          episode1Choice: null,
+          ep1SceneRevealedQuotes: { first: false, second: false },
+          episode2AlignChoice: null,
+          episode2SelectedBlocks: [],
+          episode2Pattern: null,
+          initiationActionHours: {},
+          planningActionHours: {},
+          executionActionHours: {},
+          episode3Choice: null,
+          episode4Choice: null,
+          episode5Choice: null,
+          episode6Blocks: null,
+          episode7Choice: null,
+          episode8CoachingText: "",
+          episode10Choice: null,
+        }),
+
       kpiBeforeInitiation: null,
       setKpiBeforeInitiation: (k) => set({ kpiBeforeInitiation: k }),
 
@@ -161,6 +238,30 @@ export const useStore = create<AppState>()(
 
       kpiBeforeExecution: null,
       setKpiBeforeExecution: (k) => set({ kpiBeforeExecution: k }),
+
+      kpiBeforeEp1Result: null,
+      setKpiBeforeEp1Result: (k) => set({ kpiBeforeEp1Result: k }),
+
+      kpiBeforeEp2Result: null,
+      setKpiBeforeEp2Result: (k) => set({ kpiBeforeEp2Result: k }),
+
+      kpiBeforeEp3Result: null,
+      setKpiBeforeEp3Result: (k) => set({ kpiBeforeEp3Result: k }),
+
+      kpiBeforeEp4Result: null,
+      setKpiBeforeEp4Result: (k) => set({ kpiBeforeEp4Result: k }),
+
+      kpiBeforeEp5Result: null,
+      setKpiBeforeEp5Result: (k) => set({ kpiBeforeEp5Result: k }),
+
+      kpiBeforeEp6Result: null,
+      setKpiBeforeEp6Result: (k) => set({ kpiBeforeEp6Result: k }),
+
+      kpiBeforeEp7Result: null,
+      setKpiBeforeEp7Result: (k) => set({ kpiBeforeEp7Result: k }),
+
+      kpiBeforeEp10Result: null,
+      setKpiBeforeEp10Result: (k) => set({ kpiBeforeEp10Result: k }),
 
       episode1Choice: null,
       setEpisode1Choice: (c) => set({ episode1Choice: c }),
@@ -214,6 +315,26 @@ export const useStore = create<AppState>()(
       episode10Choice: null,
       setEpisode10Choice: (c) => set({ episode10Choice: c }),
     }),
-    { name: "lg-pm-simulation" }
+    {
+      name: "lg-pm-simulation",
+      version: 1,
+      migrate: (persisted: unknown, version: number) => {
+        const state = persisted as Record<string, unknown>;
+        if (version === 0 && state?.kpi) {
+          const old = state.kpi as KpiState;
+          return {
+            ...state,
+            kpi: {
+              ...old,
+              quality: Math.min(100, old.quality + 25),
+              delivery: Math.min(100, old.delivery + 25),
+              teamEngagement: Math.min(100, old.teamEngagement + 25),
+              stakeholderAlignment: Math.min(100, old.stakeholderAlignment + 25),
+            },
+          };
+        }
+        return state;
+      },
+    }
   )
 );
