@@ -1,5 +1,7 @@
-/** Screen 20. 실행 단계 80시간 액션 배분 */
+/** Screen 20. 실행 단계 액션 선택 */
 export const EXECUTION_TOTAL_HOURS = 80;
+/** exec-action: 선택 가능한 액션 개수 (각 8h 토글) */
+export const EXEC_ACTION_MAX_SELECTED = 4;
 export const EXECUTION_MIN_PER_ACTION = 3;
 export const EXECUTION_MAX_PER_ACTION = 15;
 export const EXECUTION_STEP_HOURS = [3, 6, 9, 12, 15] as const;
@@ -15,17 +17,13 @@ export interface ExecutionActionItem {
 }
 
 export const executionScreenCopy = {
-  intro1:
-    "치밀한 기획을 마쳤으니, 실제 업무가 본격적으로 시작됩니다. 실행 단계는 전체 6개월의 프로젝트 중 가장 길고 험난한 마라톤 구간이 될 것입니다.",
-  intro2:
-    "지금부터 본격적인 '첫 2주간의 개발 스프린트(Sprint)'가 시작됩니다. 당신에게 주어진 총 80시간(10일)의 리더십 에너지를 아래 10가지 액션 중 어디에 집중적으로 배분하시겠습니까?",
-  intro3: "(각 액션은 최소 5시간부터 최대 25시간까지 자유롭게 배분할 수 있습니다. 80시간을 모두 소진하여 팀의 실행력을 극대화하십시오!)",
-  sprintGlossary:
-    "스프린트(Sprint)란, 규모가 큰 프로젝트를 1~2주 단위의 짧은 주기로 쪼개어 구체적인 산출물을 집중적으로 개발하고, 수시로 방향을 점검하여 리스크를 최소화하는 애자일(Agile) 핵심 업무 방식입니다.",
+  briefingBadge: "실행의 첫 스프린트를 시작합니다.",
+  /** exec-action 시나리오. {{SPRINT}} → 형광+툴팁 */
+  execScenarioIntro:
+    "치밀한 기획을 마쳤으니, 실제 업무가 본격적으로 시작됩니다.\n실행 단계는 전체 6개월의 프로젝트 중 \n가장 길고 험난한 마라톤 구간이 될 것입니다.\n지금부터 본격적인 '첫 2주간의 개발 {{SPRINT}}'가 시작됩니다.\n\n아래 10가지 액션 아이템 중 \n어떤 아이템을 4개 선택하시겠습니까?",
   section1: "[도메인 지식 및 실무 밀착 지원]",
   section2: "[팀원 멘탈 케어 및 조직 문화]",
   section3: "[이해관계자 소통 및 병목 예방]",
-  popupTitle: "실행 완료",
   popupIntro:
     "리더님의 실행 단계 액션 선택이 1차 스프린트 시작 직전 팀 상태에 반영되었습니다.\n아래에서 확보한 실행 역량과 지표 변화를 확인하세요.",
   popupBadgesLabel: "확보한 실행 배지",

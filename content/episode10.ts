@@ -3,7 +3,7 @@
 import type { KpiState } from "@/store/useStore";
 
 export const ep10Scene = {
-  title: "E10. 치명적인 결함, 실패를 다루는 리더의 방식",
+  title: "E10. 치명적인 결함 발견",
   subtitle: "상황 및 옵션",
   situation:
     "마침내 AI 대시보드의 베타 테스트가 핵심 이해관계자들 대상으로 오픈되었습니다. 그런데 런칭 반나절 만에, 최성민 상무로부터 호출이 떨어집니다.",
@@ -74,7 +74,7 @@ export function getEp10Result(choice: Ep10Choice): Ep10ResultRow {
           "하지만 촌각을 다투는 베타 테스트 기간에 실무자의 권한을 회수하고 세세하게 간섭하는 것은 프로젝트의 품질과 속도에 동시에 악영향을 미치게 되었습니다. 팀원의 실수를 꼼꼼히 살피고 더 나은 품질을 담보하려다가, 결재권을 쥔 리더 본인이 가장 큰 병목이 되어버렸습니다.",
           "위기 상황일수록 실수는 명확히 짚어주되, 수습은 현장을 가장 잘 아는 실무자가 가장 빠르게 처리할 수 있도록 권한을 열어주어야 합니다.",
         ],
-        kpi: kpi({ delivery: -20, leaderEnergy: -25, teamEngagement: -20 }),
+        kpi: kpi({ delivery: -2, teamEngagement: -2, leaderEnergy: -9 }),
       };
     case "B":
       return {
@@ -87,7 +87,7 @@ export function getEp10Result(choice: Ep10Choice): Ep10ResultRow {
           "개인의 태도를 탓하기보다 구조적인 모순을 짚어주고, 비난 대신 대안 프로세스를 요구하는 리더의 모습은 팀원들에게 강한 신뢰를 줍니다.",
           "실수를 숨기지 않고 투명하게 공유하며 함께 해결책을 찾는 건강한 조직 문화의 표본을 보여주셨습니다.",
         ],
-        kpi: kpi({ teamEngagement: 20, quality: 20, delivery: -10 }),
+        kpi: kpi({ quality: 2, delivery: -1, teamEngagement: 2 }),
       };
     case "C":
       return {
@@ -100,7 +100,7 @@ export function getEp10Result(choice: Ep10Choice): Ep10ResultRow {
           "리더가 기꺼이 본인의 취약함(과거의 실수)을 드러내고 바람막이가 되어줄 때, 구성원들은 실패를 두려워하지 않게 됩니다. 질책 대신 잃어버린 자존심을 회복할 수 있는 도전적인 과제를 부여함으로써, 구성원의 숨겨진 120%의 역량까지 모두 끌어올린 최고의 리더십입니다.",
           "비록 리더님의 체력은 고갈되었지만, 어떤 위기에서도 믿고 맡길 수 있는 든든한 우군을 얻으셨습니다.",
         ],
-        kpi: kpi({ teamEngagement: 30, quality: 30, leaderEnergy: -20 }),
+        kpi: kpi({ quality: 2, teamEngagement: 3, leaderEnergy: -6 }),
       };
     default:
       return {
