@@ -10,12 +10,13 @@ interface ExecSeniorTipsProps {
 export function ExecSeniorTips({ userName }: ExecSeniorTipsProps) {
   return (
     <SeniorTipsPanel
-      title="실행 단계 선배 PM의 노하우"
+      title={executionSeniorTipsCopy.title}
       intro={executionSeniorTipsCopy.intro}
       stories={executionSeniorTipsCopy.stories}
       prompt={executionSeniorTipsCopy.prompt}
       placeholder={executionSeniorTipsCopy.placeholder}
       userName={userName}
+      postItNotes={executionSeniorTipsCopy.postItNotes}
     />
   );
 }

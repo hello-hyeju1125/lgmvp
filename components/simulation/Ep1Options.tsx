@@ -12,12 +12,13 @@ interface Ep1OptionsProps {
 
 export function Ep1Options({ userName }: Ep1OptionsProps) {
   const router = useRouter();
-  const { setEpisode1Choice, applyKpiDelta } = useStore();
+  const { setEpisode1Choice, applyKpiDelta, setKpiBeforeEp1Result } = useStore();
   const [selected, setSelected] = useState<"A" | "B" | "C" | null>(null);
 
   const handleNext = () => {
     if (!selected) return;
     const result = ep1Results[selected];
+    setKpiBeforeEp1Result({ ...useStore.getState().kpi });
     if (result?.kpi) applyKpiDelta(result.kpi);
     setEpisode1Choice(selected);
     router.push("/simulation?phase=ep1-result");

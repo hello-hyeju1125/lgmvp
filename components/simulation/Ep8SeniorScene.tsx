@@ -1,97 +1,180 @@
 "use client";
 
-import { useState } from "react";
-import { ep8Scene } from "@/content/episode8";
+import Image from "next/image";
+import {
+  ep8Scene,
+  ep8SituationLines,
+  ep8ActionLead,
+  EP8_ACTION_QUESTION,
+} from "@/content/episode8";
 import { useStore } from "@/store/useStore";
+import type { CSSProperties, ReactNode } from "react";
+
+const EP8_REVEAL_STAGGER_MS = 110;
+function ep8RevealDelay(step: number): CSSProperties {
+  return { animationDelay: `${step * EP8_REVEAL_STAGGER_MS}ms` };
+}
+
+function renderDialogueBold(paragraph: string): ReactNode {
+  const parts = paragraph.split(/\*\*(.+?)\*\*/g);
+  return parts.map((p, i) =>
+    i % 2 === 1 ? (
+      <strong key={i} className="font-bold text-[#d97706]">
+        {p}
+      </strong>
+    ) : (
+      <span key={i}>{p}</span>
+    ),
+  );
+}
+
+function LeeMinsooBubble({ text }: { text: string }) {
+  return (
+    <div className="flex items-start gap-0">
+      <div className="relative z-20 h-[168px] w-[168px] shrink-0 sm:h-48 sm:w-48">
+        <div className="absolute inset-0 rounded-full border-4 border-[#d97706] bg-white p-1.5">
+          <div className="relative h-full w-full overflow-hidden rounded-full bg-white">
+            <Image
+              src="/ep5-lee-minsoo.svg"
+              alt="이민수 책임"
+              fill
+              className="object-contain object-center"
+              sizes="(max-width: 640px) 168px, 192px"
+            />
+          </div>
+        </div>
+      </div>
+      <div className="ep1-supervisor-bubble relative z-10 -ml-10 min-w-0 flex-1 rounded-2xl py-5 pl-[4.25rem] pr-5 sm:-ml-14 sm:py-6 sm:pl-[5.5rem] sm:pr-6">
+        <p className="mb-2.5 font-sans text-[15px] font-black leading-tight text-[#111] sm:text-[16px]">이민수 책임 (고객가치혁신)</p>
+        <p className="text-left font-sans text-[19px] font-medium leading-relaxed text-[#111] sm:text-[21px]">
+          {renderDialogueBold(text)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+interface Ep8WritingCardProps {
+  pillText: string;
+  /** 없으면 pill 아래 제목(h2)을 렌더하지 않음 */
+  title?: string;
+  step: number;
+  children: ReactNode;
+}
+
+/** Ep1 옵션 카드와 동일한 외곽 — 선택이 아닌 작성용(고정 스타일) */
+function Ep8WritingCard({ pillText, title, step, children }: Ep8WritingCardProps) {
+  return (
+    <div
+      className="ep1-scene-reveal ep1-option-card flex h-full min-h-0 w-full min-w-0 flex-col overflow-visible rounded-2xl border-2 border-black bg-white text-center shadow-[4px_4px_0_0_#111111] outline-offset-2"
+      style={ep8RevealDelay(step)}
+    >
+      <div className="-mt-px flex shrink-0 justify-center px-1">
+        <div className="ep1-option-pill pointer-events-none inline-flex max-w-[min(100%,28rem)] items-center justify-center gap-2 rounded-b-xl bg-[#111111] px-4 py-2 text-center font-sans text-[13px] font-bold leading-snug tracking-wide !text-[#ffffff] sm:px-5 sm:text-[16px] sm:leading-normal">
+          <span className="font-sans font-bold [word-break:keep-all]">{pillText}</span>
+        </div>
+      </div>
+      <div
+        className={`flex min-h-min min-w-0 flex-1 flex-col overflow-visible px-5 pb-6 text-left sm:px-6 sm:pb-6 ${
+          title ? "gap-4 pt-4 sm:gap-5" : "pt-3 sm:pt-4"
+        }`}
+      >
+        {title ? (
+          <h2 className="shrink-0 text-center font-sans text-[19px] font-extrabold leading-snug tracking-tight text-[#111111] sm:text-[21px] [word-break:keep-all]">
+            {title}
+          </h2>
+        ) : null}
+        {children}
+      </div>
+    </div>
+  );
+}
 
 interface Ep8SeniorSceneProps {
   userName: string;
 }
 
-/** **text** -> <strong>text</strong> */
-function renderWithBold(paragraph: string) {
-  const parts = paragraph.split(/\*\*(.+?)\*\*/g);
-  return parts.map((p, i) => (i % 2 === 1 ? <strong key={i}>{p}</strong> : p));
-}
-
 export function Ep8SeniorScene({ userName }: Ep8SeniorSceneProps) {
   const { episode8CoachingText, setEpisode8CoachingText } = useStore();
-  const [isDialogueRevealed, setIsDialogueRevealed] = useState(false);
+
+  const [d0, d1] = ep8Scene.dialogue;
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6">
-      <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-black/90">
-        {ep8Scene.title} – {ep8Scene.screenSubtitle}
-      </h2>
+    <section className="ep1-scene-layout w-full min-w-0 max-w-none space-y-10 sm:space-y-12">
+      <div className="initiation-action-page mb-8 w-full sm:mb-10">
+        <div className="flex flex-col items-center justify-center gap-2 px-2">
+          <p
+            className="ep1-scene-reveal initiation-brief-badge w-full max-w-[min(100%,52rem)] shadow-[6px_6px_0_#111111]"
+            style={ep8RevealDelay(0)}
+          >
+            {ep8Scene.title}
+          </p>
+        </div>
+      </div>
 
-      <section className="space-y-3">
-        <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
-          <span className="text-black/90">[Situation]</span> {renderWithBold(ep8Scene.situation)}
+      <div className="space-y-2 px-2 text-center">
+        <p
+          className="ep1-scene-reveal font-sans text-[19px] font-bold leading-snug text-[#d97706] sm:text-[21px]"
+          style={ep8RevealDelay(1)}
+        >
+          {ep8SituationLines.line1Green}
         </p>
-        <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">{renderWithBold(ep8Scene.afterSituation)}</p>
-      </section>
+        <p
+          className="ep1-scene-reveal font-sans text-[19px] font-bold leading-relaxed text-[#111] sm:text-[21px]"
+          style={ep8RevealDelay(2)}
+        >
+          {ep8SituationLines.line2Bold}
+        </p>
+        <p
+          className="ep1-scene-reveal font-sans text-[18px] font-normal leading-relaxed text-[#6b7280] sm:text-[20px]"
+          style={ep8RevealDelay(3)}
+        >
+          {ep8SituationLines.line3Muted}
+        </p>
+      </div>
 
-      <div className="rounded-2xl border border-black/10 bg-gray-50 p-5 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
-        <div className="border-l-4 border-[#E4003F] pl-4">
-          <p className="text-[13px] font-extrabold text-black/85">{ep8Scene.meetingRequestLabel}</p>
-          {!isDialogueRevealed ? (
-            <button
-              type="button"
-              onClick={() => setIsDialogueRevealed(true)}
-              className="group relative mt-3 w-full text-left"
-              aria-label="대화 펼치기"
-            >
-              <div className="relative overflow-hidden rounded-xl bg-white/60 px-4 py-3 ring-1 ring-black/10 transition-all group-hover:bg-white/80 group-hover:ring-[#E4003F]/35">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[14px] font-extrabold text-black/70 underline decoration-black/15 decoration-dotted underline-offset-4 group-hover:decoration-[#E4003F]/50">
-                      대화 내용 펼치기
-                    </p>
-                    <p className="mt-1 line-clamp-2 text-[14px] leading-[1.75] text-black/40 blur-[0.6px]">
-                      {ep8Scene.dialogue[0] ?? ""}
-                    </p>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-[#E4003F]/10 px-3 py-1 text-[12px] font-extrabold text-[#E4003F] ring-1 ring-black/10 transition group-hover:bg-[#E4003F]/15">
-                    Click
-                  </span>
-                </div>
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(280px_120px_at_18%_35%,rgba(228,0,63,0.12),transparent_60%)] opacity-70" />
-              </div>
-            </button>
-          ) : (
-            ep8Scene.dialogue.map((line, i) => (
-              <p key={i} className="mt-2 text-[16px] leading-[1.85] text-black/80">
-                &ldquo;{line}&rdquo;
-              </p>
-            ))
-          )}
+      <div className="space-y-10 sm:space-y-12">
+        <div className="ep1-scene-reveal" style={ep8RevealDelay(5)}>
+          <LeeMinsooBubble text={d0} />
+        </div>
+        <div className="ep1-scene-reveal" style={ep8RevealDelay(6)}>
+          <LeeMinsooBubble text={d1} />
         </div>
       </div>
 
-      <div className="py-[1.8rem] flex items-center" aria-hidden="true">
-        <div className="h-px w-full bg-black/10" />
+      <div className="space-y-4 px-1 pt-4 text-center !mt-20 sm:!mt-24 mb-[3.75rem] sm:mb-[4.5rem]">
+        <p
+          className="ep1-scene-reveal font-sans text-[56px] font-black leading-none text-black sm:text-[72px]"
+          style={ep8RevealDelay(7)}
+        >
+          Q.
+        </p>
+        <div
+          className="ep1-scene-reveal mx-auto max-w-[min(100%,40rem)] space-y-4 text-center font-sans text-[19px] font-medium leading-relaxed text-[#111] sm:text-[21px]"
+          style={ep8RevealDelay(8)}
+        >
+          <p className="whitespace-pre-line">{renderDialogueBold(ep8ActionLead)}</p>
+          <p className="whitespace-pre-line">
+            <span className="font-bold !text-[#d97706]">{EP8_ACTION_QUESTION}</span>
+          </p>
+        </div>
       </div>
 
-      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
-        <span className="text-black/90">[Action]</span> {renderWithBold(ep8Scene.action)}
-      </p>
-
-      <section className="mt-8 space-y-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-[16px] font-extrabold text-black/85">이민수 책임에게 건넬 코칭</h3>
-          <span className="inline-flex rounded-full bg-[#E4003F]/12 px-2.5 py-0.5 text-[12px] font-extrabold text-[#E4003F] ring-1 ring-[#E4003F]/20">
-            직접 작성 필수
-          </span>
+      <div className="space-y-6">
+        <div className="grid w-full min-w-0 grid-cols-1 gap-5 md:gap-5 lg:gap-6">
+          <Ep8WritingCard pillText="이민수 책임에게 건넬 코칭 메시지" step={10}>
+            <textarea
+              value={episode8CoachingText}
+              onChange={(e) => setEpisode8CoachingText(e.target.value)}
+              placeholder="예: 민수 책임님의 현장 VOC 경험은 우리 프로젝트에 없어서는 안 될 자산입니다. 기술 용어보다 '고객이 무엇에 불만을 갖는지'를 데이터에서 짚어내는 역할을 맡아 주시면…"
+              rows={9}
+              className="min-h-[220px] w-full resize-y rounded-xl border-2 border-black/10 bg-white px-4 py-3 font-sans text-[15px] font-medium leading-[1.75] text-[#111] placeholder:text-[#9ca3af] focus:border-[#d97706] focus:outline-none focus:ring-2 focus:ring-[#d97706]/20 sm:text-[16px]"
+              aria-label="이민수 책임에게 건넸을 코칭 메시지"
+            />
+          </Ep8WritingCard>
         </div>
-        <p className="text-[13px] font-medium text-black/55">아래 입력칸에 리더님의 코칭 메시지를 직접 작성해 주세요.</p>
-        <textarea
-          value={episode8CoachingText}
-          onChange={(e) => setEpisode8CoachingText(e.target.value)}
-          placeholder="예: 민수 책임님의 현장 VOC 경험은 우리 프로젝트에 없어서는 안 될 자산입니다. 기술 용어보다 '고객이 무엇에 불만을 갖는지'를 데이터에서 짚어내는 역할을 맡아 주시면, 개발팀이 그걸 기준으로 AI 로직을 설계할 수 있습니다..."
-          className="w-full min-h-[220px] rounded-2xl border-2 border-[#E4003F]/35 bg-[#FFF9FB] p-4 text-[15px] leading-[1.75] text-[#4A4A4A] placeholder:text-[#9CA3AF] focus:border-[#E4003F] focus:outline-none focus:ring-4 focus:ring-[#E4003F]/10"
-        />
-      </section>
+      </div>
 
-    </div>
+    </section>
   );
 }

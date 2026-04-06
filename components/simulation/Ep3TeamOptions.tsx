@@ -12,13 +12,14 @@ interface Ep3TeamOptionsProps {
 
 export function Ep3TeamOptions({ userName }: Ep3TeamOptionsProps) {
   const router = useRouter();
-  const { setEpisode3Choice, applyKpiDelta, planningActionHours } = useStore();
+  const { setEpisode3Choice, applyKpiDelta, planningActionHours, setKpiBeforeEp3Result } = useStore();
   const [selected, setSelected] = useState<"A" | "B" | "C" | "D" | null>(null);
 
   const handleNext = () => {
     if (!selected) return;
     const choice = selected;
     setEpisode3Choice(choice);
+    setKpiBeforeEp3Result({ ...useStore.getState().kpi });
     const res = getEp3Result(choice, planningActionHours["resource_assign"] ?? 0);
     applyKpiDelta(res.kpi);
     router.push("/simulation?phase=ep3-team-result");

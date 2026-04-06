@@ -12,13 +12,14 @@ interface Ep4RoleOptionsProps {
 
 export function Ep4RoleOptions({ userName }: Ep4RoleOptionsProps) {
   const router = useRouter();
-  const { setEpisode4Choice, applyKpiDelta, initiationActionHours } = useStore();
+  const { setEpisode4Choice, applyKpiDelta, initiationActionHours, setKpiBeforeEp4Result } = useStore();
   const [selected, setSelected] = useState<"A" | "B" | "C" | "D" | "E" | null>(null);
 
   const handleNext = () => {
     if (!selected) return;
     const choice = selected;
     setEpisode4Choice(choice);
+    setKpiBeforeEp4Result({ ...useStore.getState().kpi });
     const res = getEp4Result(choice, initiationActionHours["team_profile"] ?? 0);
     applyKpiDelta(res.kpi);
     router.push("/simulation?phase=ep4-result");

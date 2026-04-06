@@ -16,6 +16,7 @@ export function MonitoringSeniorTips({ userName }: MonitoringSeniorTipsProps) {
       prompt={monitoringSeniorTipsCopy.prompt}
       placeholder={monitoringSeniorTipsCopy.placeholder}
       userName={userName}
+      postItNotes={monitoringSeniorTipsCopy.postItNotes}
     />
   );
 }

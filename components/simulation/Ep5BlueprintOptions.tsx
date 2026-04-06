@@ -12,13 +12,14 @@ interface Ep5BlueprintOptionsProps {
 
 export function Ep5BlueprintOptions({ userName }: Ep5BlueprintOptionsProps) {
   const router = useRouter();
-  const { setEpisode5Choice, applyKpiDelta } = useStore();
+  const { setEpisode5Choice, applyKpiDelta, setKpiBeforeEp5Result } = useStore();
   const [selected, setSelected] = useState<"A" | "B" | "C" | "D" | null>(null);
 
   const handleNext = () => {
     if (!selected) return;
     const choice = selected;
     setEpisode5Choice(choice);
+    setKpiBeforeEp5Result({ ...useStore.getState().kpi });
     const res = getEp5Result(choice);
     applyKpiDelta(res.kpi);
     router.push("/simulation?phase=ep5-result");

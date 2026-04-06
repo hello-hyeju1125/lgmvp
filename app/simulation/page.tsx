@@ -2,8 +2,12 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
-import { useMemo, useState, useEffect, Suspense } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef, useLayoutEffect, Suspense } from "react";
+import { createPortal } from "react-dom";
 import { KpiGauges } from "@/components/KpiGauges";
+import { SimulationHudMenu, type HudMenuAction } from "@/components/simulation/SimulationHudMenu";
+import { SimulationHudModal } from "@/components/simulation/SimulationHudModal";
+import ProjectOverview from "@/components/onboarding/OnboardingStepProjectOverview";
 import { PrevNextNav } from "@/components/common/PrevNextNav";
 import { InitiationAction } from "@/components/simulation/InitiationAction";
 import { InitiationD1Popup } from "@/components/simulation/InitiationD1Popup";
@@ -26,6 +30,7 @@ import { PlanRampup } from "@/components/simulation/PlanRampup";
 import { ExecAction } from "@/components/simulation/ExecAction";
 import { ExecD1Popup } from "@/components/simulation/ExecD1Popup";
 import { ExecBoard } from "@/components/simulation/ExecBoard";
+import { ExecBoardWbsTimelineModal } from "@/components/simulation/ExecBoardWbsTimelineModal";
 import { Ep3TeamScene } from "@/components/simulation/Ep3TeamScene";
 import { Ep3TeamOptions } from "@/components/simulation/Ep3TeamOptions";
 import { Ep3TeamResult } from "@/components/simulation/Ep3TeamResult";
@@ -54,9 +59,9 @@ import { MonitoringRecap } from "@/components/simulation/MonitoringRecap";
 import { MonitoringSeniorTips } from "@/components/simulation/MonitoringSeniorTips";
 import { MonitoringRampup } from "@/components/simulation/MonitoringRampup";
 import { ClosingScene } from "@/components/simulation/ClosingScene";
-import { ClosingResult } from "@/components/simulation/ClosingResult";
 import { initiationActions, getInitiationKpiDelta } from "@/content/initiationActions";
 import { planningActions, getPlanningKpiDelta } from "@/content/planningActions";
+import { executionActions, getExecutionKpiDelta, EXEC_ACTION_MAX_SELECTED } from "@/content/executionActions";
 import { ep1Options, ep1Results } from "@/content/episode1";
 import { ep2AlignOptions, ep2AlignResults } from "@/content/episode2Align";
 import { ep3Options, getEp3Result } from "@/content/episode3";
@@ -64,8 +69,11 @@ import { ep4Options, getEp4Result } from "@/content/episode4";
 import { ep5Options, getEp5Result } from "@/content/episode5";
 import { ep6Block1Options, ep6Block2Options, ep6Block3Options, ep6Block4Options, getEp6Result } from "@/content/episode6";
 import { ep7Options, getEp7Result } from "@/content/episode7";
-import { executionActions, getExecutionKpiDelta } from "@/content/executionActions";
+import { ep10Options, getEp10Result } from "@/content/episode10";
 import { teamMembers } from "@/content/team";
+import type { PlacementId } from "@/content/execBoard";
+import { SIM_COLUMN_GUTTER, SIM_COLUMN_MAX_INNER } from "@/lib/simulationLayout";
+import { isExecutionAccentPhase, isMonitoringAccentPhase, isPlanningAccentPhase } from "@/lib/simulationAccent";
 
 const VALID_PHASES = [
   "initiation-action",
@@ -111,18 +119,20 @@ const VALID_PHASES = [
   "exec-senior-tips",
   "exec-rampup",
   "risk-radar",
-  "monitoring-scene",
   "ep10-scene",
   "ep10-result",
   "monitoring-recap",
   "monitoring-senior-tips",
   "monitoring-rampup",
   "closing-scene",
-  "closing-result",
 ];
+
+/** `ep1-result` 및 그 이후 phase — ep1-options 제외, initiation 3화면과 동일 HUD·본문 컬럼·푸터 */
+const EP1_RESULT_PHASE_INDEX = VALID_PHASES.indexOf("ep1-result");
 
 const PROCESS_STEPS = ["착수", "기획", "실행", "감시/통제", "종료"] as const;
 type ProcessStep = (typeof PROCESS_STEPS)[number];
+
 const MODAL_OVERLAY_CLASS = "ds-modal-overlay";
 const MODAL_FRAME_CLASS = "ds-modal-frame";
 const MODAL_HEAD_CLASS = "ds-modal-head";
@@ -130,16 +140,18 @@ const MODAL_HEAD_LABEL_CLASS = "ds-modal-head-label";
 const MODAL_HEAD_TITLE_CLASS = "ds-modal-head-title";
 const BTN_SUBTLE_CLASS = "ds-btn-subtle";
 const BTN_PRIMARY_CLASS = "ds-btn-primary";
+/** 기획 단계 확인 모달 — 딥 네이비 패널 + 흰 글자 (globals `.planning-accent-confirm-modal`) */
+const PLANNING_CONFIRM_OVERLAY_CLASS = `${MODAL_OVERLAY_CLASS} planning-accent-confirm-modal`;
 
 function getProcessStep(phase: string): ProcessStep {
   if (phase.startsWith("initiation")) return "착수";
   if (phase.startsWith("plan") || phase.startsWith("planning")) return "기획";
   if (phase.startsWith("ep3") || phase.startsWith("ep4") || phase.startsWith("ep5")) return "기획";
   if (phase.startsWith("exec")) return "실행";
-  if (phase.startsWith("monitoring") || phase === "risk-radar") return "감시/통제";
+  if (phase.startsWith("monitoring") || phase === "risk-radar" || phase.startsWith("ep10")) return "감시/통제";
   if (phase.startsWith("closing")) return "종료";
   // Episodes: up to Ep2 + initiation recap are still Initiation(착수)
-  if (phase.startsWith("ep1") || phase.startsWith("ep2") || phase === "ep3-charter" || phase === "ep3-result" || phase === "ep3-survival") {
+  if (phase.startsWith("ep1-") || phase.startsWith("ep2") || phase === "ep3-charter" || phase === "ep3-result" || phase === "ep3-survival") {
     return "착수";
   }
   // Remaining episodes are part of execution in this simulation flow
@@ -147,7 +159,7 @@ function getProcessStep(phase: string): ProcessStep {
   return "착수";
 }
 
-function Stepper({ current, onOpenMembers }: { current: ProcessStep; onOpenMembers: () => void }) {
+function Stepper({ current, onHudMenuAction, progressPercent }: { current: ProcessStep; onHudMenuAction: (action: HudMenuAction) => void; progressPercent: number }) {
   const helpByStep: Record<ProcessStep, string> = {
     착수: "프로젝트 목표·범위·이해관계자를 정리해 시작 기반을 만듭니다.",
     기획: "일정·자원·리스크 계획을 세워 실행 가능한 로드맵으로 구체화합니다.",
@@ -156,52 +168,114 @@ function Stepper({ current, onOpenMembers }: { current: ProcessStep; onOpenMembe
     종료: "성과를 인수·정리하고 회고를 통해 프로젝트를 마무리합니다.",
   };
 
+  /** 스테퍼 칩 래퍼 ref — 툴팁을 overflow 스크롤 영역 밖(body·fixed)에 두어 가로 스크롤 박스에 세로 스크롤이 생기지 않게 함 */
+  const stepperItemRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const [hoverStepIndex, setHoverStepIndex] = useState<number | null>(null);
+  const [stepperTipPos, setStepperTipPos] = useState<{ left: number; top: number } | null>(null);
+
+  const updateStepperTipPosition = useCallback(() => {
+    if (hoverStepIndex === null) return;
+    const el = stepperItemRefs.current[hoverStepIndex];
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setStepperTipPos({ left: rect.left + rect.width / 2, top: rect.bottom + 8 });
+  }, [hoverStepIndex]);
+
+  useLayoutEffect(() => {
+    if (hoverStepIndex === null) {
+      return;
+    }
+    updateStepperTipPosition();
+    const onScrollOrResize = () => updateStepperTipPosition();
+    window.addEventListener("resize", onScrollOrResize);
+    window.addEventListener("scroll", onScrollOrResize, true);
+    return () => {
+      window.removeEventListener("resize", onScrollOrResize);
+      window.removeEventListener("scroll", onScrollOrResize, true);
+    };
+  }, [hoverStepIndex, updateStepperTipPosition]);
+
+  const hoverStepLabel = hoverStepIndex !== null ? PROCESS_STEPS[hoverStepIndex] : null;
+
   return (
-    <div className="bg-white px-4 py-2.5 sm:px-6">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="mb-1 font-sans text-[9px] font-bold uppercase tracking-[0.14em] text-black/45 sm:text-[10px]">
+    <div className="sim-hud-stepper-row border-b border-[#e8e8e8] bg-white">
+      <div className={`py-2 ${SIM_COLUMN_GUTTER}`}>
+        <div className={`flex flex-col items-stretch gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-8 ${SIM_COLUMN_MAX_INNER}`}>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="sim-hud-brand-mark font-sans text-[14px] font-extrabold leading-none tracking-wide sm:text-[15px]">
+            LGMVP
+          </span>
+          <span className="font-sans text-[13px] text-black/25">|</span>
+          <span className="font-sans text-[14px] font-extrabold leading-none text-black sm:text-[15px]">
             프로젝트 매니지먼트 5단계
-          </p>
-          <div className="flex flex-wrap items-center gap-1.5">
+          </span>
+        </div>
+
+        <div className="flex min-w-0 flex-1 justify-center overflow-x-auto overflow-y-hidden pb-0.5 [-webkit-overflow-scrolling:touch] lg:pb-0">
+          <div
+            className="sim-hud-chevron-strip inline-flex max-w-full shrink-0 items-stretch pr-1"
+            dir="ltr"
+            role="list"
+            aria-label="프로젝트 매니지먼트 5단계"
+          >
             {PROCESS_STEPS.map((label, idx) => {
               const isCurrent = label === current;
               return (
-                <span key={label} className="inline-flex items-center gap-1.5">
-                  <span className="group relative inline-flex">
-                    <span
-                      className={`rounded-sm px-2 py-1 font-sans text-[11px] font-bold leading-none sm:text-xs ${
-                        isCurrent ? "sim-hud-level-active" : "text-black/55"
-                      }`}
-                    >
-                      {idx + 1}. {label}
-                    </span>
-                    <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-[min(260px,calc(100vw-2rem))] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                      <span className="sim-hud-tooltip block px-2.5 py-2 text-left font-sans text-[11px] font-semibold text-white">
-                        <span className="font-black text-[#89E586]">
-                          {idx + 1}. {label}
-                        </span>
-                        <span className="sim-hud-tooltip-muted"> · </span>
-                        {helpByStep[label]}
-                      </span>
-                    </span>
+                <span
+                  key={label}
+                  ref={(el) => {
+                    stepperItemRefs.current[idx] = el;
+                  }}
+                  role="listitem"
+                  className="relative inline-flex"
+                  style={{ zIndex: isCurrent ? 20 : idx + 1 }}
+                  onMouseEnter={(e) => {
+                    setHoverStepIndex(idx);
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setStepperTipPos({ left: rect.left + rect.width / 2, top: rect.bottom + 8 });
+                  }}
+                  onMouseLeave={() => {
+                    setHoverStepIndex(null);
+                    setStepperTipPos(null);
+                  }}
+                >
+                  <span
+                    className={`sim-hud-chevron font-sans ${isCurrent ? "sim-hud-chevron--active" : ""}`}
+                    aria-current={isCurrent ? "step" : undefined}
+                  >
+                    <span className="sim-hud-chevron-inner">{`${idx + 1}. ${label}`}</span>
                   </span>
-                  {idx !== PROCESS_STEPS.length - 1 ? <span className="text-[11px] text-black/30">-</span> : null}
                 </span>
               );
             })}
           </div>
         </div>
-        <div className="shrink-0">
-          <button
-            type="button"
-            onClick={onOpenMembers}
-            className="sim-hud-team-btn inline-flex items-center justify-center rounded-sm px-4 py-2 font-sans text-xs font-black tracking-tight text-[#111] sm:px-4.5 sm:text-sm"
-          >
-            팀원 프로필
-          </button>
+
+        <div className="flex shrink-0 justify-end">
+          <SimulationHudMenu onSelect={onHudMenuAction} progressPercent={progressPercent} />
+        </div>
         </div>
       </div>
+      {typeof document !== "undefined" &&
+        hoverStepIndex !== null &&
+        stepperTipPos &&
+        hoverStepLabel &&
+        createPortal(
+          <div
+            className="pointer-events-none fixed z-[200] w-[min(260px,calc(100vw-2rem))] -translate-x-1/2"
+            style={{ left: stepperTipPos.left, top: stepperTipPos.top }}
+            role="tooltip"
+          >
+            <span className="sim-hud-tooltip block px-2.5 py-2 text-left font-sans text-[11px] font-semibold text-white">
+              <span className="font-black text-white">
+                {hoverStepIndex + 1}. {hoverStepLabel}
+              </span>
+              <span className="sim-hud-tooltip-muted"> · </span>
+              {helpByStep[hoverStepLabel]}
+            </span>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
@@ -222,6 +296,16 @@ function SimulationContent() {
     setExecutionActionHours,
     setKpiBeforePlanning,
     setKpiBeforeExecution,
+    setKpiBeforeEp1Result,
+    setKpiBeforeEp2Result,
+    setKpiBeforeEp3Result,
+    setKpiBeforeEp4Result,
+    setKpiBeforeEp5Result,
+    setKpiBeforeEp6Result,
+    setKpiBeforeEp7Result,
+    setKpiBeforeEp10Result,
+    committedPhases,
+    markCommitted,
     episode1Choice,
     episode2AlignChoice,
     episode3Choice,
@@ -229,9 +313,11 @@ function SimulationContent() {
     episode5Choice,
     episode6Blocks,
     episode7Choice,
+    episode10Choice,
   } = useStore();
   const [initiationConfirmOpen, setInitiationConfirmOpen] = useState(false);
   const [planningConfirmOpen, setPlanningConfirmOpen] = useState(false);
+  const [execConfirmOpen, setExecConfirmOpen] = useState(false);
   const [ep1ConfirmOpen, setEp1ConfirmOpen] = useState(false);
   const [ep2ConfirmOpen, setEp2ConfirmOpen] = useState(false);
   const [ep3ConfirmOpen, setEp3ConfirmOpen] = useState(false);
@@ -239,15 +325,39 @@ function SimulationContent() {
   const [ep5ConfirmOpen, setEp5ConfirmOpen] = useState(false);
   const [ep6ConfirmOpen, setEp6ConfirmOpen] = useState(false);
   const [ep7ConfirmOpen, setEp7ConfirmOpen] = useState(false);
-  const [ep8ConfirmOpen, setEp8ConfirmOpen] = useState(false);
-  const [execConfirmOpen, setExecConfirmOpen] = useState(false);
+  const [ep10ConfirmOpen, setEp10ConfirmOpen] = useState(false);
+
   const [membersModalOpen, setMembersModalOpen] = useState(false);
+  const [simulationProgressModalOpen, setSimulationProgressModalOpen] = useState(false);
+  const [pmInfoModalOpen, setPmInfoModalOpen] = useState(false);
+  const [projectOverviewModalOpen, setProjectOverviewModalOpen] = useState(false);
+  const [execBoardWbsOpen, setExecBoardWbsOpen] = useState(false);
+  const [execBoardPlacement, setExecBoardPlacement] = useState<Record<string, PlacementId>>({});
+
+  const handleExecBoardPlacement = useCallback((p: Record<string, PlacementId>) => {
+    setExecBoardPlacement(p);
+  }, []);
 
   const phase = useMemo(() => {
     const raw = searchParams.get("phase") || "initiation-action";
-    const p = raw === "ep2-options" ? "ep2-scene" : raw === "ep4-team-result" ? "ep4-result" : raw;
+    const p =
+      raw === "ep2-options"
+        ? "ep2-scene"
+        : raw === "ep4-team-result"
+          ? "ep4-result"
+          : raw === "ep5-team-result"
+            ? "ep5-result"
+            : raw;
     return VALID_PHASES.includes(p) ? p : "initiation-action";
   }, [searchParams]);
+
+  useEffect(() => {
+    if (phase !== "exec-board") setExecBoardWbsOpen(false);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "ep10-scene") setEp10ConfirmOpen(false);
+  }, [phase]);
 
   useEffect(() => {
     const raw = searchParams.get("phase");
@@ -257,10 +367,21 @@ function SimulationContent() {
     }
     if (raw === "ep4-team-result") {
       router.replace("/simulation?phase=ep4-result");
+      return;
+    }
+    if (raw === "ep5-team-result") {
+      router.replace("/simulation?phase=ep5-result");
+      return;
+    }
+    if (raw === "exec-action" && searchParams.get("stage") !== "alloc") {
+      router.replace("/simulation?phase=exec-action&stage=alloc");
+      return;
+    }
+    if (raw === "plan-action" && searchParams.get("stage") === "intro") {
+      router.replace("/simulation?phase=plan-action&stage=alloc");
     }
   }, [searchParams, router]);
 
-  const usePhotoBackground = phase === "planning-d1" || phase === "exec-d1";
   const useRecapBackground =
     phase === "initiation-recap" ||
     phase === "initiation-senior-tips" ||
@@ -270,7 +391,10 @@ function SimulationContent() {
     phase === "plan-rampup" ||
     phase === "exec-recap" ||
     phase === "exec-senior-tips" ||
-    phase === "exec-rampup";
+    phase === "exec-rampup" ||
+    phase === "monitoring-recap" ||
+    phase === "monitoring-senior-tips" ||
+    phase === "monitoring-rampup";
 
   const initiationStage = useMemo(() => {
     if (phase !== "initiation-action") return "alloc" as const;
@@ -279,23 +403,13 @@ function SimulationContent() {
   }, [phase, searchParams]);
 
   const phaseIdx = useMemo(() => VALID_PHASES.indexOf(phase), [phase]);
-  const planningStage = useMemo(() => {
-    if (phase !== "plan-action") return "alloc" as const;
-    const s = searchParams.get("stage");
-    return s === "intro" || s === "alloc" ? (s as "intro" | "alloc") : "intro";
-  }, [phase, searchParams]);
-  const execStage = useMemo(() => {
-    if (phase !== "exec-action") return "alloc" as const;
-    const s = searchParams.get("stage");
-    return s === "intro" || s === "alloc" ? (s as "intro" | "alloc") : "intro";
-  }, [phase, searchParams]);
   const prevHref = useMemo(() => {
     if (phase === "initiation-d1") return "/simulation?phase=initiation-action";
-    if (phase === "plan-action" && planningStage === "alloc") return "/simulation?phase=plan-action&stage=intro";
     if (phase === "plan-action") return "/simulation?phase=initiation-rampup";
     if (phase === "planning-d1") return "/simulation?phase=plan-action&stage=alloc";
-    if (phase === "exec-action" && execStage === "alloc") return "/simulation?phase=exec-action&stage=intro";
-    if (phase === "exec-board") return "/simulation?phase=exec-action&stage=alloc";
+    if (phase === "exec-action") return "/simulation?phase=plan-rampup";
+    if (phase === "exec-d1") return "/simulation?phase=exec-action&stage=alloc";
+    if (phase === "exec-board") return "/simulation?phase=exec-d1";
     if (phase === "ep1-result") return "/simulation?phase=ep1-scene";
     if (phase === "ep6-result") return "/simulation?phase=ep6-scene";
     if (phase === "ep7-result") return "/simulation?phase=ep7-scene";
@@ -304,27 +418,42 @@ function SimulationContent() {
     if (phase === "ep5-result") return "/simulation?phase=ep5-scene";
     if (phaseIdx > 0) return `/simulation?phase=${VALID_PHASES[phaseIdx - 1]}`;
     return "/onboarding?step=5";
-  }, [phaseIdx, phase, planningStage, execStage]);
+  }, [phaseIdx, phase]);
   const nextHref = useMemo(() => {
-    if (phase === "initiation-rampup") return "/simulation?phase=plan-action";
-    if (phase === "plan-action" && planningStage === "intro") return "/simulation?phase=plan-action&stage=alloc";
-    if (phase === "exec-action" && execStage === "intro") return "/simulation?phase=exec-action&stage=alloc";
+    if (phase === "initiation-rampup") return "/simulation?phase=plan-action&stage=alloc";
     if (phaseIdx >= 0 && phaseIdx < VALID_PHASES.length - 1) {
       return `/simulation?phase=${VALID_PHASES[phaseIdx + 1]}`;
     }
     return "/";
-  }, [phase, phaseIdx, planningStage, execStage]);
+  }, [phase, phaseIdx]);
 
   const userName = nickname || "PM";
   const processStep = useMemo(() => getProcessStep(phase), [phase]);
+
+  const handleHudMenuAction = useCallback((action: HudMenuAction) => {
+    if (action === "simulationProgress") setSimulationProgressModalOpen(true);
+    if (action === "projectOverview") setProjectOverviewModalOpen(true);
+    if (action === "characters") setMembersModalOpen(true);
+    if (action === "pmInfo") setPmInfoModalOpen(true);
+  }, []);
+
   const containerMaxWidth = useMemo(() => {
-    if (phase === "ep1-result") return "max-w-4xl";
+    if (phase === "ep1-result") return "max-w-7xl";
+    if (phase === "ep6-scene") return "max-w-7xl";
     return "max-w-4xl";
   }, [phase]);
   const containerPaddingX = useMemo(() => {
-    if (phase === "ep1-result" || phase === "ep2-result" || phase === "ep3-team-result" || phase === "ep4-result" || phase === "ep5-result" || phase === "ep7-result" || phase === "ep8-result") return "px-0";
+    if (phase === "ep1-result" || phase === "ep2-result" || phase === "ep3-team-result" || phase === "ep4-result" || phase === "ep5-result" || phase === "ep6-result" || phase === "ep7-result" || phase === "ep8-result" || phase === "ep10-result") return "px-0";
     return "px-6";
   }, [phase]);
+  /** 본문 영역 — ep1-options만 SIM_COLUMN 밖(구 레이아웃), 나머지는 grayHudChrome 래퍼 사용 */
+  const simulationContentClass = useMemo(() => {
+    const base = "mx-auto w-full flex-1";
+    if (phase === "ep1-result" || phase === "ep2-result" || phase === "ep3-team-result" || phase === "ep4-result" || phase === "ep5-result" || phase === "ep6-result" || phase === "ep7-result" || phase === "ep8-result" || phase === "ep10-result") {
+      return `${base} ${containerMaxWidth} px-0 py-6`;
+    }
+    return `${base} ${containerMaxWidth} ${containerPaddingX} py-6`;
+  }, [phase, containerMaxWidth, containerPaddingX]);
 
   const initiationTotal = useMemo(() => {
     if (phase !== "initiation-action") return 0;
@@ -355,6 +484,12 @@ function SimulationContent() {
   }, [phase, executionActionHours]);
   const executionSelectedCount = Math.round(executionTotal / 8);
 
+  const progressPercent = useMemo(() => {
+    const idx = VALID_PHASES.indexOf(phase);
+    if (idx < 0) return 0;
+    return Math.round(((idx + 1) / VALID_PHASES.length) * 100);
+  }, [phase]);
+
   const handleInitiationNext = () => {
     if (phase !== "initiation-action") return;
     setInitiationConfirmOpen(true);
@@ -367,54 +502,57 @@ function SimulationContent() {
       hours[a.id] = typeof v === "number" ? v : 0;
     });
     setInitiationActionHours(hours);
-    setKpiBeforeInitiation({ ...kpi });
-    const delta = getInitiationKpiDelta(hours);
-    applyKpiDelta({ ...delta, leaderEnergy: (delta.leaderEnergy ?? 0) - initiationExceed });
+    if (!committedPhases["initiation"]) {
+      setKpiBeforeInitiation({ ...kpi });
+      const delta = getInitiationKpiDelta(hours);
+      applyKpiDelta({ ...delta, leaderEnergy: (delta.leaderEnergy ?? 0) - initiationExceed });
+      markCommitted("initiation");
+    }
     setInitiationConfirmOpen(false);
     router.push("/simulation?phase=initiation-d1");
   };
 
   const commitPlanningAndGoNext = () => {
-    if (phase !== "plan-action" || planningStage !== "alloc") return;
+    if (phase !== "plan-action") return;
     const hours: Record<string, number> = {};
     planningActions.forEach((a) => {
       const v = planningActionHours[a.id];
       hours[a.id] = typeof v === "number" ? v : 0;
     });
     setPlanningActionHours(hours);
-    setKpiBeforePlanning({ ...kpi });
-    const delta = getPlanningKpiDelta(hours);
-    applyKpiDelta(delta);
+    if (!committedPhases["planning"]) {
+      setKpiBeforePlanning({ ...kpi });
+      const delta = getPlanningKpiDelta(hours);
+      applyKpiDelta(delta);
+      markCommitted("planning");
+    }
     setPlanningConfirmOpen(false);
     router.push("/simulation?phase=planning-d1");
   };
   const handlePlanningNext = () => {
     if (phase !== "plan-action") return;
-    if (planningStage === "intro") {
-      router.push("/simulation?phase=plan-action&stage=alloc");
-      return;
-    }
     setPlanningConfirmOpen(true);
   };
+
   const commitExecutionAndGoNext = () => {
-    if (phase !== "exec-action" || execStage !== "alloc") return;
+    if (phase !== "exec-action") return;
     const hours: Record<string, number> = {};
     executionActions.forEach((a) => {
       const v = executionActionHours[a.id];
       hours[a.id] = typeof v === "number" ? v : 0;
     });
     setExecutionActionHours(hours);
-    setKpiBeforeExecution({ ...kpi });
-    applyKpiDelta(getExecutionKpiDelta(hours));
+    if (!committedPhases["execution"]) {
+      setKpiBeforeExecution({ ...kpi });
+      const delta = getExecutionKpiDelta(hours);
+      applyKpiDelta(delta);
+      markCommitted("execution");
+    }
     setExecConfirmOpen(false);
     router.push("/simulation?phase=exec-d1");
   };
   const handleExecNext = () => {
     if (phase !== "exec-action") return;
-    if (execStage === "intro") {
-      router.push("/simulation?phase=exec-action&stage=alloc");
-      return;
-    }
     setExecConfirmOpen(true);
   };
 
@@ -426,8 +564,12 @@ function SimulationContent() {
 
   const commitEp1AndGoNext = () => {
     if (!episode1Choice) return;
-    const result = ep1Results[episode1Choice];
-    if (result?.kpi) applyKpiDelta(result.kpi);
+    if (!committedPhases["ep1"]) {
+      setKpiBeforeEp1Result({ ...kpi });
+      const result = ep1Results[episode1Choice];
+      if (result?.kpi) applyKpiDelta(result.kpi);
+      markCommitted("ep1");
+    }
     setEp1ConfirmOpen(false);
     router.push("/simulation?phase=ep1-result");
   };
@@ -440,8 +582,12 @@ function SimulationContent() {
 
   const commitEp2AndGoNext = () => {
     if (!episode2AlignChoice) return;
-    const result = ep2AlignResults[episode2AlignChoice];
-    if (result?.kpi) applyKpiDelta(result.kpi);
+    if (!committedPhases["ep2"]) {
+      setKpiBeforeEp2Result({ ...kpi });
+      const result = ep2AlignResults[episode2AlignChoice];
+      if (result?.kpi) applyKpiDelta(result.kpi);
+      markCommitted("ep2");
+    }
     setEp2ConfirmOpen(false);
     router.push("/simulation?phase=ep2-result");
   };
@@ -454,8 +600,12 @@ function SimulationContent() {
 
   const commitEp3AndGoNext = () => {
     if (!episode3Choice) return;
-    const result = getEp3Result(episode3Choice, planningActionHours["resource_assign"] ?? 0);
-    if (result?.kpi) applyKpiDelta(result.kpi);
+    if (!committedPhases["ep3"]) {
+      setKpiBeforeEp3Result({ ...kpi });
+      const result = getEp3Result(episode3Choice, planningActionHours["resource_assign"] ?? 0);
+      if (result?.kpi) applyKpiDelta(result.kpi);
+      markCommitted("ep3");
+    }
     setEp3ConfirmOpen(false);
     router.push("/simulation?phase=ep3-team-result");
   };
@@ -468,8 +618,12 @@ function SimulationContent() {
 
   const commitEp4AndGoNext = () => {
     if (!episode4Choice) return;
-    const result = getEp4Result(episode4Choice, initiationActionHours["team_profile"] ?? 0);
-    if (result?.kpi) applyKpiDelta(result.kpi);
+    if (!committedPhases["ep4"]) {
+      setKpiBeforeEp4Result({ ...kpi });
+      const result = getEp4Result(episode4Choice, initiationActionHours["team_profile"] ?? 0);
+      if (result?.kpi) applyKpiDelta(result.kpi);
+      markCommitted("ep4");
+    }
     setEp4ConfirmOpen(false);
     router.push("/simulation?phase=ep4-result");
   };
@@ -482,8 +636,12 @@ function SimulationContent() {
 
   const commitEp5AndGoNext = () => {
     if (!episode5Choice) return;
-    const result = getEp5Result(episode5Choice);
-    if (result?.kpi) applyKpiDelta(result.kpi);
+    if (!committedPhases["ep5"]) {
+      setKpiBeforeEp5Result({ ...kpi });
+      const result = getEp5Result(episode5Choice);
+      if (result?.kpi) applyKpiDelta(result.kpi);
+      markCommitted("ep5");
+    }
     setEp5ConfirmOpen(false);
     router.push("/simulation?phase=ep5-result");
   };
@@ -492,9 +650,14 @@ function SimulationContent() {
     setEp6ConfirmOpen(true);
   };
   const commitEp6AndGoNext = () => {
-    if (!episode6Blocks) return;
-    const result = getEp6Result(episode6Blocks.block4, episode6Blocks.block2);
-    if (result?.kpi) applyKpiDelta(result.kpi);
+    const ep6 =
+      episode6Blocks ?? { block1: "B", block2: "E", block3: "D", block4: "B" };
+    if (!committedPhases["ep6"]) {
+      setKpiBeforeEp6Result({ ...kpi });
+      const result = getEp6Result(ep6.block4, ep6.block2);
+      if (result?.kpi) applyKpiDelta(result.kpi);
+      markCommitted("ep6");
+    }
     setEp6ConfirmOpen(false);
     router.push("/simulation?phase=ep6-result");
   };
@@ -517,95 +680,128 @@ function SimulationContent() {
   };
   const commitEp7AndGoNext = () => {
     if (!episode7Choice) return;
-    const vocHours = executionActionHours["voc_data"] ?? 0;
-    const refHours = executionActionHours["ref_benchmark"] ?? 0;
-    const result = getEp7Result(episode7Choice, vocHours, refHours);
-    if (result?.kpi) applyKpiDelta(result.kpi);
+    if (!committedPhases["ep7"]) {
+      setKpiBeforeEp7Result({ ...kpi });
+      const vocHours = executionActionHours["voc_data"] ?? 0;
+      const refHours = executionActionHours["ref_benchmark"] ?? 0;
+      const result = getEp7Result(episode7Choice, vocHours, refHours);
+      if (result?.kpi) applyKpiDelta(result.kpi);
+      markCommitted("ep7");
+    }
     setEp7ConfirmOpen(false);
     router.push("/simulation?phase=ep7-result");
   };
   const handleEp8Next = () => {
-    if (phase !== "ep8-input") return;
-    setEp8ConfirmOpen(true);
-  };
-  const commitEp8AndGoNext = () => {
-    setEp8ConfirmOpen(false);
+    if (phase !== "ep8-scene" && phase !== "ep8-input") return;
     router.push("/simulation?phase=ep8-result");
   };
+  const handleEp10Next = () => {
+    if (phase !== "ep10-scene") return;
+    if (!episode10Choice) return;
+    setEp10ConfirmOpen(true);
+  };
+  const commitEp10AndGoNext = () => {
+    if (!episode10Choice) return;
+    if (!committedPhases["ep10"]) {
+      setKpiBeforeEp10Result({ ...kpi });
+      const result = getEp10Result(episode10Choice);
+      if (result?.kpi) applyKpiDelta(result.kpi);
+      markCommitted("ep10");
+    }
+    setEp10ConfirmOpen(false);
+    router.push("/simulation?phase=ep10-result");
+  };
+
+  /** 회색 HUD + SIM_COLUMN 본문 + initiation 푸터: 착수 3화면 + ep1-result 이후 전 phase (ep1-options 제외) */
+  const grayHudChrome =
+    phase === "initiation-action" ||
+    phase === "initiation-d1" ||
+    phase === "ep1-scene" ||
+    (phaseIdx >= EP1_RESULT_PHASE_INDEX && EP1_RESULT_PHASE_INDEX >= 0);
+
+  const planningAccentPhase = isPlanningAccentPhase(phase);
+  const executionAccentPhase = isExecutionAccentPhase(phase);
+  const monitoringAccentPhase = isMonitoringAccentPhase(phase);
+
+  /** 선배 노하우 전용 화면 — 상단 Stepper·KPI 헤더 숨김 (closing과 동일 UX) */
+  const showSimulationHeader =
+    phase !== "closing-scene" &&
+    phase !== "initiation-senior-tips" &&
+    phase !== "plan-survival" &&
+    phase !== "exec-senior-tips" &&
+    phase !== "monitoring-senior-tips";
 
   return (
     <main
       className={`min-h-screen flex flex-col ${
-        usePhotoBackground
-          ? "relative bg-[url('/mainbackground.jpg')] bg-cover bg-center bg-no-repeat"
-          : useRecapBackground
-            ? "bg-white"
-            : "bg-white"
-      } simulation-flat`}
+        useRecapBackground ? "bg-white" : grayHudChrome ? "bg-[#F6F7F9]" : "bg-white"
+      } simulation-flat ${grayHudChrome ? "initiation-action-phase" : ""} ${planningAccentPhase ? "planning-accent-phase" : ""} ${executionAccentPhase ? "execution-accent-phase" : ""} ${monitoringAccentPhase ? "monitoring-accent-phase" : ""}`}
     >
-      {usePhotoBackground && (
-        <>
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1200px_600px_at_30%_10%,rgba(0,0,0,0.45),transparent_60%)]" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/65 via-black/45 to-black/70" />
-        </>
+      {showSimulationHeader && (
+        <header className="simulation-hud sticky top-0 z-50 bg-white font-sans">
+          <Stepper current={processStep} onHudMenuAction={handleHudMenuAction} progressPercent={progressPercent} />
+          <KpiGauges phase={phase} />
+        </header>
       )}
-      <header className="simulation-hud sticky top-0 z-50 bg-white">
-        <Stepper current={processStep} onOpenMembers={() => setMembersModalOpen(true)} />
-        <KpiGauges />
-      </header>
-      <div className={`mx-auto w-full ${containerMaxWidth} flex-1 ${containerPaddingX} py-6`}>
-        {phase === "initiation-action" && <InitiationAction userName={userName} stage={initiationStage} />}
-        {phase === "initiation-d1" && <InitiationD1Popup userName={userName} />}
-        {phase === "ep1-scene" && <Ep1Scene userName={userName} />}
-        {phase === "ep1-options" && <Ep1Options userName={userName} />}
-        {phase === "ep1-result" && <Ep1Result userName={userName} />}
-        {phase === "ep2-scene" && <Ep2AlignScene userName={userName} />}
-        {phase === "ep2-result" && <Ep2AlignResult userName={userName} />}
-        {phase === "initiation-recap" && <InitiationRecap userName={userName} />}
-        {phase === "initiation-senior-tips" && <InitiationSeniorTips userName={userName} />}
-        {phase === "initiation-rampup" && <InitiationRampup userName={userName} />}
-        {phase === "ep3-charter" && <Ep2Charter userName={userName} />}
-        {phase === "ep3-result" && <Ep2Result userName={userName} />}
-        {phase === "ep3-survival" && <SurvivalGuideline userName={userName} />}
-        {phase === "plan-action" && <PlanningAction userName={userName} stage={planningStage} />}
-        {phase === "planning-d1" && <PlanningD1Popup userName={userName} />}
-        {phase === "ep3-scene" && <Ep3TeamScene userName={userName} />}
-        {phase === "ep3-options" && <Ep3TeamOptions userName={userName} />}
-        {phase === "ep3-team-result" && <Ep3TeamResult userName={userName} />}
-        {phase === "ep4-scene" && <Ep4RoleScene userName={userName} />}
-        {phase === "ep4-options" && <Ep4RoleOptions userName={userName} />}
-        {phase === "ep4-result" && <Ep4RoleResult userName={userName} />}
-        {phase === "ep5-scene" && <Ep5BlueprintScene userName={userName} />}
-        {phase === "ep5-options" && <Ep5BlueprintOptions userName={userName} />}
-        {phase === "ep5-result" && <Ep5BlueprintResult userName={userName} />}
-        {phase === "plan-recap" && <PlanRecap userName={userName} />}
-        {phase === "plan-survival" && <PlanSurvival userName={userName} />}
-        {phase === "plan-rampup" && <PlanRampup userName={userName} />}
-        {phase === "exec-action" && <ExecAction userName={userName} stage={execStage} />}
-        {phase === "exec-d1" && <ExecD1Popup userName={userName} />}
-        {phase === "exec-board" && <ExecBoard userName={userName} />}
-        {phase === "ep6-scene" && <Ep6PingpongScene userName={userName} />}
-        {phase === "ep6-options" && <Ep6PingpongOptions userName={userName} />}
-        {phase === "ep6-result" && <Ep6PingpongResult userName={userName} />}
-        {phase === "ep7-scene" && <Ep7PassionScene userName={userName} />}
-        {phase === "ep7-options" && <Ep7PassionOptions userName={userName} />}
-        {phase === "ep7-result" && <Ep7PassionResult userName={userName} />}
-        {phase === "ep8-scene" && <Ep8SeniorScene userName={userName} />}
-        {phase === "ep8-input" && <Ep8SeniorScene userName={userName} />}
-        {phase === "ep8-result" && <Ep8SeniorResult userName={userName} />}
-        {phase === "exec-recap" && <ExecRecap userName={userName} />}
-        {phase === "exec-senior-tips" && <ExecSeniorTips userName={userName} />}
-        {phase === "exec-rampup" && <ExecRampup userName={userName} />}
-        {phase === "risk-radar" && <RiskRadar userName={userName} />}
-        {phase === "monitoring-scene" && <MonitoringScene userName={userName} />}
-        {phase === "ep10-scene" && <Ep10FailureScene userName={userName} />}
-        {phase === "ep10-result" && <Ep10Result userName={userName} />}
-        {phase === "monitoring-recap" && <MonitoringRecap userName={userName} />}
-        {phase === "monitoring-senior-tips" && <MonitoringSeniorTips userName={userName} />}
-        {phase === "monitoring-rampup" && <MonitoringRampup userName={userName} />}
-        {phase === "closing-scene" && <ClosingScene userName={userName} />}
-        {phase === "closing-result" && <ClosingResult userName={userName} />}
-      </div>
+      {grayHudChrome ? (
+        <div className={`w-full flex-1 ${SIM_COLUMN_GUTTER}`}>
+          <div className={`initiation-content-shell py-8 sm:py-10 ${SIM_COLUMN_MAX_INNER}`}>
+            {phase === "initiation-action" && <InitiationAction userName={userName} stage={initiationStage} />}
+            {phase === "initiation-d1" && <InitiationD1Popup userName={userName} />}
+            {phase === "ep1-scene" && <Ep1Scene userName={userName} />}
+            {phase === "ep1-result" && <Ep1Result userName={userName} />}
+            {phase === "ep2-scene" && <Ep2AlignScene userName={userName} />}
+            {phase === "ep2-result" && <Ep2AlignResult userName={userName} />}
+            {phase === "initiation-recap" && <InitiationRecap userName={userName} />}
+            {phase === "initiation-senior-tips" && <InitiationSeniorTips userName={userName} />}
+            {phase === "initiation-rampup" && <InitiationRampup userName={userName} progressPercent={progressPercent} />}
+            {phase === "ep3-charter" && <Ep2Charter userName={userName} />}
+            {phase === "ep3-result" && <Ep2Result userName={userName} />}
+            {phase === "ep3-survival" && <SurvivalGuideline userName={userName} />}
+            {phase === "plan-action" && <PlanningAction userName={userName} />}
+            {phase === "planning-d1" && <PlanningD1Popup userName={userName} />}
+            {phase === "ep3-scene" && <Ep3TeamScene userName={userName} />}
+            {phase === "ep3-options" && <Ep3TeamOptions userName={userName} />}
+            {phase === "ep3-team-result" && <Ep3TeamResult userName={userName} />}
+            {phase === "ep4-scene" && <Ep4RoleScene userName={userName} />}
+            {phase === "ep4-options" && <Ep4RoleOptions userName={userName} />}
+            {phase === "ep4-result" && <Ep4RoleResult userName={userName} />}
+            {phase === "ep5-scene" && <Ep5BlueprintScene userName={userName} />}
+            {phase === "ep5-options" && <Ep5BlueprintOptions userName={userName} />}
+            {phase === "ep5-result" && <Ep5BlueprintResult userName={userName} />}
+            {phase === "plan-recap" && <PlanRecap userName={userName} />}
+            {phase === "plan-survival" && <PlanSurvival userName={userName} />}
+            {phase === "plan-rampup" && <PlanRampup userName={userName} progressPercent={progressPercent} />}
+            {phase === "exec-action" && <ExecAction userName={userName} />}
+            {phase === "exec-d1" && <ExecD1Popup userName={userName} />}
+            {phase === "exec-board" && (
+              <ExecBoard userName={userName} onPlacementChange={handleExecBoardPlacement} />
+            )}
+            {phase === "ep6-scene" && <Ep6PingpongScene userName={userName} />}
+            {phase === "ep6-options" && <Ep6PingpongOptions userName={userName} />}
+            {phase === "ep6-result" && <Ep6PingpongResult userName={userName} />}
+            {phase === "ep7-scene" && <Ep7PassionScene userName={userName} />}
+            {phase === "ep7-options" && <Ep7PassionOptions userName={userName} />}
+            {phase === "ep7-result" && <Ep7PassionResult userName={userName} />}
+            {phase === "ep8-scene" && <Ep8SeniorScene userName={userName} />}
+            {phase === "ep8-input" && <Ep8SeniorScene userName={userName} />}
+            {phase === "ep8-result" && <Ep8SeniorResult userName={userName} />}
+            {phase === "exec-recap" && <ExecRecap userName={userName} />}
+            {phase === "exec-senior-tips" && <ExecSeniorTips userName={userName} />}
+            {phase === "exec-rampup" && <ExecRampup userName={userName} progressPercent={progressPercent} />}
+            {phase === "risk-radar" && <RiskRadar userName={userName} />}
+            {phase === "monitoring-scene" && <MonitoringScene userName={userName} />}
+            {phase === "ep10-scene" && <Ep10FailureScene userName={userName} />}
+            {phase === "ep10-result" && <Ep10Result userName={userName} />}
+            {phase === "monitoring-recap" && <MonitoringRecap userName={userName} />}
+            {phase === "monitoring-senior-tips" && <MonitoringSeniorTips userName={userName} />}
+            {phase === "monitoring-rampup" && <MonitoringRampup userName={userName} progressPercent={progressPercent} />}
+            {phase === "closing-scene" && <ClosingScene userName={userName} />}
+          </div>
+        </div>
+      ) : (
+        <div className={simulationContentClass}>{phase === "ep1-options" && <Ep1Options userName={userName} />}</div>
+      )}
       {phase === "initiation-action" && initiationConfirmOpen && (
         <div className={MODAL_OVERLAY_CLASS} role="dialog" aria-modal="true">
           <div className={MODAL_FRAME_CLASS}>
@@ -613,25 +809,17 @@ function SimulationContent() {
               <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
               <h3 className={MODAL_HEAD_TITLE_CLASS}>이 선택 그대로 진행할까요?</h3>
             </div>
-            <div className="px-6 py-5 text-center">
-              <p className="text-[15px] leading-[1.85] text-black/75">
-                현재 <span className="font-extrabold text-black/90">{initiationSelectedCount}개</span>의 액션 아이템을 선택했습니다.
+            <div className="ds-modal-body">
+              <p>
+                현재 <span className="ds-modal-highlight">{initiationSelectedCount}개</span>의 액션 아이템을 선택했습니다.
                 <br />
                 이 선택 그대로 진행하시겠습니까?
               </p>
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setInitiationConfirmOpen(false)}
-                  className={BTN_SUBTLE_CLASS}
-                >
+              <div className="ds-modal-actions">
+                <button type="button" onClick={() => setInitiationConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
                 </button>
-                <button
-                  type="button"
-                  onClick={commitInitiationAndGoNext}
-                  className={BTN_PRIMARY_CLASS}
-                >
+                <button type="button" onClick={commitInitiationAndGoNext} className={BTN_PRIMARY_CLASS}>
                   네
                 </button>
               </div>
@@ -639,32 +827,24 @@ function SimulationContent() {
           </div>
         </div>
       )}
-      {phase === "plan-action" && planningStage === "alloc" && planningConfirmOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
-          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-            <div className="bg-[#0B0F19] px-6 py-5">
-              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 선택 그대로 진행할까요?</h3>
+      {phase === "plan-action" && planningConfirmOpen && (
+        <div className={PLANNING_CONFIRM_OVERLAY_CLASS} role="dialog" aria-modal="true">
+          <div className={MODAL_FRAME_CLASS}>
+            <div className={MODAL_HEAD_CLASS}>
+              <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
+              <h3 className={MODAL_HEAD_TITLE_CLASS}>이 선택 그대로 진행할까요?</h3>
             </div>
-            <div className="px-6 py-5 text-center">
-              <p className="text-[15px] leading-[1.85] text-black/75">
-                현재 <span className="font-extrabold text-black/90">{planningSelectedCount}개</span>의 액션 아이템을 선택했습니다.
+            <div className="ds-modal-body">
+              <p>
+                현재 <span className="ds-modal-highlight">{planningSelectedCount}개</span>의 액션 아이템을 선택했습니다.
                 <br />
                 이 선택 그대로 진행하시겠습니까?
               </p>
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPlanningConfirmOpen(false)}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
-                >
+              <div className="ds-modal-actions">
+                <button type="button" onClick={() => setPlanningConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
                 </button>
-                <button
-                  type="button"
-                  onClick={commitPlanningAndGoNext}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
-                >
+                <button type="button" onClick={commitPlanningAndGoNext} className={BTN_PRIMARY_CLASS}>
                   네
                 </button>
               </div>
@@ -672,32 +852,24 @@ function SimulationContent() {
           </div>
         </div>
       )}
-      {phase === "exec-action" && execStage === "alloc" && execConfirmOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
-          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-            <div className="bg-[#0B0F19] px-6 py-5">
-              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 선택 그대로 진행할까요?</h3>
+      {phase === "exec-action" && execConfirmOpen && (
+        <div className={MODAL_OVERLAY_CLASS} role="dialog" aria-modal="true">
+          <div className={MODAL_FRAME_CLASS}>
+            <div className={MODAL_HEAD_CLASS}>
+              <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
+              <h3 className={MODAL_HEAD_TITLE_CLASS}>이 선택 그대로 진행할까요?</h3>
             </div>
-            <div className="px-6 py-5 text-center">
-              <p className="text-[15px] leading-[1.85] text-black/75">
-                현재 <span className="font-extrabold text-black/90">{executionSelectedCount}개</span>의 액션 아이템을 선택했습니다.
+            <div className="ds-modal-body">
+              <p>
+                현재 <span className="ds-modal-highlight">{executionSelectedCount}개</span>의 액션 아이템을 선택했습니다.
                 <br />
                 이 선택 그대로 진행하시겠습니까?
               </p>
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setExecConfirmOpen(false)}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
-                >
+              <div className="ds-modal-actions">
+                <button type="button" onClick={() => setExecConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
                 </button>
-                <button
-                  type="button"
-                  onClick={commitExecutionAndGoNext}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
-                >
+                <button type="button" onClick={commitExecutionAndGoNext} className={BTN_PRIMARY_CLASS}>
                   네
                 </button>
               </div>
@@ -705,35 +877,26 @@ function SimulationContent() {
           </div>
         </div>
       )}
-
       {phase === "ep2-scene" && ep2ConfirmOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
-          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-            <div className="bg-[#0B0F19] px-6 py-5">
-              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 옵션으로 진행할까요?</h3>
+        <div className={MODAL_OVERLAY_CLASS} role="dialog" aria-modal="true">
+          <div className={MODAL_FRAME_CLASS}>
+            <div className={MODAL_HEAD_CLASS}>
+              <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
+              <h3 className={MODAL_HEAD_TITLE_CLASS}>이 옵션으로 진행할까요?</h3>
             </div>
-            <div className="px-6 py-5 text-center">
-              <p className="text-[15px] leading-[1.85] text-black/75">
+            <div className="ds-modal-body">
+              <p>
                 선택하신 의사결정은{" "}
-                <span className="font-extrabold text-black/90">
+                <span className="ds-modal-highlight">
                   옵션 {episode2AlignChoice}. {ep2AlignOptions.find((o) => o.id === episode2AlignChoice)?.title ?? ""}
                 </span>
                 입니다.
               </p>
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEp2ConfirmOpen(false)}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
-                >
+              <div className="ds-modal-actions">
+                <button type="button" onClick={() => setEp2ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
                 </button>
-                <button
-                  type="button"
-                  onClick={commitEp2AndGoNext}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
-                >
+                <button type="button" onClick={commitEp2AndGoNext} className={BTN_PRIMARY_CLASS}>
                   네
                 </button>
               </div>
@@ -743,33 +906,25 @@ function SimulationContent() {
       )}
 
       {phase === "ep1-scene" && ep1ConfirmOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
-          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-            <div className="px-6 py-5 bg-[#0B0F19]">
-              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 옵션으로 진행할까요?</h3>
+        <div className={MODAL_OVERLAY_CLASS} role="dialog" aria-modal="true">
+          <div className={MODAL_FRAME_CLASS}>
+            <div className={MODAL_HEAD_CLASS}>
+              <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
+              <h3 className={MODAL_HEAD_TITLE_CLASS}>이 옵션으로 진행할까요?</h3>
             </div>
-            <div className="px-6 py-5 text-center">
-              <p className="text-[15px] leading-[1.85] text-black/75">
+            <div className="ds-modal-body">
+              <p>
                 선택하신 의사결정은{" "}
-                <span className="font-extrabold text-black/90">
+                <span className="ds-modal-highlight">
                   옵션 {episode1Choice}. {ep1Options.find((o) => o.id === episode1Choice)?.title ?? ""}
                 </span>
                 입니다.
               </p>
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEp1ConfirmOpen(false)}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
-                >
+              <div className="ds-modal-actions">
+                <button type="button" onClick={() => setEp1ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
                 </button>
-                <button
-                  type="button"
-                  onClick={commitEp1AndGoNext}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
-                >
+                <button type="button" onClick={commitEp1AndGoNext} className={BTN_PRIMARY_CLASS}>
                   네
                 </button>
               </div>
@@ -778,33 +933,25 @@ function SimulationContent() {
         </div>
       )}
       {phase === "ep3-scene" && ep3ConfirmOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
-          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-            <div className="px-6 py-5 bg-[#0B0F19]">
-              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 옵션으로 진행할까요?</h3>
+        <div className={PLANNING_CONFIRM_OVERLAY_CLASS} role="dialog" aria-modal="true">
+          <div className={MODAL_FRAME_CLASS}>
+            <div className={MODAL_HEAD_CLASS}>
+              <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
+              <h3 className={MODAL_HEAD_TITLE_CLASS}>이 옵션으로 진행할까요?</h3>
             </div>
-            <div className="px-6 py-5 text-center">
-              <p className="text-[15px] leading-[1.85] text-black/75">
+            <div className="ds-modal-body">
+              <p>
                 선택하신 의사결정은{" "}
-                <span className="font-extrabold text-black/90">
+                <span className="ds-modal-highlight">
                   옵션 {episode3Choice}. {ep3Options.find((o) => o.id === episode3Choice)?.title ?? ""}
                 </span>
                 입니다.
               </p>
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEp3ConfirmOpen(false)}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
-                >
+              <div className="ds-modal-actions">
+                <button type="button" onClick={() => setEp3ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
                 </button>
-                <button
-                  type="button"
-                  onClick={commitEp3AndGoNext}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
-                >
+                <button type="button" onClick={commitEp3AndGoNext} className={BTN_PRIMARY_CLASS}>
                   네
                 </button>
               </div>
@@ -813,33 +960,25 @@ function SimulationContent() {
         </div>
       )}
       {phase === "ep4-scene" && ep4ConfirmOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
-          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-            <div className="px-6 py-5 bg-[#0B0F19]">
-              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 옵션으로 진행할까요?</h3>
+        <div className={PLANNING_CONFIRM_OVERLAY_CLASS} role="dialog" aria-modal="true">
+          <div className={MODAL_FRAME_CLASS}>
+            <div className={MODAL_HEAD_CLASS}>
+              <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
+              <h3 className={MODAL_HEAD_TITLE_CLASS}>이 옵션으로 진행할까요?</h3>
             </div>
-            <div className="px-6 py-5 text-center">
-              <p className="text-[15px] leading-[1.85] text-black/75">
+            <div className="ds-modal-body">
+              <p>
                 선택하신 의사결정은{" "}
-                <span className="font-extrabold text-black/90">
+                <span className="ds-modal-highlight">
                   옵션 {episode4Choice}. {ep4Options.find((o) => o.id === episode4Choice)?.title ?? ""}
                 </span>
                 입니다.
               </p>
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEp4ConfirmOpen(false)}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
-                >
+              <div className="ds-modal-actions">
+                <button type="button" onClick={() => setEp4ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
                 </button>
-                <button
-                  type="button"
-                  onClick={commitEp4AndGoNext}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
-                >
+                <button type="button" onClick={commitEp4AndGoNext} className={BTN_PRIMARY_CLASS}>
                   네
                 </button>
               </div>
@@ -848,33 +987,25 @@ function SimulationContent() {
         </div>
       )}
       {phase === "ep5-scene" && ep5ConfirmOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
-          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-            <div className="px-6 py-5 bg-[#0B0F19]">
-              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 옵션으로 진행할까요?</h3>
+        <div className={PLANNING_CONFIRM_OVERLAY_CLASS} role="dialog" aria-modal="true">
+          <div className={MODAL_FRAME_CLASS}>
+            <div className={MODAL_HEAD_CLASS}>
+              <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
+              <h3 className={MODAL_HEAD_TITLE_CLASS}>이 옵션으로 진행할까요?</h3>
             </div>
-            <div className="px-6 py-5 text-center">
-              <p className="text-[15px] leading-[1.85] text-black/75">
+            <div className="ds-modal-body">
+              <p>
                 선택하신 의사결정은{" "}
-                <span className="font-extrabold text-black/90">
+                <span className="ds-modal-highlight">
                   옵션 {episode5Choice}. {ep5Options.find((o) => o.id === episode5Choice)?.title ?? ""}
                 </span>
                 입니다.
               </p>
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEp5ConfirmOpen(false)}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
-                >
+              <div className="ds-modal-actions">
+                <button type="button" onClick={() => setEp5ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
                 </button>
-                <button
-                  type="button"
-                  onClick={commitEp5AndGoNext}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
-                >
+                <button type="button" onClick={commitEp5AndGoNext} className={BTN_PRIMARY_CLASS}>
                   네
                 </button>
               </div>
@@ -883,14 +1014,14 @@ function SimulationContent() {
         </div>
       )}
       {phase === "ep6-scene" && ep6ConfirmOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
-          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-            <div className="px-6 py-5 bg-[#0B0F19]">
-              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 선택 그대로 진행할까요?</h3>
+        <div className={MODAL_OVERLAY_CLASS} role="dialog" aria-modal="true">
+          <div className={MODAL_FRAME_CLASS}>
+            <div className={MODAL_HEAD_CLASS}>
+              <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
+              <h3 className={MODAL_HEAD_TITLE_CLASS}>이 선택 그대로 진행할까요?</h3>
             </div>
-            <div className="px-6 py-5 text-center">
-              <div className="rounded-2xl border border-black/10 bg-[#f8f9fa] p-4 text-left">
+            <div className="ds-modal-body">
+              <div className="ds-modal-combo-box mb-4 rounded-md border-[1.5px] border-[#111] bg-[#fffbeb] p-4 text-left">
                 <p className="text-[13px] font-extrabold text-black/85">선택한 조합</p>
                 <ul className="mt-2 space-y-1.5 text-[14px] leading-[1.7] text-black/75">
                   <li><span className="font-extrabold text-black/85">소통 대상</span> · {ep6Selection.b1}</li>
@@ -899,20 +1030,12 @@ function SimulationContent() {
                   <li><span className="font-extrabold text-black/85">소통 내용</span> · {ep6Selection.b4}</li>
                 </ul>
               </div>
-              <p className="mt-3 text-[15px] leading-[1.85] text-black/75">이 조합으로 결과를 확인하시겠습니까?</p>
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEp6ConfirmOpen(false)}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
-                >
+              <p>이 조합으로 결과를 확인하시겠습니까?</p>
+              <div className="ds-modal-actions">
+                <button type="button" onClick={() => setEp6ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
                 </button>
-                <button
-                  type="button"
-                  onClick={commitEp6AndGoNext}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
-                >
+                <button type="button" onClick={commitEp6AndGoNext} className={BTN_PRIMARY_CLASS}>
                   네
                 </button>
               </div>
@@ -921,33 +1044,25 @@ function SimulationContent() {
         </div>
       )}
       {phase === "ep7-scene" && ep7ConfirmOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
-          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-            <div className="px-6 py-5 bg-[#0B0F19]">
-              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 옵션으로 진행할까요?</h3>
+        <div className={MODAL_OVERLAY_CLASS} role="dialog" aria-modal="true">
+          <div className={MODAL_FRAME_CLASS}>
+            <div className={MODAL_HEAD_CLASS}>
+              <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
+              <h3 className={MODAL_HEAD_TITLE_CLASS}>이 옵션으로 진행할까요?</h3>
             </div>
-            <div className="px-6 py-5 text-center">
-              <p className="text-[15px] leading-[1.85] text-black/75">
+            <div className="ds-modal-body">
+              <p>
                 선택하신 의사결정은{" "}
-                <span className="font-extrabold text-black/90">
+                <span className="ds-modal-highlight">
                   옵션 {episode7Choice}. {ep7Options.find((o) => o.id === episode7Choice)?.title ?? ""}
                 </span>
                 입니다.
               </p>
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEp7ConfirmOpen(false)}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
-                >
+              <div className="ds-modal-actions">
+                <button type="button" onClick={() => setEp7ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
                 </button>
-                <button
-                  type="button"
-                  onClick={commitEp7AndGoNext}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
-                >
+                <button type="button" onClick={commitEp7AndGoNext} className={BTN_PRIMARY_CLASS}>
                   네
                 </button>
               </div>
@@ -955,32 +1070,26 @@ function SimulationContent() {
           </div>
         </div>
       )}
-      {phase === "ep8-input" && ep8ConfirmOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-6 backdrop-blur-md" role="dialog" aria-modal="true">
-          <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
-            <div className="px-6 py-5 bg-[#0B0F19]">
-              <p className="text-center text-[12px] font-extrabold tracking-[0.18em] text-white/70">CHECK</p>
-              <h3 className="mt-1 text-center text-[18px] font-extrabold tracking-tight text-white">이 코칭으로 진행할까요?</h3>
+      {phase === "ep10-scene" && ep10ConfirmOpen && (
+        <div className={MODAL_OVERLAY_CLASS} role="dialog" aria-modal="true">
+          <div className={MODAL_FRAME_CLASS}>
+            <div className={MODAL_HEAD_CLASS}>
+              <p className={MODAL_HEAD_LABEL_CLASS}>CHECK</p>
+              <h3 className={MODAL_HEAD_TITLE_CLASS}>이 옵션으로 진행할까요?</h3>
             </div>
-            <div className="px-6 py-5 text-center">
-              <p className="text-[15px] leading-[1.85] text-black/75">
-                작성한 코칭 메시지가 반영되고 결과 페이지로 이동합니다.
-                <br />
-                이대로 진행하시겠습니까?
+            <div className="ds-modal-body">
+              <p>
+                선택하신 의사결정은{" "}
+                <span className="ds-modal-highlight">
+                  옵션 {episode10Choice}. {ep10Options.find((o) => o.id === episode10Choice)?.title ?? ""}
+                </span>
+                입니다.
               </p>
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setEp8ConfirmOpen(false)}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#f1f3f5] px-4 py-3 text-[15px] font-semibold text-black/70 transition hover:bg-[#e9ecef] active:scale-[0.99]"
-                >
+              <div className="ds-modal-actions">
+                <button type="button" onClick={() => setEp10ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
                 </button>
-                <button
-                  type="button"
-                  onClick={commitEp8AndGoNext}
-                  className="inline-flex min-w-[120px] items-center justify-center rounded-xl bg-[#E4003F] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_14px_40px_rgba(228,0,63,0.28)] transition hover:bg-[#E4003F]/95 active:scale-[0.99]"
-                >
+                <button type="button" onClick={commitEp10AndGoNext} className={BTN_PRIMARY_CLASS}>
                   네
                 </button>
               </div>
@@ -988,48 +1097,188 @@ function SimulationContent() {
           </div>
         </div>
       )}
-      {membersModalOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/55 px-6 backdrop-blur-sm" role="dialog" aria-modal="true">
-          <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_24px_90px_rgba(0,0,0,0.35)]">
-            <div className="flex items-center justify-between border-b border-black/10 px-5 py-4">
-              <h3 className="text-[18px] font-extrabold text-black">구성원 정보</h3>
-              <button
-                type="button"
-                onClick={() => setMembersModalOpen(false)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/15 text-black/70 hover:bg-black/5"
-                aria-label="구성원 정보 닫기"
+      <SimulationHudModal
+        open={simulationProgressModalOpen}
+        onClose={() => setSimulationProgressModalOpen(false)}
+        title="시뮬레이션 진행 상황"
+        titleId="hud-sim-progress-title"
+        size="md"
+      >
+        <div className="space-y-5">
+          <p className="font-sans text-[14px] leading-relaxed text-black/80">
+            현재 프로세스 그룹은 <span className="font-extrabold text-black">{processStep}</span> 입니다. 상단 셰브론 단계 표시와 동일한
+            기준입니다.
+          </p>
+          <ol className="space-y-2 border-t-2 border-black/10 pt-4 font-sans text-[15px]">
+            {PROCESS_STEPS.map((step) => (
+              <li
+                key={step}
+                className={`flex items-center gap-2 ${step === processStep ? "font-extrabold text-black" : "text-black/50"}`}
               >
-                ×
-              </button>
-            </div>
-            <div className="max-h-[65vh] overflow-y-auto px-5 py-4">
-              <div className="space-y-3">
-                {teamMembers.map((member) => (
-                  <div key={member.id} className="rounded-xl border border-black/10 p-4">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <p className="text-[16px] font-extrabold text-black">{member.name}</p>
-                      <p className="text-[13px] font-bold text-black/60">{member.role}</p>
-                    </div>
-                    <p className="mt-2 text-[13px] text-black/70">{member.position}</p>
-                    <p className="mt-1 text-[13px] leading-relaxed text-black/65">{member.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+                <span aria-hidden className="w-6 shrink-0 text-center">
+                  {step === processStep ? "●" : "○"}
+                </span>
+                {step}
+              </li>
+            ))}
+          </ol>
+          <p className="rounded-xl border-2 border-black/10 bg-[#f3f4f6] px-3 py-2 font-mono text-[12px] text-black/70">
+            현재 화면 코드: {phase}
+          </p>
         </div>
-      )}
-      <PrevNextNav
+      </SimulationHudModal>
+
+      <SimulationHudModal
+        open={pmInfoModalOpen}
+        onClose={() => setPmInfoModalOpen(false)}
+        title="프로젝트 매니지먼트 기타 정보"
+        titleId="hud-pm-info-title"
+        size="md"
+      >
+        <div className="space-y-4 font-sans text-[14px] leading-relaxed text-black/80">
+          <p>
+            본 시뮬레이션은 PMI PMBOK 가이드의 프로세스 그룹(착수·기획·실행·감시·통제·종료)을 바탕으로, PM이 현장에서 겪는 판단과
+            트레이드오프를 연습할 수 있도록 구성되어 있습니다.
+          </p>
+          <p>
+            상단 KPI(산출물 품질, 일정 준수, 팀 몰입도, 이해관계자 조율, 리더 에너지)는 선택과 진행에 따라 변하며, 각 에피소드의 피드백과
+            연결됩니다.
+          </p>
+          <ul className="space-y-2 border-l-2 border-[#64e87a] pl-4 text-black/75">
+            <li>메뉴의 「프로젝트 개요」에서 과제 배경·목적·KPI 정의를 다시 확인할 수 있습니다.</li>
+            <li>「주요 인물 정보」에서 팀·이해관계자 프로필을 열람할 수 있습니다.</li>
+          </ul>
+        </div>
+      </SimulationHudModal>
+
+      <SimulationHudModal
+        open={projectOverviewModalOpen}
+        onClose={() => setProjectOverviewModalOpen(false)}
+        title="프로젝트 개요"
+        titleId="hud-project-overview-title"
+        size="xl"
+        bodyClassName="p-0 sm:p-0"
+      >
+        <div className="max-h-[min(75vh,780px)] min-h-0 overflow-y-auto">
+          <ProjectOverview />
+        </div>
+      </SimulationHudModal>
+
+      <SimulationHudModal
+        open={membersModalOpen}
+        onClose={() => setMembersModalOpen(false)}
+        title="주요 인물 정보"
+        titleId="hud-members-title"
+        size="lg"
+      >
+        <div className="space-y-3">
+          {teamMembers.map((member) => (
+            <div
+              key={member.id}
+              className="rounded-xl border-2 border-black bg-white p-4 shadow-[4px_4px_0_#111111]"
+            >
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <p className="text-[16px] font-extrabold text-black">{member.name}</p>
+                <p className="text-[13px] font-bold text-black/60">{member.role}</p>
+              </div>
+              <p className="mt-2 text-[13px] text-black/70">{member.position}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-black/65">{member.description}</p>
+            </div>
+          ))}
+        </div>
+      </SimulationHudModal>
+      {phase !== "closing-scene" && <PrevNextNav
         prevHref={prevHref}
         nextHref={nextHref}
-        hideNext={phase === "initiation-d1"}
+        nextLabel={phase === "initiation-d1" ? "상무님 호출 응답하기" : undefined}
+        simHudFooterLayout={grayHudChrome}
+        centerSlot={
+          phase === "initiation-action" ? (
+            <>
+              <span className="initiation-footer-meta w-full text-center font-sans text-[12px] font-extrabold text-black/45 sm:w-auto sm:text-left">
+                선택 된 액션 {initiationSelectedCount} / 2
+              </span>
+              {initiationActions
+                .filter((a) => (initiationActionHours[a.id] ?? 0) > 0)
+                .map((a) => (
+                  <span
+                    key={a.id}
+                    className="initiation-footer-chip-green inline-flex max-w-[min(100%,220px)] items-center gap-1.5 rounded-[10px] border-2 border-black bg-[#64e87a] px-3 py-2 font-sans text-[12px] font-extrabold text-black shadow-[2px_2px_0_#111111] sm:text-[13px]"
+                  >
+                    <span aria-hidden className="neo-no-bg text-white">
+                      ✓
+                    </span>
+                    <span className="neo-no-bg min-w-0 truncate">{a.title.length > 22 ? `${a.title.slice(0, 22)}…` : a.title}</span>
+                  </span>
+                ))}
+              {phase === "initiation-action" && initiationSelectedCount < 2 ? (
+                <span className="initiation-footer-chip-placeholder inline-flex items-center rounded-[10px] border-2 border-dashed border-black/35 bg-white px-3 py-2 font-sans text-[12px] font-semibold text-black/40 sm:text-[13px]">
+                  액션 카드를 선택해주세요.
+                </span>
+              ) : null}
+            </>
+          ) : phase === "plan-action" ? (
+            <>
+              <span className="initiation-footer-meta w-full text-center font-sans text-[12px] font-extrabold text-black/45 sm:w-auto sm:text-left">
+                선택 된 액션 {planningSelectedCount} / 2
+              </span>
+              {planningActions
+                .filter((a) => (planningActionHours[a.id] ?? 0) > 0)
+                .map((a) => (
+                  <span
+                    key={a.id}
+                    className="initiation-footer-chip-green inline-flex max-w-[min(100%,220px)] items-center gap-1.5 rounded-[10px] border-2 border-black bg-[#64e87a] px-3 py-2 font-sans text-[12px] font-extrabold text-black shadow-[2px_2px_0_#111111] sm:text-[13px]"
+                  >
+                    <span aria-hidden className="neo-no-bg text-white">
+                      ✓
+                    </span>
+                    <span className="neo-no-bg min-w-0 truncate">{a.title.length > 22 ? `${a.title.slice(0, 22)}…` : a.title}</span>
+                  </span>
+                ))}
+              {planningSelectedCount < 2 ? (
+                <span className="initiation-footer-chip-placeholder inline-flex items-center rounded-[10px] border-2 border-dashed border-black/35 bg-white px-3 py-2 font-sans text-[12px] font-semibold text-black/40 sm:text-[13px]">
+                  액션 카드를 선택해주세요.
+                </span>
+              ) : null}
+            </>
+          ) : phase === "exec-action" ? (
+            <div className="flex w-full min-w-0 max-w-full flex-nowrap items-center justify-center gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2">
+              <span className="shrink-0 whitespace-nowrap font-sans text-[10px] font-extrabold text-black/45 sm:text-[11px]">
+                선택 된 액션 {executionSelectedCount}/{EXEC_ACTION_MAX_SELECTED}
+              </span>
+              {executionActions
+                .filter((a) => (executionActionHours[a.id] ?? 0) > 0)
+                .map((a) => (
+                  <span
+                    key={a.id}
+                    className="initiation-footer-chip-green inline-flex max-w-[9.5rem] shrink-0 items-center gap-1 rounded-[8px] border-2 border-black bg-[#d97706] px-2 py-1.5 font-sans text-[10px] font-extrabold leading-tight text-black shadow-[2px_2px_0_#111111] sm:max-w-[11rem] sm:text-[11px]"
+                  >
+                    <span aria-hidden className="neo-no-bg shrink-0 text-white">
+                      ✓
+                    </span>
+                    <span className="neo-no-bg min-w-0 truncate">{a.title.length > 16 ? `${a.title.slice(0, 16)}…` : a.title}</span>
+                  </span>
+                ))}
+              {executionSelectedCount < EXEC_ACTION_MAX_SELECTED ? (
+                <span className="initiation-footer-chip-placeholder inline-flex shrink-0 items-center rounded-[8px] border-2 border-dashed border-black/35 bg-white px-2 py-1.5 font-sans text-[10px] font-semibold text-black/40 sm:text-[11px]">
+                  카드 선택
+                </span>
+              ) : null}
+            </div>
+          ) : undefined
+        }
+        hideNext={phase === "closing-scene"}
         nextDisabled={
+          (phase === "initiation-action" && initiationSelectedCount !== 2) ||
+          (phase === "plan-action" && planningSelectedCount !== 2) ||
           (phase === "ep1-scene" && !episode1Choice) ||
           (phase === "ep2-scene" && !episode2AlignChoice) ||
           (phase === "ep3-scene" && !episode3Choice) ||
           (phase === "ep4-scene" && !episode4Choice) ||
           (phase === "ep5-scene" && !episode5Choice) ||
-          (phase === "ep7-scene" && !episode7Choice)
+          (phase === "ep7-scene" && !episode7Choice) ||
+          (phase === "ep10-scene" && !episode10Choice) ||
+          (phase === "exec-action" && executionSelectedCount !== EXEC_ACTION_MAX_SELECTED)
         }
         onNextClick={
           phase === "initiation-action"
@@ -1038,25 +1287,40 @@ function SimulationContent() {
               ? handlePlanningNext
               : phase === "exec-action"
                 ? handleExecNext
-            : phase === "ep1-scene"
-              ? handleEp1Next
-              : phase === "ep2-scene"
-                ? handleEp2Next
-                : phase === "ep3-scene"
-                  ? handleEp3Next
-                  : phase === "ep4-scene"
-                    ? handleEp4Next
-                    : phase === "ep5-scene"
-                      ? handleEp5Next
-                      : phase === "ep6-scene"
-                        ? handleEp6Next
-                        : phase === "ep7-scene"
-                          ? handleEp7Next
-                          : phase === "ep8-input"
-                            ? handleEp8Next
-                : undefined
+                : phase === "exec-board"
+                  ? () => setExecBoardWbsOpen(true)
+                  : phase === "ep1-scene"
+                    ? handleEp1Next
+                    : phase === "ep2-scene"
+                      ? handleEp2Next
+                      : phase === "ep3-scene"
+                        ? handleEp3Next
+                        : phase === "ep4-scene"
+                          ? handleEp4Next
+                          : phase === "ep5-scene"
+                            ? handleEp5Next
+                            : phase === "ep6-scene"
+                              ? handleEp6Next
+                              : phase === "ep7-scene"
+                                ? handleEp7Next
+                                : phase === "ep8-scene" || phase === "ep8-input"
+                                  ? handleEp8Next
+                                  : phase === "ep10-scene"
+                                    ? handleEp10Next
+                                    : undefined
         }
-      />
+      />}
+      {phase === "exec-board" && (
+        <ExecBoardWbsTimelineModal
+          open={execBoardWbsOpen}
+          onClose={() => setExecBoardWbsOpen(false)}
+          onConfirm={() => {
+            setExecBoardWbsOpen(false);
+            router.push(nextHref);
+          }}
+          placement={execBoardPlacement}
+        />
+      )}
     </main>
   );
 }

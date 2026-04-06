@@ -37,27 +37,27 @@ export function Ep6PingpongOptions({ userName }: Ep6PingpongOptionsProps) {
       blocks={[
         {
           id: "block1",
-          title: "블록 1: 누구에게 연락하시겠습니까?",
+          title: "블록 1: 소통 대상 - 누구에게 연락하시겠습니까?",
           defaultOptionId: "B",
-          options: ep6Block1Options.map((o) => ({ id: o.id, label: o.label })),
+          options: ep6Block1Options.map((o) => ({ id: o.id, label: `${o.id}. ${o.headline}` })),
         },
         {
           id: "block2",
           title: "블록 2: 소통 채널",
           defaultOptionId: "E",
-          options: ep6Block2Options.map((o) => ({ id: o.id, label: o.label })),
+          options: ep6Block2Options.map((o) => ({ id: o.id, label: `${o.id}. ${o.headline}` })),
         },
         {
           id: "block3",
           title: "블록 3: 소통 톤",
           defaultOptionId: "D",
-          options: ep6Block3Options.map((o) => ({ id: o.id, label: o.label })),
+          options: ep6Block3Options.map((o) => ({ id: o.id, label: `${o.id}. ${o.headline}` })),
         },
         {
           id: "block4",
           title: "블록 4: 핵심 메시지 (결과 결정)",
           defaultOptionId: "B",
-          options: ep6Block4Options.map((o) => ({ id: o.id, label: o.label })),
+          options: ep6Block4Options.map((o) => ({ id: o.id, label: `${o.id}. ${o.headline}` })),
         },
       ]}
     />

@@ -19,6 +19,10 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
         />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css"
+        />
       </head>
       <body className="antialiased min-h-screen bg-white text-black font-body">
         {children}

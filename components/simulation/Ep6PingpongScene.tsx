@@ -1,16 +1,169 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useStore } from "@/store/useStore";
+import type { Episode6Block } from "@/store/useStore";
 import {
+  ep6BoardComments,
   ep6Scene,
   ep6Block1Options,
   ep6Block2Options,
   ep6Block3Options,
   ep6Block4Options,
 } from "@/content/episode6";
-import { useEffect } from "react";
-import EpisodeScene from "@/components/shared/EpisodeScene";
+import type { Ep6BoardComment, Ep6BlockOption } from "@/content/episode6";
+import Image from "next/image";
+import type { CSSProperties, ReactNode } from "react";
+
+const EP6_REVEAL_STAGGER_MS = 110;
+function ep6RevealDelay(step: number): CSSProperties {
+  return { animationDelay: `${step * EP6_REVEAL_STAGGER_MS}ms` };
+}
+
+const EP6_DEFAULT_BLOCKS: Episode6Block = {
+  block1: "B",
+  block2: "E",
+  block3: "D",
+  block4: "B",
+};
+
+/** 블록 단계 라벨 — 한 줄로 읽히게, 세로 공간 최소화 */
+function Ep6BlockStepBar({
+  blockNum,
+  children,
+  style,
+}: {
+  blockNum: 1 | 2 | 3 | 4;
+  children: ReactNode;
+  style: CSSProperties;
+}) {
+  return (
+    <div className="ep1-scene-reveal" style={style}>
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1 border-b-2 border-black pb-2.5">
+        <span className="shrink-0 rounded bg-[#111] px-2.5 py-1 font-sans text-[13px] font-black !text-[#ffffff] sm:text-[14px]">
+          블록 {blockNum}
+        </span>
+        <h3 className="min-w-0 flex-1 font-sans text-[17px] font-black leading-snug tracking-tight text-[#0f172a] sm:text-[18px] md:text-[19px] [word-break:keep-all]">
+          {children}
+        </h3>
+      </div>
+    </div>
+  );
+}
+
+/** 컴팩트 단일 선택 리스트 — 스캔·클릭 영역 최적화 */
+function Ep6BlockPickList({
+  legend,
+  options,
+  selectedId,
+  onSelect,
+  firstRowDelayStep,
+}: {
+  legend: string;
+  options: Ep6BlockOption[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+  firstRowDelayStep: number;
+}) {
+  return (
+    <fieldset className="overflow-hidden rounded-lg border-2 border-black/25 bg-white shadow-[2px_2px_0_0_rgba(17,17,17,0.1)]">
+      <legend className="sr-only">{legend}</legend>
+      <div className="divide-y divide-black/[0.08]">
+        {options.map((o, idx) => {
+          const selected = selectedId === o.id;
+          const ariaDetail = o.detail ? ` ${o.detail}` : "";
+          return (
+            <button
+              key={o.id}
+              type="button"
+              aria-pressed={selected}
+              aria-label={`${legend}: 항목 ${o.id}, ${o.headline}.${ariaDetail}`}
+              style={ep6RevealDelay(firstRowDelayStep + idx)}
+              className={`ep1-scene-reveal flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors sm:gap-3.5 sm:px-3.5 sm:py-3 ${
+                selected
+                  ? "!bg-[#fff7ed] ring-2 ring-inset ring-[#d97706]"
+                  : "hover:bg-slate-50 active:bg-slate-100/90"
+              } focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-black`}
+              onClick={() => onSelect(o.id)}
+            >
+              <span
+                className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-black/10 font-sans text-[12px] font-black tabular-nums sm:h-9 sm:w-9 sm:text-[14px] ${
+                  selected ? "!bg-[#d97706] !text-black" : "bg-zinc-900 !text-[#ffffff]"
+                }`}
+                aria-hidden
+              >
+                {o.id}
+              </span>
+              <span className="min-w-0 flex-1 pt-0.5">
+                <span className="block font-sans text-[16px] font-bold leading-snug text-[#111] sm:text-[17px] md:text-[18px] [overflow-wrap:anywhere] [word-break:keep-all]">
+                  {o.headline}
+                </span>
+                {o.detail ? (
+                  <span className="mt-1 block font-sans text-[14px] font-medium leading-snug text-[#64748b] sm:text-[15px] [overflow-wrap:anywhere] [word-break:keep-all]">
+                    {o.detail}
+                  </span>
+                ) : null}
+              </span>
+              <span
+                className={`mt-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-black/20 sm:mt-2.5 ${
+                  selected ? "!border-black !bg-[#d97706]" : "border-zinc-300 bg-white"
+                }`}
+                aria-hidden
+              >
+                {selected ? <span className="h-2.5 w-2.5 rounded-full bg-black" /> : null}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+function renderDialogueBold(paragraph: string): ReactNode {
+  const parts = paragraph.split(/\*\*(.+?)\*\*/g);
+  return parts.map((p, i) =>
+    i % 2 === 1 ? (
+      <strong key={i} className="font-bold !text-[#d97706]">
+        {p}
+      </strong>
+    ) : (
+      <span key={i}>{p}</span>
+    ),
+  );
+}
+
+function Ep6BoardCommentRow({ row, isLast }: { row: Ep6BoardComment; isLast: boolean }) {
+  return (
+    <article
+      className={`flex gap-3 rounded-xl border border-black/[0.08] bg-white p-3.5 shadow-[0_1px_0_rgba(15,23,42,0.06)] sm:gap-4 sm:p-4 ${
+        !isLast ? "mb-3" : ""
+      }`}
+    >
+      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-2 ring-white shadow-[0_2px_8px_rgba(15,23,42,0.12)] sm:h-[52px] sm:w-[52px]">
+        <Image
+          src={row.avatarSrc}
+          alt={row.avatarAlt}
+          fill
+          className="object-contain object-center"
+          sizes="(max-width: 640px) 44px, 52px"
+        />
+      </div>
+      <div className="min-w-0 flex-1 pt-0.5">
+        <header className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <span className="font-sans text-[14px] font-extrabold text-[#0f172a] sm:text-[15px]">{row.author}</span>
+          <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-sans text-[11px] font-semibold text-slate-600 sm:text-[12px]">
+            {row.role}
+          </span>
+          <span className="font-sans text-[11px] font-medium tabular-nums text-[#94a3b8] sm:text-[12px]">{row.timeAgo}</span>
+        </header>
+        <p className="mt-2 font-sans text-[14px] font-medium leading-[1.75] text-[#334155] sm:text-[15px] [overflow-wrap:anywhere] [word-break:keep-all]">
+          {row.body}
+        </p>
+      </div>
+    </article>
+  );
+}
 
 interface Ep6PingpongSceneProps {
   userName: string;
@@ -18,144 +171,169 @@ interface Ep6PingpongSceneProps {
 
 export function Ep6PingpongScene({ userName }: Ep6PingpongSceneProps) {
   const { nickname, episode6Blocks, setEpisode6Blocks } = useStore();
-  const [b1, setB1] = useState(episode6Blocks?.block1 ?? "B");
-  const [b2, setB2] = useState(episode6Blocks?.block2 ?? "E");
-  const [b3, setB3] = useState(episode6Blocks?.block3 ?? "D");
-  const [b4, setB4] = useState(episode6Blocks?.block4 ?? "B");
-
   const displayName = nickname || userName || "PM";
-  const commentsWithName = ep6Scene.comments.map((line) =>
-    line.replace("@User_Name", displayName)
-  );
-
-  function renderWithBold(paragraph: string) {
-    const parts = paragraph.split(/\*\*(.+?)\*\*/g);
-    return parts.map((p, i) => (i % 2 === 1 ? <strong key={i}>{p}</strong> : p));
-  }
 
   useEffect(() => {
-    setEpisode6Blocks({ block1: b1, block2: b2, block3: b3, block4: b4 });
-  }, [b1, b2, b3, b4, setEpisode6Blocks]);
+    if (episode6Blocks === null) {
+      setEpisode6Blocks({ ...EP6_DEFAULT_BLOCKS });
+    }
+  }, [episode6Blocks, setEpisode6Blocks]);
+
+  const b = episode6Blocks ?? EP6_DEFAULT_BLOCKS;
+
+  const patch = (partial: Partial<Episode6Block>) => {
+    setEpisode6Blocks({ ...(episode6Blocks ?? EP6_DEFAULT_BLOCKS), ...partial });
+  };
+
+  const boardThread = ep6BoardComments.map((c) => ({
+    ...c,
+    body: c.body.replace("@User_Name", displayName),
+  }));
 
   return (
-    <EpisodeScene title={ep6Scene.title} situation={ep6Scene.situation}>
-      <div className="rounded-2xl border border-black/10 bg-gray-50 p-5 shadow-[0_12px_40px_rgba(0,0,0,0.06)]">
-        <div className="flex items-center justify-between">
-          <p className="text-[13px] font-extrabold text-black/85">프로젝트 보드 댓글 히스토리</p>
-          <span className="rounded-full bg-[#E4003F]/10 px-2.5 py-1 text-[11px] font-extrabold text-[#E4003F] ring-1 ring-[#E4003F]/20">
+    <section className="ep1-scene-layout w-full min-w-0 max-w-none space-y-8 sm:space-y-10">
+      <div className="initiation-action-page mb-8 w-full sm:mb-10">
+        <div className="flex justify-center px-2">
+          <p
+            className="ep1-scene-reveal initiation-brief-badge w-full max-w-[min(100%,52rem)] shadow-[6px_6px_0_#111111]"
+            style={ep6RevealDelay(0)}
+          >
+            {ep6Scene.title}
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-2 px-2 text-center">
+        <p
+          className="ep1-scene-reveal whitespace-pre-line font-sans text-[19px] font-bold leading-relaxed text-[#111] sm:text-[21px]"
+          style={ep6RevealDelay(1)}
+        >
+          {renderDialogueBold(ep6Scene.situation)}
+        </p>
+      </div>
+
+      <div
+        className="ep1-scene-reveal overflow-hidden rounded-2xl border-2 border-black/10 bg-[#f1f5f9] text-left shadow-[4px_4px_0_0_#111111] sm:rounded-[14px]"
+        style={ep6RevealDelay(2)}
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-black/10 bg-white px-4 py-3 sm:px-5">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#111] font-sans text-[18px] text-[#ffffff] shadow-[2px_2px_0_0_rgba(0,0,0,0.15)]"
+              aria-hidden
+            >
+              💬
+            </span>
+            <div className="min-w-0">
+              <p className="font-sans text-[14px] font-extrabold leading-tight text-[#111] sm:text-[15px]">
+                프로젝트 보드 댓글 히스토리
+              </p>
+              <p className="mt-0.5 font-sans text-[11px] font-medium text-[#64748b] sm:text-[12px]">
+                티켓 스레드 · 최신순
+              </p>
+            </div>
+          </div>
+          <span className="shrink-0 rounded-full bg-[#E4003F]/10 px-2.5 py-1 font-sans text-[11px] font-extrabold text-[#E4003F] ring-1 ring-[#E4003F]/25">
             최근 업데이트
           </span>
         </div>
-        <div className="mt-3 space-y-2.5">
-          {commentsWithName.map((line, i) => {
-            const payload = line.replace(/^💬\s*/, "");
-            const sepIdx = payload.indexOf(":");
-            const head = sepIdx >= 0 ? payload.slice(0, sepIdx).trim() : payload;
-            const body = sepIdx >= 0 ? payload.slice(sepIdx + 1).trim() : "";
-            const timeMatch = head.match(/\(([^)]+)\)\s*$/);
-            const meta = timeMatch?.[1] ?? "";
-            const author = head.replace(/\s*\([^)]+\)\s*$/, "").trim();
-            const initial = author.charAt(0) || "U";
-            return (
-              <div key={i} className="flex items-start gap-3 px-1 py-2">
-                <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E4003F]/12 text-[12px] font-extrabold text-[#A2002D] ring-1 ring-[#E4003F]/20">
-                  {initial}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <p className="text-[13px] font-extrabold text-black/85">{author}</p>
-                    {meta && <p className="text-[12px] font-medium text-black/45">{meta}</p>}
-                  </div>
-                  <p className="mt-1 text-[14px] leading-[1.75] text-black/75">{body}</p>
-                </div>
-              </div>
-            );
-          })}
+        <div className="space-y-0 px-2 py-3 sm:px-3 sm:py-4">
+          {boardThread.map((row, i) => (
+            <Ep6BoardCommentRow
+              key={`${row.author}-${row.timeAgo}-${i}`}
+              row={row}
+              isLast={i === boardThread.length - 1}
+            />
+          ))}
         </div>
       </div>
 
-      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">{renderWithBold(ep6Scene.systemPrompt)}</p>
-      <p className="text-[18px] font-extrabold leading-[1.85] text-black/90">
-        <span className="text-black/90">[Action]</span> 블록을 조합해 커뮤니케이션 전략을 완성하세요.
-      </p>
-
-      <div className="space-y-10">
-        <section>
-          <p className="mb-3 text-[16px] font-extrabold text-black/85">블록 1. 누구에게 연락하시겠습니까?</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {ep6Block1Options.map((o) => (
-              <button
-                key={o.id}
-                type="button"
-                onClick={() => setB1(o.id)}
-                className={`w-full rounded-2xl border-2 bg-white p-4 text-left transition-all hover:-translate-y-1 hover:shadow-lg ${
-                  b1 === o.id ? "border-[#E4003F] shadow-[0_14px_50px_rgba(228,0,63,0.14)]" : "border-black/10 hover:border-[#E4003F]"
-                }`}
-              >
-                <p className="text-[16px] font-bold text-gray-900">블록 1-{o.id}</p>
-                <p className="mt-1 text-[15px] leading-[1.75] text-gray-600">{o.label}</p>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <p className="mb-3 text-[16px] font-extrabold text-black/85">블록 2. 소통 채널 - 어디서 이야기하시겠습니까?</p>
-          <div className="space-y-3">
-            {ep6Block2Options.map((o) => (
-              <button
-                key={o.id}
-                type="button"
-                onClick={() => setB2(o.id)}
-                className={`w-full rounded-2xl border-2 bg-white p-4 text-left transition-all hover:-translate-y-1 hover:shadow-lg ${
-                  b2 === o.id ? "border-[#E4003F] shadow-[0_14px_50px_rgba(228,0,63,0.14)]" : "border-black/10 hover:border-[#E4003F]"
-                }`}
-              >
-                <p className="text-[16px] font-bold text-gray-900">블록 2-{o.id}</p>
-                <p className="mt-1 text-[15px] leading-[1.75] text-gray-600">{o.label}</p>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <p className="mb-3 text-[16px] font-extrabold text-black/85">블록 3. 소통 톤 - 어떤 태도로 접근하시겠습니까?</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {ep6Block3Options.map((o) => (
-              <button
-                key={o.id}
-                type="button"
-                onClick={() => setB3(o.id)}
-                className={`w-full rounded-2xl border-2 bg-white p-4 text-left transition-all hover:-translate-y-1 hover:shadow-lg ${
-                  b3 === o.id ? "border-[#E4003F] shadow-[0_14px_50px_rgba(228,0,63,0.14)]" : "border-black/10 hover:border-[#E4003F]"
-                }`}
-              >
-                <p className="text-[16px] font-bold text-gray-900">블록 3-{o.id}</p>
-                <p className="mt-1 text-[15px] leading-[1.75] text-gray-600">{o.label}</p>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <p className="mb-3 text-[16px] font-extrabold text-black/85">블록 4. 소통 내용 - 핵심 지시/요청 사항은 무엇입니까?</p>
-          <div className="space-y-3">
-            {ep6Block4Options.map((o) => (
-              <button
-                key={o.id}
-                type="button"
-                onClick={() => setB4(o.id)}
-                className={`w-full rounded-2xl border-2 bg-white p-4 text-left transition-all hover:-translate-y-1 hover:shadow-lg ${
-                  b4 === o.id ? "border-[#E4003F] shadow-[0_14px_50px_rgba(228,0,63,0.14)]" : "border-black/10 hover:border-[#E4003F]"
-                }`}
-              >
-                <p className="text-[16px] font-bold text-gray-900">블록 4-{o.id}</p>
-                <p className="mt-1 text-[15px] leading-[1.75] text-gray-600">{o.label}</p>
-              </button>
-            ))}
-          </div>
-        </section>
+      <div
+        className="ep1-scene-reveal rounded-xl bg-[#eceeef] px-5 py-5 text-center sm:px-7 sm:py-6"
+        style={ep6RevealDelay(3)}
+      >
+        <p className="whitespace-pre-line font-sans text-[19px] font-medium leading-relaxed text-[#111] sm:text-[21px]">
+          {renderDialogueBold(ep6Scene.systemPrompt)}
+        </p>
       </div>
-    </EpisodeScene>
+
+      <div className="space-y-3 px-1 pt-2 text-center !mt-8 sm:!mt-10 mb-8 sm:mb-10">
+        <p
+          className="ep1-scene-reveal font-sans text-[56px] font-black leading-none text-black sm:text-[72px]"
+          style={ep6RevealDelay(4)}
+        >
+          Q.
+        </p>
+        <div
+          className="ep1-scene-reveal mx-auto w-full max-w-[min(100%,96rem)] space-y-3 px-1 font-sans text-[19px] font-medium leading-relaxed text-[#111] sm:text-[21px]"
+          style={ep6RevealDelay(5)}
+        >
+          <p className="max-lg:whitespace-normal lg:whitespace-nowrap">
+            누구에게, 어디서, 어떤 톤으로, 무엇을 전달할지 네 가지 블록을 각각 하나씩 고르세요.
+          </p>
+          <p className="max-lg:whitespace-normal lg:whitespace-nowrap">
+            <span className="font-bold !text-[#d97706]">조합을 마친 뒤 다음을 눌러 결과를 확인합니다.</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-3xl space-y-5 px-1 pb-6 sm:space-y-6 sm:px-2 sm:pb-8">
+        {/* 블록 1 */}
+        <div className="space-y-2">
+          <Ep6BlockStepBar blockNum={1} style={ep6RevealDelay(6)}>
+            소통 대상 - 누구에게 연락하시겠습니까?
+          </Ep6BlockStepBar>
+          <Ep6BlockPickList
+            legend="블록 1"
+            options={ep6Block1Options}
+            selectedId={b.block1}
+            onSelect={(id) => patch({ block1: id })}
+            firstRowDelayStep={7}
+          />
+        </div>
+
+        {/* 블록 2 */}
+        <div className="space-y-2 pt-1">
+          <Ep6BlockStepBar blockNum={2} style={ep6RevealDelay(11)}>
+            소통 채널 — 어디서 이야기하시겠습니까?
+          </Ep6BlockStepBar>
+          <Ep6BlockPickList
+            legend="블록 2"
+            options={ep6Block2Options}
+            selectedId={b.block2}
+            onSelect={(id) => patch({ block2: id })}
+            firstRowDelayStep={12}
+          />
+        </div>
+
+        {/* 블록 3 */}
+        <div className="space-y-2 pt-1">
+          <Ep6BlockStepBar blockNum={3} style={ep6RevealDelay(18)}>
+            소통 톤 — 어떤 태도로 접근하시겠습니까?
+          </Ep6BlockStepBar>
+          <Ep6BlockPickList
+            legend="블록 3"
+            options={ep6Block3Options}
+            selectedId={b.block3}
+            onSelect={(id) => patch({ block3: id })}
+            firstRowDelayStep={19}
+          />
+        </div>
+
+        {/* 블록 4 */}
+        <div className="space-y-2 pt-1">
+          <Ep6BlockStepBar blockNum={4} style={ep6RevealDelay(24)}>
+            소통 내용 — 핵심 지시·요청 사항은 무엇입니까?
+          </Ep6BlockStepBar>
+          <Ep6BlockPickList
+            legend="블록 4"
+            options={ep6Block4Options}
+            selectedId={b.block4}
+            onSelect={(id) => patch({ block4: id })}
+            firstRowDelayStep={25}
+          />
+        </div>
+      </div>
+    </section>
   );
 }

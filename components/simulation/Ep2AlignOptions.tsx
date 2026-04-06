@@ -12,12 +12,13 @@ interface Ep2AlignOptionsProps {
 
 export function Ep2AlignOptions({ userName }: Ep2AlignOptionsProps) {
   const router = useRouter();
-  const { setEpisode2AlignChoice, applyKpiDelta } = useStore();
+  const { setEpisode2AlignChoice, applyKpiDelta, setKpiBeforeEp2Result } = useStore();
   const [selected, setSelected] = useState<"A" | "B" | "C" | null>(null);
 
   const handleNext = () => {
     if (!selected) return;
     const result = ep2AlignResults[selected];
+    setKpiBeforeEp2Result({ ...useStore.getState().kpi });
     if (result?.kpi) applyKpiDelta(result.kpi);
     setEpisode2AlignChoice(selected);
     router.push("/simulation?phase=ep2-result");

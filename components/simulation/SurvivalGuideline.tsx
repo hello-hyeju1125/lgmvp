@@ -58,7 +58,7 @@ export function SurvivalGuideline({ userName }: SurvivalGuidelineProps) {
         <div className="flex justify-end pt-4">
           <button
             type="button"
-            onClick={() => router.push("/simulation?phase=plan-action")}
+            onClick={() => router.push("/simulation?phase=plan-action&stage=alloc")}
             disabled={!allChecked}
             className="px-6 py-2.5 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >

@@ -12,13 +12,14 @@ interface Ep7PassionOptionsProps {
 
 export function Ep7PassionOptions({ userName }: Ep7PassionOptionsProps) {
   const router = useRouter();
-  const { setEpisode7Choice, applyKpiDelta, executionActionHours } = useStore();
+  const { setEpisode7Choice, applyKpiDelta, executionActionHours, setKpiBeforeEp7Result } = useStore();
   const [selected, setSelected] = useState<"A" | "B" | "C" | "D" | null>(null);
 
   const handleNext = () => {
     if (!selected) return;
     const choice = selected;
     setEpisode7Choice(choice);
+    setKpiBeforeEp7Result({ ...useStore.getState().kpi });
     const vocHours = executionActionHours["voc_data"] ?? 0;
     const refHours = executionActionHours["ref_benchmark"] ?? 0;
     const res = getEp7Result(choice, vocHours, refHours);

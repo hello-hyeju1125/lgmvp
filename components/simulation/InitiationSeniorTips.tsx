@@ -16,6 +16,7 @@ export function InitiationSeniorTips({ userName }: InitiationSeniorTipsProps) {
       prompt={initiationSeniorTipsCopy.prompt}
       placeholder={initiationSeniorTipsCopy.placeholder}
       userName={userName}
+      postItNotes={initiationSeniorTipsCopy.postItNotes}
     />
   );
 }

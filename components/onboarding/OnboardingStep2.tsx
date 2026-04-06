@@ -4,10 +4,13 @@ import { useState } from "react";
 import Image from "next/image";
 import { teamMembers, stakeholders } from "@/content/team";
 import type { TeamMemberProfile, StakeholderProfile } from "@/content/team";
+import { PrevNextNav } from "@/components/common/PrevNextNav";
 
 interface OnboardingStep2Props {
   onNext: () => void;
   userName: string;
+  prevHref?: string;
+  nextHref?: string;
 }
 
 type PersonCard = {
@@ -25,7 +28,6 @@ type PersonCard = {
 
 type PopupData = PersonCard | null;
 
-/** 2–3 paragraphs for scannability */
 function splitIntoParagraphs(text: string, maxParagraphs = 3): string[] {
   const t = text.trim();
   if (!t) return [];
@@ -53,50 +55,78 @@ const avatarById: Record<string, string> = {
   sarahlee: "/images/characters/sarahlee.png",
 };
 
-const circlePalette = ["pop-bg-blue", "pop-bg-red", "pop-bg-yellow", "pop-bg-green", "pop-bg-purple", "neo-bg-blue"];
-
 function shortRole(role: string) {
   return role.replace(/\s*\([^)]*\)\s*/g, "").trim();
 }
 
-function CharacterCard({
-  card,
-  index,
-  cardBgClass,
-  onClick,
-}: {
-  card: PersonCard;
-  index: number;
-  cardBgClass: string;
-  onClick: () => void;
-}) {
-  const circleClass = circlePalette[index % circlePalette.length];
-
+function SectionBadge({ children, variant = "default" }: { children: React.ReactNode; variant?: "default" | "green" | "red" }) {
+  const colorClass =
+    variant === "green"
+      ? "s2-badge--green"
+      : variant === "red"
+        ? "s2-badge--red"
+        : "";
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`${cardBgClass} border-2 border-black p-6 text-center shadow-[6px_6px_0px_#111111] cursor-pointer transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-[3px_3px_0px_#111111]`}
-      aria-label={`${card.group} ${card.name} 카드`}
-    >
-      <div className="flex flex-col items-center">
-        <div className={`neo-no-bg relative h-24 w-24 shrink-0 rounded-full ${circleClass}`}>
-          <div className="neo-no-bg absolute inset-1 overflow-hidden rounded-full border-4 border-black bg-transparent">
-            <Image src={card.imagePath} alt={card.name} fill className="object-cover" />
-          </div>
-        </div>
-
-        <p className="neo-display mt-4 text-2xl font-extrabold leading-none" style={{ WebkitTextStroke: "1px #111111" }}>
-          {card.name}
-        </p>
-        <p className="mt-2 text-sm font-bold text-gray-600">{card.team}</p>
-        <p className="mt-4 italic text-gray-800 leading-snug whitespace-pre-wrap">"{card.quote}"</p>
-      </div>
-    </button>
+    <div className={`s2-badge ${colorClass}`}>
+      <span className="s2-badge-inner">• {children} •</span>
+    </div>
   );
 }
 
-export function OnboardingStep2({}: OnboardingStep2Props) {
+function SponsorCard({ card, onClick }: { card: PersonCard; onClick: () => void }) {
+  return (
+    <div className="relative mt-[50px]">
+      <button
+        type="button"
+        onClick={onClick}
+        className="s2-sponsor-card group relative flex w-full flex-col items-center overflow-visible text-center"
+        aria-label={`${card.name} 상세 보기`}
+      >
+        <div className="s2-avatar s2-avatar--sponsor absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2">
+          <Image src={card.imagePath} alt={card.name} fill className="object-cover" sizes="120px" />
+        </div>
+        <div className="s2-sponsor-body flex flex-1 flex-col items-center pt-[68px]">
+          <h3 className="text-[20px] font-black text-[#111] sm:text-[22px]">{card.name}</h3>
+          <p className="mt-1 text-[13px] font-semibold text-[#666] sm:text-[14px]">{card.team}</p>
+          <div className="s2-quote s2-quote--sponsor mt-4 w-full">
+            <p className="text-[13px] font-semibold leading-[1.7] text-[#333] sm:text-[14px]">
+              &ldquo;{card.quote}&rdquo;
+            </p>
+          </div>
+        </div>
+      </button>
+    </div>
+  );
+}
+
+function MemberCard({ card, onClick, quoteTone }: { card: PersonCard; onClick: () => void; quoteTone: "blue" | "yellow" }) {
+  return (
+    <div className="relative mt-[40px]">
+      <button
+        type="button"
+        onClick={onClick}
+        className={`s2-member-card s2-member-card--${quoteTone} group relative flex w-full flex-col items-center overflow-visible text-center`}
+        aria-label={`${card.name} 상세 보기`}
+      >
+        <div className={`s2-avatar s2-avatar--member s2-avatar--${quoteTone} absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2`}>
+          <Image src={card.imagePath} alt={card.name} fill className="object-cover" sizes="90px" />
+        </div>
+        <div className="s2-member-body flex flex-1 flex-col items-center pt-[52px]">
+          <h3 className="text-[18px] font-black text-[#111] sm:text-[20px]">{card.name}</h3>
+          <p className="mt-1 text-[12px] font-semibold text-[#888] sm:text-[13px]">{card.team}</p>
+          <div className={`s2-quote s2-quote--${quoteTone} mt-3 w-full`}>
+            <p className="text-[12px] font-semibold leading-[1.7] text-[#444] sm:text-[13px]">
+              &ldquo;{card.quote}&rdquo;
+            </p>
+          </div>
+        </div>
+      </button>
+    </div>
+  );
+}
+
+export function OnboardingStep2({ prevHref, nextHref }: OnboardingStep2Props) {
+  const showFooterNav = Boolean(prevHref && nextHref);
   const [popup, setPopup] = useState<PopupData>(null);
 
   const fullTimeMembers = teamMembers.filter((m) => m.isFullTime);
@@ -139,157 +169,170 @@ export function OnboardingStep2({}: OnboardingStep2Props) {
   }));
 
   return (
-    <div className="members-page min-h-screen p-8 bg-[#F0F0F0]">
-      <div className="members-frame mx-auto max-w-7xl neo-no-bg border-4 border-black shadow-[12px_12px_0px_#111111] overflow-hidden">
-        <div className="members-titlebar neo-no-bg border-b-4 border-black px-6 py-4 flex items-center justify-center relative">
-          <div className="absolute left-6 flex space-x-2">
-            <span className="title-dot-red h-4 w-4 rounded-full border-2 border-black" />
-            <span className="title-dot-yellow h-4 w-4 rounded-full border-2 border-black" />
-            <span className="title-dot-green h-4 w-4 rounded-full border-2 border-black" />
-          </div>
-          <h1 className="font-black text-2xl font-alice">주요 인물 소개</h1>
+    <div className="s2-page-wrapper flex min-h-0 flex-1 flex-col"
+      style={{
+        backgroundImage: "url('/bg_pattern_opt.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundColor: "#f5f5f5",
+      }}
+    >
+    <div className="s2-page relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-6 sm:px-10">
+      <div className="s2-inner mx-auto w-full max-w-6xl py-8 sm:py-10">
+        {/* Title */}
+        <div className="s2-anim mb-8 flex justify-center" style={{ animationDelay: "0ms" }}>
+          <h1 className="s2-title-box inline-block border-2 border-black px-7 py-2.5 text-center font-sans text-[28px] font-extrabold text-black sm:px-10 sm:py-3 sm:text-[34px]">
+            주요 인물 소개
+          </h1>
         </div>
+      </div>
 
-        <div className="p-10 space-y-12 pb-24 bg-[#F0F0F0]">
-          <section>
-            <div className="inline-block leadership-sticker text-white border-2 border-black px-4 py-1 mb-6 shadow-[3px_3px_0px_#111111] font-black">
-              프로젝트 리더십 (Sponsors)
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {leadershipCards.map((c, idx) => (
-                <CharacterCard key={c.id} card={c} index={idx} cardBgClass="pop-bg-sky-soft" onClick={() => setPopup(c)} />
+      {/* Main content card — full width aligned with footer buttons */}
+      <div className="mx-auto w-full max-w-6xl pb-8 sm:pb-10">
+        <div className="s2-anim s2-content-card" style={{ animationDelay: "150ms" }}>
+
+          {/* ── 프로젝트 리더십 (Sponsors) ── */}
+          <section className="s2-section px-5 pb-8 pt-10 sm:px-8 sm:pb-10 sm:pt-12">
+            <SectionBadge>프로젝트 리더십 (Sponsors)</SectionBadge>
+            <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
+              {leadershipCards.map((c) => (
+                <SponsorCard key={c.id} card={c} onClick={() => setPopup(c)} />
               ))}
             </div>
           </section>
 
-          <section>
-            <div className="inline-block sticker-purple neo-text-white border-2 border-black px-4 py-1 mb-6 shadow-[3px_3px_0px_#111111] font-black">
-              상주 인원 · 100% 투입
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {residentCards.map((c, idx) => (
-                <CharacterCard key={c.id} card={c} index={idx + 2} cardBgClass="pop-bg-lilac-soft" onClick={() => setPopup(c)} />
-              ))}
-            </div>
-          </section>
+          {/* ── 상주 인원 + 비상주 인원 ── */}
+          <section className="px-5 pb-10 pt-4 sm:px-8 sm:pb-12">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+              {/* Left: 상주 인원 */}
+              <div>
+                <SectionBadge variant="green">상주 인원 · 100% 투입</SectionBadge>
+                <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {residentCards.map((c) => (
+                    <MemberCard key={c.id} card={c} onClick={() => setPopup(c)} quoteTone="blue" />
+                  ))}
+                </div>
+              </div>
 
-          <section>
-            <div className="inline-block sticker-yellow border-2 border-black px-4 py-1 mb-6 shadow-[3px_3px_0px_#111111] font-black">
-              비상주 인원 · Part-time
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {partTimeCards.map((c, idx) => (
-                <CharacterCard key={c.id} card={c} index={idx + 1} cardBgClass="pop-bg-yellow-soft" onClick={() => setPopup(c)} />
-              ))}
+              {/* Right: 비상주 인원 */}
+              <div>
+                <div className="flex justify-center">
+                  <SectionBadge variant="red">비상주 인원</SectionBadge>
+                </div>
+                <div className="mt-5 grid grid-cols-1 gap-4">
+                  {partTimeCards.map((c) => (
+                    <MemberCard key={c.id} card={c} onClick={() => setPopup(c)} quoteTone="yellow" />
+                  ))}
+                </div>
+              </div>
             </div>
           </section>
         </div>
       </div>
 
-      {/* Comic-book panel modal */}
+      {/* ── Modal ── */}
       {popup && (
         <div
-          className="members-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+          className="s2-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
           onClick={() => setPopup(null)}
           role="presentation"
         >
           <div
-            className="members-popup members-popup-panel relative w-full max-w-5xl overflow-visible border-4 border-black shadow-[20px_20px_0px_#000000]"
-            style={{ borderColor: "#111111", borderWidth: "4px", borderStyle: "solid" }}
+            className="s2-modal s2-anim relative w-full max-w-2xl overflow-hidden rounded-2xl border-[2.5px] border-[#222]"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="member-popup-title"
+            aria-labelledby="s2-modal-title"
+            style={{ animationDelay: "0ms" }}
           >
-            <section className="relative z-[1] flex flex-col items-stretch gap-0 lg:flex-row lg:items-end lg:pb-2 lg:pl-2 lg:pr-5 lg:pt-4">
-              {/* Portrait — large, breaks out of frame on desktop */}
-              <div className="relative flex shrink-0 justify-center px-4 pt-6 lg:w-[38%] lg:min-w-[220px] lg:justify-start lg:px-0 lg:pt-0">
-                <div className="relative z-20 w-[78%] max-w-[280px] sm:max-w-[300px] lg:absolute lg:bottom-0 lg:left-0 lg:w-[125%] lg:max-w-[min(380px,42vw)] lg:translate-x-[-10%] lg:translate-y-[8%]">
-                  <div className="relative aspect-[3/4] w-full overflow-hidden border-4 border-black bg-[#1a1a1a] shadow-[14px_14px_0px_#000000]">
-                    <Image
-                      src={popup.imagePath}
-                      alt={popup.name}
-                      fill
-                      className="object-cover object-top"
-                      sizes="(max-width: 1024px) 300px, 380px"
-                      priority
-                    />
-                  </div>
-                </div>
+            {/* Header */}
+            <div className="s2-modal-header flex items-center gap-5 px-6 py-5 sm:px-8 sm:py-6">
+              <div className="s2-avatar s2-avatar--modal relative shrink-0">
+                <Image src={popup.imagePath} alt={popup.name} fill className="object-cover" sizes="100px" />
               </div>
-
-              {/* Text stack — cream inset panel, SUIT body */}
-              <div className="members-popup-comic-inner relative z-10 mx-4 mb-5 mt-2 flex min-h-0 min-w-0 flex-1 flex-col border-4 border-black p-8 shadow-[8px_8px_0px_#111111] sm:p-10 lg:mx-4 lg:mb-7 lg:mt-6 lg:ml-10">
-                <p className="font-sans text-xs font-bold uppercase tracking-[0.12em] text-[#2d4a6f]">{popup.group}</p>
-                <h2 id="member-popup-title" className="neo-display mt-2 text-3xl font-extrabold leading-tight text-[#111] sm:text-4xl">
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-white/70 sm:text-[12px]">{popup.group}</p>
+                <h2 id="s2-modal-title" className="mt-1 text-[24px] font-black leading-tight text-white sm:text-[28px]">
                   {popup.name}
                 </h2>
-                <p className="mt-2 font-sans text-sm font-bold text-neutral-800">{popup.roleLabel}</p>
+                <p className="mt-1 text-[13px] font-semibold text-white/80 sm:text-[14px]">{popup.roleLabel}</p>
+              </div>
+            </div>
 
-                <div className="mt-7 space-y-6 font-sans text-lg font-medium leading-relaxed text-[#111]">
-                  {splitIntoParagraphs(popup.quote, 3).map((para, i) => (
-                    <p key={`q-${i}`} className="italic">
-                      &ldquo;{para}&rdquo;
-                    </p>
-                  ))}
-                </div>
+            {/* Body */}
+            <div className="s2-modal-body px-6 py-6 sm:px-8 sm:py-7">
+              {/* Quote */}
+              <div className="s2-modal-quote-box mb-6">
+                {splitIntoParagraphs(popup.quote, 3).map((para, i) => (
+                  <p key={`q-${i}`} className="text-[15px] font-semibold italic leading-[1.8] text-[#333] sm:text-[16px]">
+                    &ldquo;{para}&rdquo;
+                  </p>
+                ))}
+              </div>
 
+              {/* Info */}
+              <div className="space-y-4 text-[14px] font-medium leading-[1.8] text-[#333] sm:text-[15px]">
                 {popup.type === "member" && popup.memberData && (
-                  <div className="mt-9 space-y-6 font-sans text-base font-medium leading-relaxed text-[#111]">
-                    <p>
-                      <span className="font-bold">기본 정보:</span>{" "}
-                      {popup.memberData.age}세 / {popup.memberData.gender} / {popup.memberData.years}년 차
-                    </p>
-                    <p>
-                      <span className="font-bold">기존 업무:</span>{" "}
-                      {popup.memberData.dept} {popup.memberData.position}
-                    </p>
-                    {splitIntoParagraphs(popup.memberData.description, 3).map((para, i) => (
-                      <p key={`d-${i}`}>
-                        {i === 0 ? (
-                          <>
-                            <span className="font-bold">특징:</span> {para}
-                          </>
-                        ) : (
-                          para
-                        )}
-                      </p>
-                    ))}
-                    <p>
-                      <span className="font-black">#성격_해시태그:</span>{" "}
-                      {popup.memberData.tags.join(" ")}
-                    </p>
-                  </div>
+                  <>
+                    <div className="s2-modal-info-row">
+                      <span className="s2-modal-label">기본 정보</span>
+                      <span>{popup.memberData.age}세 / {popup.memberData.gender} / {popup.memberData.years}년 차</span>
+                    </div>
+                    <div className="s2-modal-info-row">
+                      <span className="s2-modal-label">기존 업무</span>
+                      <span>{popup.memberData.position}</span>
+                    </div>
+                    <div className="s2-modal-info-row">
+                      <span className="s2-modal-label">특징</span>
+                      <span>{popup.memberData.description}</span>
+                    </div>
+                    <div className="s2-modal-tags">
+                      {popup.memberData.tags.map((tag, i) => (
+                        <span key={i} className="s2-tag">{tag}</span>
+                      ))}
+                    </div>
+                  </>
                 )}
 
                 {popup.type === "stakeholder" && popup.stakeholderData && (
-                  <div className="mt-9 space-y-6 font-sans text-base font-medium leading-relaxed text-[#111]">
-                    <p>
-                      <span className="font-bold">소속:</span> {popup.stakeholderData.position}
-                    </p>
-                    {splitIntoParagraphs(popup.stakeholderData.description, 3).map((para, i) => (
-                      <p key={`s-${i}`}>{para}</p>
-                    ))}
-                    <p>
-                      <span className="font-black">#성격_해시태그:</span>{" "}
-                      {popup.stakeholderData.tags.join(" ")}
-                    </p>
-                  </div>
+                  <>
+                    <div className="s2-modal-info-row">
+                      <span className="s2-modal-label">소속</span>
+                      <span>{popup.stakeholderData.position}</span>
+                    </div>
+                    <div className="s2-modal-info-row">
+                      <span className="s2-modal-label">특징</span>
+                      <span>{popup.stakeholderData.description}</span>
+                    </div>
+                    <div className="s2-modal-tags">
+                      {popup.stakeholderData.tags.map((tag, i) => (
+                        <span key={i} className="s2-tag">{tag}</span>
+                      ))}
+                    </div>
+                  </>
                 )}
-
-                <div className="mt-10 flex justify-center border-t-2 border-dashed border-neutral-300 pt-8">
-                  <button
-                    type="button"
-                    onClick={() => setPopup(null)}
-                    className="inline-flex min-w-[200px] items-center justify-center border-4 border-black px-12 py-4 font-sans text-lg font-black text-[#111] shadow-[6px_6px_0px_#111111] transition duration-150 ease-out hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[3px_3px_0px_#111111] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
-                    style={{ backgroundColor: "#89E586" }}
-                  >
-                    인물 파악 완료
-                  </button>
-                </div>
               </div>
-            </section>
+
+              {/* Close */}
+              <div className="mt-7 flex justify-center border-t border-[#e5e7eb] pt-6">
+                <button
+                  type="button"
+                  onClick={() => setPopup(null)}
+                  className="s2-modal-close-btn inline-flex min-w-[180px] items-center justify-center gap-2 rounded-xl border-2 border-black px-8 py-3 font-sans text-[15px] font-extrabold text-black shadow-[4px_4px_0_#111] transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_#111]"
+                >
+                  인물 파악 완료 ✓
+                </button>
+              </div>
+            </div>
           </div>
+        </div>
+      )}
+    </div>
+
+      {showFooterNav && (
+        <div className="relative z-30 shrink-0">
+          <PrevNextNav prevHref={prevHref!} nextHref={nextHref!} />
         </div>
       )}
     </div>
