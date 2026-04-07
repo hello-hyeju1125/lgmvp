@@ -136,7 +136,7 @@ export interface Ep4ResultRow {
   kpi: Partial<Record<keyof KpiState, number>>;
 }
 
-/** 기획 단계에서 '상주 팀원 프로필 분석'에 해당하는 initiation team_profile 10시간 이상이면 시너지 */
+/** 기획 단계에서 '상주 팀원 프로필 확인 및 티타임'에 해당하는 initiation team_profile 10시간 이상이면 시너지 */
 export function getEp4Result(
   choice: Ep4Choice,
   initiationTeamProfileHours: number

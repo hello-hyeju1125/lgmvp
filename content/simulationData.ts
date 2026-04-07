@@ -58,11 +58,11 @@ export const scenarioSteps: SimStep[] = [
     title: "Action Items (2개 선택)",
     maxSelect: 2,
     choices: [
-      { id: "i1", text: "1) 챔피언인 최성민 상무와의 1-on-1", effects: { quality: 1, schedule: 0, engagement: 0, stakeholder: 1, energy: -3 } },
+      { id: "i1", text: "1) 프로젝트 챔피언과의 1-on-1 미팅", effects: { quality: 1, schedule: 0, engagement: 0, stakeholder: 1, energy: -3 } },
       { id: "i2", text: "2) 선배 PM에게 노하우 전수받기", effects: { quality: 0, schedule: 1, engagement: 1, stakeholder: 0, energy: -3 } },
       { id: "i3", text: "3) PMBOK 및 PM 실무 방법론 속성 스터디", effects: { quality: 1, schedule: 1, engagement: 0, stakeholder: 0, energy: -3 } },
       { id: "i4", text: "4) 핵심 이해관계자(현업) 사전 인터뷰", effects: { quality: 0, schedule: 0, engagement: 0, stakeholder: 1, energy: -3 } },
-      { id: "i5", text: "5) 상주 팀원 프로필 분석 및 가벼운 티타임", effects: { quality: 0, schedule: 0, engagement: 1, stakeholder: 0, energy: -3 } },
+      { id: "i5", text: "5) 상주 팀원 프로필 확인 및 티타임 갖기", effects: { quality: 0, schedule: 0, engagement: 1, stakeholder: 0, energy: -3 } },
     ],
   },
   {
@@ -72,7 +72,7 @@ export const scenarioSteps: SimStep[] = [
     choices: [
       { id: "e1_a", text: "A. 리더의 역할은 완벽한 방패막", effects: { quality: 0, schedule: 0, engagement: -1, stakeholder: -2, energy: -3 } },
       { id: "e1_b", text: "B. 데이터로 무장한 논리적 방어", effects: { quality: 0, schedule: 0, engagement: -1, stakeholder: -2, energy: -3 } },
-      { id: "e1_c", text: "C. 극한의 제약을 통한 사고의 확장", effects: { quality: 1, schedule: 2, engagement: 1, stakeholder: 0, energy: 0 } },
+      { id: "e1_c", text: "C. 근본적 질문을 통한 사고의 확장", effects: { quality: 1, schedule: 2, engagement: 1, stakeholder: 0, energy: 0 } },
     ],
   },
   {
@@ -82,7 +82,7 @@ export const scenarioSteps: SimStep[] = [
     choices: [
       { id: "e2_a", text: "A. High Level 질문 던지기", effects: { quality: 2, schedule: 0, engagement: 1, stakeholder: 0, energy: 0 } },
       { id: "e2_b", text: "B. 타협안을 도출하기", effects: { quality: -1, schedule: 0, engagement: -1, stakeholder: 0, energy: 0 } },
-      { id: "e2_c", text: "C. 요구사항 쳐내기", effects: { quality: -1, schedule: 1, engagement: -2, stakeholder: 0, energy: 0 } },
+      { id: "e2_c", text: "C. 요구사항 정리하기", effects: { quality: -1, schedule: 1, engagement: -2, stakeholder: 0, energy: 0 } },
     ],
   },
 
@@ -185,7 +185,7 @@ export const scenarioSteps: SimStep[] = [
     choices: [
       { id: "e10_a", text: "A. 결과의 엄중함 상기", effects: { quality: 0, schedule: -2, engagement: -2, stakeholder: 0, energy: -9 } },
       { id: "e10_b", text: "B. 책임 공방을 방지하고 근본 원인을 찾기", effects: { quality: 2, schedule: -1, engagement: 2, stakeholder: 0, energy: 0 } },
-      { id: "e10_c", text: "C. 심리적 안전감을 제공하고 도전과제를 부여하기", effects: { quality: 2, schedule: 0, engagement: 3, stakeholder: 0, energy: -6 } },
+      { id: "e10_c", text: "C. 심리적 안전감을 제공하기", effects: { quality: 2, schedule: 0, engagement: 3, stakeholder: 0, energy: -6 } },
     ],
   },
 ];

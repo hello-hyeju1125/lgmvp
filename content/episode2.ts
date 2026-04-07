@@ -13,7 +13,7 @@ export const charterBlocks: CharterBlockDef[] = [
   { id: 3, category: "인사/조직 관리 권한", label: "프로젝트 우수 기여자 포상(인센티브) 추천권", type: "soft" },
   { id: 4, category: "자원/예산 관리 권한", label: "건당 2천만 원 이하 예산 PM 전결권", type: "sensitive" },
   { id: 5, category: "자원/예산 관리 권한", label: "긴급 단기 외주(프리랜서/대행사) 소싱 권한", type: "soft" },
-  { id: 6, category: "유관부서/이슈 해결 권한", label: "'스폰서(본부장) 명의' 공식 협조 공문 발송권", type: "core" },
+  { id: 6, category: "유관부서/이슈 해결 권한", label: "'스폰서(부사장) 명의' 공식 협조 공문 발송권", type: "core" },
   { id: 7, category: "유관부서/이슈 해결 권한", label: "스폰서(임원) 직통 핫라인 및 주 1회 독대 보고권", type: "sensitive" },
   { id: 8, category: "유관부서/이슈 해결 권한", label: "유관부서 실무진 '핀셋 차출' 요청권", type: "sensitive" },
   { id: 9, category: "일정/범위 통제 권한", label: "MVP(최소 기능 제품) 스펙 가감 및 확정권", type: "sensitive" },
@@ -37,7 +37,7 @@ export const ep2Patterns = {
     name: "과유불급형 (The Line-Crosser)",
     subtitle: "임원의 역린을 건드리다",
     condition: "2~4개 선택이지만 민감 블록 2개 이상",
-    text: "최 상무의 표정이 차갑게 굳습니다. \"PM님, 팀원들 고과권 챙기는 건 이해합니다. 그런데 타 부서 에이스를 마음대로 빼오고, 스펙을 본인 마음대로 확정 짓겠다? 그건 담당 임원인 저나 본부장님 고유의 권한입니다. 선을 한참 넘으셨네요.\" 핵심 무기를 얻을 기회조차 상실한 채 쫓겨나듯 회의실을 나옵니다. '실무 PM의 권한'과 '경영진의 권한'을 구분하지 못한 결과입니다.",
+    text: "최 상무의 표정이 차갑게 굳습니다. \"PM님, 팀원들 고과권 챙기는 건 이해합니다. 그런데 타 부서 에이스를 마음대로 빼오고, 스펙을 본인 마음대로 확정 짓겠다? 그건 담당 임원인 저나 부사장님 고유의 권한입니다. 선을 한참 넘으셨네요.\" 핵심 무기를 얻을 기회조차 상실한 채 쫓겨나듯 회의실을 나옵니다. '실무 PM의 권한'과 '경영진의 권한'을 구분하지 못한 결과입니다.",
     kpi: { leaderEnergy: -25, stakeholderAlignment: -20, teamEngagement: -10 },
   },
   misaligned: {
@@ -88,7 +88,7 @@ export const ep2SurvivalGuideline = {
     {
       id: "weapon",
       title: "[치트키 확보] 보안/행정으로 한 달 걸릴 일을 '하루 만에' 뚫을 무기 챙기기",
-      detail: "협조가 막힐 때 상무님/본부장님 명의를 빌려 '공식 클레임'을 쏠 수 있는 권한을 반드시 확보하십시오.",
+      detail: "협조가 막힐 때 상무님/부사장님 명의를 빌려 '공식 클레임'을 쏠 수 있는 권한을 반드시 확보하십시오.",
     },
     {
       id: "public",

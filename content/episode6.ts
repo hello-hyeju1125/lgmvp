@@ -18,7 +18,7 @@ export const ep6BoardComments: Ep6BoardComment[] = [
     timeAgo: "2시간 전",
     body:
       "Sarah 매니저님, 금주 금요일까지 API 연동 테스트가 완료되어야 하나, 아직 북미 DB 접근 권한이 부여되지 않아 업무가 홀딩된 상태입니다. 바쁘시겠지만 빠른 확인 부탁드립니다.",
-    avatarSrc: "/ep2-kim-jihun.svg",
+    avatarSrc: "/LG_MVP_kim-jihun_upset.jpg",
     avatarAlt: "김지훈 선임",
   },
   {
@@ -27,7 +27,7 @@ export const ep6BoardComments: Ep6BoardComment[] = [
     timeAgo: "1시간 전",
     body:
       "김 선임님, 해당 건은 본사 정보보안팀의 '글로벌 고객 데이터 반출 승인' 심의를 득하신 후 시스템으로 SR(Service Request)을 올려주셔야 제가 권한을 열어드릴 수 있습니다. 정태영 책임님, 해당 건 보안 심의 진행 상태 공유 부탁드립니다.",
-    avatarSrc: "/ep6-sarah-lee.svg",
+    avatarSrc: "/sara-lee_angry.jpg",
     avatarAlt: "Sarah Lee",
   },
   {
@@ -36,7 +36,7 @@ export const ep6BoardComments: Ep6BoardComment[] = [
     timeAgo: "30분 전",
     body:
       "Sarah 매니저님, 김지훈 선임님. 본 건은 지난주 반려 처리되었습니다. 사유는 '데이터 처리 계획서' 누락 및 보안 심의 위원회(월 1회 개최) 미통과입니다. 차기 심의는 다음 달 둘째 주 예정입니다. 보안 규정상 예외 처리는 불가합니다.",
-    avatarSrc: "/ep3-jeong-taeyoung.svg",
+    avatarSrc: "/jeong-taeyoung_angry.jpg",
     avatarAlt: "정태영 책임",
   },
   {
@@ -45,7 +45,7 @@ export const ep6BoardComments: Ep6BoardComment[] = [
     timeAgo: "10분 전",
     body:
       "정 책임님, 킥오프 때 일정상 해당 심의는 '선조치 후보고'로 예외 처리하기로 구두 협의된 것으로 알고 진행 중이었습니다. 다음 달 심의를 타게 되면 1차 마일스톤 납기는 전면 지연됩니다. PM님(@User_Name), 본 건 부서 간 규정 해석 차이로 실무선에서 진행 불가합니다. 가이드 부탁드립니다.",
-    avatarSrc: "/ep2-kim-jihun.svg",
+    avatarSrc: "/LG_MVP_kim-jihun_angry.jpg",
     avatarAlt: "김지훈 선임",
   },
 ];
@@ -133,7 +133,7 @@ export const ep6Block3Options: Ep6BlockOption[] = [
   {
     id: "E",
     headline: "윗선 지시임을 내비치며 압박 · 권위 활용형",
-    label: "상위 직책자(본부장 등)의 지시임을 은근히 내비치며 압박하듯 (권위 활용형)",
+    label: "상위 직책자(부사장 등)의 지시임을 은근히 내비치며 압박하듯 (권위 활용형)",
   },
 ];
 

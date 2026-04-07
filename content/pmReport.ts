@@ -1,9 +1,9 @@
 /** 나의 PM 여정 보고서 — 하드코딩 가상 데이터 (UI 퍼블리싱용) */
 
 export const reportData = {
-  /* ─── 1. 최종 성적표 ─── */
+  /* ─── 1. Final Ending ─── */
   scorecard: {
-    sectionTitle: "나의 프로젝트 최종 성적표",
+    sectionTitle: "나의 프로젝트 Final Ending",
     ending:
       "일의 성과와 사람의 성장, 두 마리 토끼를 모두 잡은 완벽한 프로젝트의 피날레입니다.",
   },

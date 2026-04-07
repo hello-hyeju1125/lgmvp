@@ -71,7 +71,7 @@ export const RISK_POSTITS: RiskPostIt[] = [
   },
   {
     id: "r3",
-    text: "김혁기 본부장의 갑작스러운 요구사항으로 인한 대시보드 내 '생성형 AI 챗봇 기능' 추가 지시 가능성",
+    text: "김혁기 부사장의 갑작스러운 요구사항으로 인한 대시보드 내 '생성형 AI 챗봇 기능' 추가 지시 가능성",
     suggestedQuadrant: "Q2",
   },
   {
