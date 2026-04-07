@@ -62,7 +62,7 @@ export function OnboardingStep3({ userName: _userName, onNext: _onNext, prevHref
             <div className="s5-side-quest">
               <div className="s5-side-quest-label mb-4 flex items-center justify-center gap-2">
                 <span className="s5-side-quest-tag font-mono text-[13px] font-black uppercase tracking-[0.15em] sm:text-[14px]">
-                  아래의 내용을 기억해주세요.
+                  기억해 주세요.
                 </span>
               </div>
               <p className="font-sans text-[17px] font-medium leading-[1.9] text-[#222] sm:text-[18px]">

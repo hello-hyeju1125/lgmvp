@@ -382,6 +382,12 @@ function SimulationContent() {
     }
   }, [searchParams, router]);
 
+  const closingSceneFullBleed = phase === "closing-scene";
+  const initiationSeniorTipsFullBleed = phase === "initiation-senior-tips";
+  const execSeniorTipsFullBleed = phase === "exec-senior-tips";
+  const monitoringSeniorTipsFullBleed = phase === "monitoring-senior-tips";
+  const planSurvivalFullBleed = phase === "plan-survival";
+
   const useRecapBackground =
     phase === "initiation-recap" ||
     phase === "initiation-senior-tips" ||
@@ -734,7 +740,21 @@ function SimulationContent() {
   return (
     <main
       className={`min-h-screen flex flex-col ${
-        useRecapBackground ? "bg-white" : grayHudChrome ? "bg-[#F6F7F9]" : "bg-white"
+        closingSceneFullBleed
+          ? "closing-scene-fullbleed"
+          : initiationSeniorTipsFullBleed
+            ? "initiation-senior-tips-fullbleed"
+            : execSeniorTipsFullBleed
+              ? "exec-senior-tips-fullbleed"
+              : monitoringSeniorTipsFullBleed
+                ? "monitoring-senior-tips-fullbleed"
+                : planSurvivalFullBleed
+                  ? "plan-survival-fullbleed"
+                  : useRecapBackground
+                    ? "bg-white"
+                    : grayHudChrome
+                      ? "bg-[#F6F7F9]"
+                      : "bg-white"
       } simulation-flat ${grayHudChrome ? "initiation-action-phase" : ""} ${planningAccentPhase ? "planning-accent-phase" : ""} ${executionAccentPhase ? "execution-accent-phase" : ""} ${monitoringAccentPhase ? "monitoring-accent-phase" : ""}`}
     >
       {showSimulationHeader && (
@@ -1141,7 +1161,7 @@ function SimulationContent() {
             트레이드오프를 연습할 수 있도록 구성되어 있습니다.
           </p>
           <p>
-            상단 KPI(산출물 품질, 일정 준수, 팀 몰입도, 이해관계자 조율, 리더 에너지)는 선택과 진행에 따라 변하며, 각 에피소드의 피드백과
+            상단 KPI(이해관계자 조율, 일정 준수, 팀 몰입도, 산출물 품질, 리더 에너지)는 선택과 진행에 따라 변하며, 각 에피소드의 피드백과
             연결됩니다.
           </p>
           <ul className="space-y-2 border-l-2 border-[#64e87a] pl-4 text-black/75">
@@ -1190,7 +1210,7 @@ function SimulationContent() {
       {phase !== "closing-scene" && <PrevNextNav
         prevHref={prevHref}
         nextHref={nextHref}
-        nextLabel={phase === "initiation-d1" ? "상무님 호출 응답하기" : undefined}
+        nextLabel={phase === "initiation-d1" ? "상무님 호출에 응답하기" : undefined}
         simHudFooterLayout={grayHudChrome}
         centerSlot={
           phase === "initiation-action" ? (

@@ -45,14 +45,14 @@ function splitIntoParagraphs(text: string, maxParagraphs = 3): string[] {
 }
 
 const avatarById: Record<string, string> = {
-  kimhyukgi: "/images/characters/kimhyukgi.png",
-  choisungmin: "/images/characters/choi.png",
-  kimjihun: "/images/characters/kimjihun.png",
-  parksojin: "/images/characters/parksojin.png",
-  leeminsu: "/images/characters/leeminsu.png",
-  choiyura: "/images/characters/choiyura.png",
-  jungtaeyoung: "/images/characters/jungtaeyoung.png",
-  sarahlee: "/images/characters/sarahlee.png",
+  kimhyukgi: "/kim-hyukki.jpg",
+  choisungmin: "/choi-seongmin.jpg",
+  kimjihun: "/kim-jihun.jpg",
+  parksojin: "/park-sojin.jpg",
+  leeminsu: "/lee-minsoo.jpg",
+  choiyura: "/choi-yura.jpg",
+  jungtaeyoung: "/jeong-taeyoung.jpg",
+  sarahlee: "/sarah-lee.jpg",
 };
 
 function shortRole(role: string) {
@@ -75,7 +75,7 @@ function SectionBadge({ children, variant = "default" }: { children: React.React
 
 function SponsorCard({ card, onClick }: { card: PersonCard; onClick: () => void }) {
   return (
-    <div className="relative mt-[50px]">
+    <div className="relative mt-[60px]">
       <button
         type="button"
         onClick={onClick}
@@ -83,9 +83,9 @@ function SponsorCard({ card, onClick }: { card: PersonCard; onClick: () => void 
         aria-label={`${card.name} 상세 보기`}
       >
         <div className="s2-avatar s2-avatar--sponsor absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2">
-          <Image src={card.imagePath} alt={card.name} fill className="object-cover" sizes="120px" />
+          <Image src={card.imagePath} alt={card.name} fill className="object-cover" sizes="140px" />
         </div>
-        <div className="s2-sponsor-body flex flex-1 flex-col items-center pt-[68px]">
+        <div className="s2-sponsor-body flex flex-1 flex-col items-center pt-[78px]">
           <h3 className="text-[20px] font-black text-[#111] sm:text-[22px]">{card.name}</h3>
           <p className="mt-1 text-[13px] font-semibold text-[#666] sm:text-[14px]">{card.team}</p>
           <div className="s2-quote s2-quote--sponsor mt-4 w-full">
@@ -101,7 +101,7 @@ function SponsorCard({ card, onClick }: { card: PersonCard; onClick: () => void 
 
 function MemberCard({ card, onClick, quoteTone }: { card: PersonCard; onClick: () => void; quoteTone: "blue" | "yellow" }) {
   return (
-    <div className="relative mt-[40px]">
+    <div className="relative mt-[50px]">
       <button
         type="button"
         onClick={onClick}
@@ -109,9 +109,9 @@ function MemberCard({ card, onClick, quoteTone }: { card: PersonCard; onClick: (
         aria-label={`${card.name} 상세 보기`}
       >
         <div className={`s2-avatar s2-avatar--member s2-avatar--${quoteTone} absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1/2`}>
-          <Image src={card.imagePath} alt={card.name} fill className="object-cover" sizes="90px" />
+          <Image src={card.imagePath} alt={card.name} fill className="object-cover" sizes="120px" />
         </div>
-        <div className="s2-member-body flex flex-1 flex-col items-center pt-[52px]">
+        <div className="s2-member-body flex flex-1 flex-col items-center pt-[62px]">
           <h3 className="text-[18px] font-black text-[#111] sm:text-[20px]">{card.name}</h3>
           <p className="mt-1 text-[12px] font-semibold text-[#888] sm:text-[13px]">{card.team}</p>
           <div className={`s2-quote s2-quote--${quoteTone} mt-3 w-full`}>
@@ -138,7 +138,7 @@ export function OnboardingStep2({ prevHref, nextHref }: OnboardingStep2Props) {
     roleLabel: s.id === "kimhyukgi" ? "프로젝트 스폰서 (C-Level)" : "프로젝트 챔피언 (담당 임원)",
     team: s.position,
     quote: s.quote,
-    imagePath: avatarById[s.id] ?? "/images/characters/choi.png",
+    imagePath: avatarById[s.id] ?? "/choi-seongmin.jpg",
     group: "프로젝트 리더십",
     type: "stakeholder",
     stakeholderData: s,
@@ -150,8 +150,8 @@ export function OnboardingStep2({ prevHref, nextHref }: OnboardingStep2Props) {
     roleLabel: m.role,
     team: m.dept,
     quote: m.quote,
-    imagePath: avatarById[m.id] ?? "/images/characters/choi.png",
-    group: "상주 인원",
+    imagePath: avatarById[m.id] ?? "/choi-seongmin.jpg",
+    group: "상주 팀원",
     type: "member",
     memberData: m,
   }));
@@ -162,8 +162,8 @@ export function OnboardingStep2({ prevHref, nextHref }: OnboardingStep2Props) {
     roleLabel: m.role,
     team: m.dept,
     quote: m.quote,
-    imagePath: avatarById[m.id] ?? "/images/characters/choi.png",
-    group: "비상주 인원",
+    imagePath: avatarById[m.id] ?? "/choi-seongmin.jpg",
+    group: "비상주 팀원",
     type: "member",
     memberData: m,
   }));
@@ -192,9 +192,9 @@ export function OnboardingStep2({ prevHref, nextHref }: OnboardingStep2Props) {
       <div className="mx-auto w-full max-w-6xl pb-8 sm:pb-10">
         <div className="s2-anim s2-content-card" style={{ animationDelay: "150ms" }}>
 
-          {/* ── 프로젝트 리더십 (Sponsors) ── */}
+          {/* ── 프로젝트 리더십 ── */}
           <section className="s2-section px-5 pb-8 pt-10 sm:px-8 sm:pb-10 sm:pt-12">
-            <SectionBadge>프로젝트 리더십 (Sponsors)</SectionBadge>
+            <SectionBadge>프로젝트 리더십{"  "}</SectionBadge>
             <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
               {leadershipCards.map((c) => (
                 <SponsorCard key={c.id} card={c} onClick={() => setPopup(c)} />
@@ -202,12 +202,12 @@ export function OnboardingStep2({ prevHref, nextHref }: OnboardingStep2Props) {
             </div>
           </section>
 
-          {/* ── 상주 인원 + 비상주 인원 ── */}
+          {/* ── 상주 팀원 + 비상주 팀원 ── */}
           <section className="px-5 pb-10 pt-4 sm:px-8 sm:pb-12">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
-              {/* Left: 상주 인원 */}
+              {/* Left: 상주 팀원 */}
               <div>
-                <SectionBadge variant="green">상주 인원 · 100% 투입</SectionBadge>
+                <SectionBadge variant="green">상주 팀원</SectionBadge>
                 <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {residentCards.map((c) => (
                     <MemberCard key={c.id} card={c} onClick={() => setPopup(c)} quoteTone="blue" />
@@ -215,10 +215,10 @@ export function OnboardingStep2({ prevHref, nextHref }: OnboardingStep2Props) {
                 </div>
               </div>
 
-              {/* Right: 비상주 인원 */}
+              {/* Right: 비상주 팀원 */}
               <div>
                 <div className="flex justify-center">
-                  <SectionBadge variant="red">비상주 인원</SectionBadge>
+                  <SectionBadge variant="red">비상주 팀원</SectionBadge>
                 </div>
                 <div className="mt-5 grid grid-cols-1 gap-4">
                   {partTimeCards.map((c) => (
@@ -249,7 +249,7 @@ export function OnboardingStep2({ prevHref, nextHref }: OnboardingStep2Props) {
             {/* Header */}
             <div className="s2-modal-header flex items-center gap-5 px-6 py-5 sm:px-8 sm:py-6">
               <div className="s2-avatar s2-avatar--modal relative shrink-0">
-                <Image src={popup.imagePath} alt={popup.name} fill className="object-cover" sizes="100px" />
+                <Image src={popup.imagePath} alt={popup.name} fill className="object-cover" sizes="120px" />
               </div>
               <div className="min-w-0">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-white/70 sm:text-[12px]">{popup.group}</p>

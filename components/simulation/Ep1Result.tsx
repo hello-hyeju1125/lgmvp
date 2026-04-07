@@ -16,6 +16,9 @@ interface Ep1ResultProps {
 
 type ChoiceKey = "A" | "B" | "C";
 
+const EP1_CHOI_AVATAR_DEFAULT = "/choi-seongmin.jpg";
+const EP1_CHOI_AVATAR_ANGRY = "/choi-seongmin_angry.jpg";
+
 function renderBoldMarkdown(paragraph: string): ReactNode {
   const parts = paragraph.split(/\*\*(.+?)\*\*/g);
   return parts.map((p, i) =>
@@ -182,7 +185,7 @@ function FeedbackPanel({
       <div className="mb-5 flex items-center gap-3 sm:mb-6">
         <div className="ep1-result-feedback-avatar h-14 w-14 shrink-0 overflow-hidden rounded-full border-0 bg-white sm:h-16 sm:w-16">
           <Image
-            src="/chatbot.png"
+            src="/LG_MVP_chatbot.jpg"
             alt="챗봇 선배 PM"
             width={64}
             height={64}
@@ -215,17 +218,20 @@ function DialogueRow({
   speaker,
   text,
   accentPhrases,
+  avatarSrc = EP1_CHOI_AVATAR_DEFAULT,
 }: {
   speaker: string;
   text: string;
   accentPhrases?: string[];
+  /** 옵션 B 결과(최성민 역정) 등 */
+  avatarSrc?: string;
 }) {
   return (
     <div className="ep1-result-dialogue-row relative flex items-center px-1">
       {/* 아바타 — 말풍선 왼쪽에 겹침 */}
       <div className="relative z-10 h-[76px] w-[76px] shrink-0 overflow-hidden rounded-full border-0 bg-gradient-to-br from-[#C8E6C9] to-[#A5D6A7] sm:h-[88px] sm:w-[88px]">
         <Image
-          src="/choi-seongmin.svg"
+          src={avatarSrc}
           alt={speaker}
           fill
           className="object-cover object-top"
@@ -251,7 +257,17 @@ function NarrationBox({ markdown }: { markdown: string }) {
   );
 }
 
-function ResultCardBody({ blocks }: { blocks: Ep1ResultCardBlock[] }) {
+function ResultCardBody({
+  blocks,
+  resultChoice,
+}: {
+  blocks: Ep1ResultCardBlock[];
+  /** E1 옵션 B 대사 행은 angry 포트레이트 */
+  resultChoice: ChoiceKey;
+}) {
+  const choiDialogueAvatar =
+    resultChoice === "B" ? EP1_CHOI_AVATAR_ANGRY : EP1_CHOI_AVATAR_DEFAULT;
+
   return (
     <div className="flex flex-col gap-6 bg-white px-6 pb-7 pt-8 sm:px-8 sm:pb-8 sm:pt-9">
       {blocks.map((block, idx) => {
@@ -266,6 +282,7 @@ function ResultCardBody({ blocks }: { blocks: Ep1ResultCardBlock[] }) {
             speaker={block.speaker}
             text={block.text}
             accentPhrases={block.accentPhrases}
+            avatarSrc={block.speaker === "최성민 상무" ? choiDialogueAvatar : EP1_CHOI_AVATAR_DEFAULT}
           />
         );
       })}
@@ -365,7 +382,7 @@ export function Ep1Result({ userName: _userName }: Ep1ResultProps) {
               </h2>
             </div>
           </div>
-          <ResultCardBody blocks={blocks} />
+          <ResultCardBody blocks={blocks} resultChoice={choice} />
           {selected.kpiLabels?.length ? (
             <div className="flex flex-wrap justify-center gap-3 border-t-0 bg-white px-6 pb-6 pt-4 sm:px-8">
               {selected.kpiLabels.map((label) => (
@@ -407,7 +424,7 @@ export function Ep1Result({ userName: _userName }: Ep1ResultProps) {
                       결과 {id}. {r.optionTitle}
                     </h3>
                   </div>
-                  <ResultCardBody blocks={otherBlocks} />
+                  <ResultCardBody blocks={otherBlocks} resultChoice={id} />
                   {r.kpiLabels?.length ? (
                     <div className="flex flex-wrap justify-center gap-3 border-t-0 bg-white px-6 pb-6 pt-4 sm:px-8">
                       {r.kpiLabels.map((label) => (

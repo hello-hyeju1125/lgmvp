@@ -253,7 +253,7 @@ export function InitiationStyleActionPhase({
               {tipBullets.map((text) => (
                 <li key={text.slice(0, 80)}>
                   <span className="initiation-tip-bullet inline-block" aria-hidden />
-                  <span>{text}</span>
+                  <span className="whitespace-pre-line">{text}</span>
                 </li>
               ))}
             </ul>

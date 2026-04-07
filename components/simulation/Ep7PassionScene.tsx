@@ -108,7 +108,7 @@ export function Ep7PassionScene({ userName: _userName }: Ep7PassionSceneProps) {
         <div className="ep1-scene-reveal" style={ep7RevealDelay(2)}>
           <Ep7SpeakerBubble
             name="최유라 선임 (글로벌CS)"
-            imageSrc="/ep4-choi-yura.svg"
+            imageSrc="/LG_MVP_choi-yura_upset.jpg"
             imageAlt="최유라 선임"
             text={ep7Scene.dialogue[0]}
           />

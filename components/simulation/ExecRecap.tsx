@@ -19,10 +19,10 @@ const KPI_META: {
   label: string;
   Icon: LucideIcon;
 }[] = [
-  { field: "quality", label: "산출물 품질", Icon: FileText },
+  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
   { field: "delivery", label: "일정준수", Icon: Calendar },
   { field: "teamEngagement", label: "팀 몰입도", Icon: Users },
-  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
+  { field: "quality", label: "산출물 품질", Icon: FileText },
   { field: "leaderEnergy", label: "리더 에너지", Icon: Sparkles },
 ];
 
@@ -142,13 +142,13 @@ function AnimatedKpiBar({
 
   return (
     <div
-      className={`flex items-center gap-3 transition-opacity duration-500 ${started ? "opacity-100" : "opacity-0"}`}
+      className={`flex flex-nowrap items-center gap-3 transition-opacity duration-500 ${started ? "opacity-100" : "opacity-0"}`}
     >
       <div className="flex w-[130px] shrink-0 items-center gap-2 sm:w-[150px]">
         <Icon className="h-5 w-5 shrink-0 text-[#6b7280]" />
-        <span className="text-[15px] font-extrabold text-[#333] sm:text-[16px]">{label}</span>
+        <span className="min-w-0 text-[15px] font-extrabold leading-tight text-[#333] sm:text-[16px]">{label}</span>
       </div>
-      <div className="relative h-[14px] flex-1 overflow-hidden rounded-full bg-[#e5e7eb]">
+      <div className="relative h-[14px] min-w-0 flex-1 overflow-hidden rounded-full bg-[#e5e7eb]">
         <div
           className="absolute inset-y-0 left-0 rounded-full bg-[#d97706]"
           style={{
@@ -157,11 +157,11 @@ function AnimatedKpiBar({
           }}
         />
       </div>
-      <span className="w-[48px] shrink-0 text-right text-[16px] font-extrabold tabular-nums text-[#d97706] sm:text-[18px]">
+      <span className="min-w-[3rem] shrink-0 whitespace-nowrap text-right text-[16px] font-extrabold tabular-nums leading-none text-[#d97706] sm:min-w-[3.25rem] sm:text-[18px]">
         {displayPct}%
       </span>
       <span
-        className={`recap-kpi-delta w-[44px] shrink-0 text-right text-[11px] font-bold tabular-nums sm:w-[48px] sm:text-[12px] ${
+        className={`recap-kpi-delta w-[44px] shrink-0 whitespace-nowrap text-right text-[11px] font-bold tabular-nums sm:w-[48px] sm:text-[12px] ${
           deltaLabel
             ? went_up
               ? "recap-kpi-delta--up"

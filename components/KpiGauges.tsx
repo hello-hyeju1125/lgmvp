@@ -14,10 +14,10 @@ const KPI_ROWS: {
   help: string;
 }[] = [
   {
-    field: "quality",
-    label: "산출물 품질",
-    Icon: FileText,
-    help: "결과물의 완성도와 실효성을 나타내는 품질 지표입니다.",
+    field: "stakeholderAlignment",
+    label: "이해관계자 조율",
+    Icon: UsersRound,
+    help: "유관부서·임원진의 협조와 프로젝트 지지도 수준을 의미합니다.",
   },
   {
     field: "delivery",
@@ -32,10 +32,10 @@ const KPI_ROWS: {
     help: "팀원들이 목표에 자발적으로 참여하고 협업에 몰입하는 수준입니다.",
   },
   {
-    field: "stakeholderAlignment",
-    label: "이해관계자 조율",
-    Icon: UsersRound,
-    help: "유관부서·임원진의 협조와 프로젝트 지지도 수준을 의미합니다.",
+    field: "quality",
+    label: "산출물 품질",
+    Icon: FileText,
+    help: "결과물의 완성도와 실효성을 나타내는 품질 지표입니다.",
   },
   {
     field: "leaderEnergy",
@@ -214,7 +214,7 @@ export function KpiGauges({ phase }: KpiGaugesProps) {
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
                   {deltaBadge}
-                  <span className="font-mono text-[12px] font-extrabold tabular-nums text-black sm:text-[13px]">
+                  <span className="whitespace-nowrap font-mono text-[12px] font-extrabold tabular-nums text-black sm:text-[13px]">
                     {Math.round(value)}%
                   </span>
                 </div>
@@ -226,7 +226,7 @@ export function KpiGauges({ phase }: KpiGaugesProps) {
                 <div className="sim-hud-tooltip min-w-[220px] max-w-[260px] px-2.5 py-2 text-left font-sans text-[11px] font-semibold text-white">
                   <span className="font-black text-white">{label}</span>
                   <span className="sim-hud-tooltip-muted"> · </span>
-                  <span className="font-black">{Math.round(value)}%</span>
+                  <span className="whitespace-nowrap font-black">{Math.round(value)}%</span>
                   <p className="mt-1 leading-relaxed">{help}</p>
                 </div>
               </div>

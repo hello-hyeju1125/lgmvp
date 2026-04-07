@@ -26,10 +26,10 @@ function renderHighlighted(text: string) {
 }
 
 const KPI_KEYS: (keyof KpiState)[] = [
-  "quality",
+  "stakeholderAlignment",
   "delivery",
   "teamEngagement",
-  "stakeholderAlignment",
+  "quality",
   "leaderEnergy",
 ];
 

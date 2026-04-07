@@ -37,22 +37,22 @@ interface CharacterMeta {
 }
 
 const CHARACTERS: Record<string, CharacterMeta> = {
-  "최성민 상무": { speaker: "최성민 상무", avatar: "/choi-seongmin.svg", borderColor: "border-[#64e87a]" },
-  "김지훈 선임": { speaker: "김지훈 선임(IT)", avatar: "/ep2-kim-jihun.svg", borderColor: "border-[#60a5fa]" },
-  "박소진 책임": { speaker: "박소진 책임(마케팅)", avatar: "/ep2-park-sojin.svg", borderColor: "border-[#f472b6]" },
-  "정태영 책임": { speaker: "정태영 책임(인프라보안)", avatar: "/ep3-jeong-taeyoung.svg", borderColor: "border-[#a78bfa]" },
+  "최성민 상무": { speaker: "최성민 상무", avatar: "/choi-seongmin.jpg", borderColor: "border-[#64e87a]" },
+  "김지훈 선임": { speaker: "김지훈 선임(IT)", avatar: "/kim-jihun.jpg", borderColor: "border-[#60a5fa]" },
+  "박소진 책임": { speaker: "박소진 책임(마케팅)", avatar: "/park-sojin.jpg", borderColor: "border-[#f472b6]" },
+  "정태영 책임": { speaker: "정태영 책임(인프라보안)", avatar: "/jeong-taeyoung.jpg", borderColor: "border-[#a78bfa]" },
 };
 
-const DIALOGUE_MAP: { charKey: string | null }[] = [
-  { charKey: "최성민 상무" },
+const DIALOGUE_MAP: { charKey: string | null; avatarSrc?: string }[] = [
+  { charKey: "최성민 상무", avatarSrc: "/choi-seongmin_angry.jpg" },
   { charKey: null },
-  { charKey: "김지훈 선임" },
+  { charKey: "김지훈 선임", avatarSrc: "/LG_MVP_kim-jihun_angry.jpg" },
   { charKey: null },
   { charKey: "박소진 책임" },
   { charKey: null },
   { charKey: "정태영 책임" },
   { charKey: null },
-  { charKey: "김지훈 선임" },
+  { charKey: "김지훈 선임", avatarSrc: "/LG_MVP_kim-jihun_upset.jpg" },
 ];
 
 function CharacterBubble({ char, text, side = "left" }: { char: CharacterMeta; text: string; side?: "left" | "right" }) {
@@ -164,7 +164,8 @@ export function Ep10FailureScene({ userName }: Ep10FailureSceneProps) {
           const meta = DIALOGUE_MAP[i];
           const currentStep = step++;
           if (meta?.charKey) {
-            const char = CHARACTERS[meta.charKey];
+            const base = CHARACTERS[meta.charKey];
+            const char: CharacterMeta = meta.avatarSrc ? { ...base, avatar: meta.avatarSrc } : base;
             const side = meta.charKey === "김지훈 선임" ? "right" : "left";
             return (
               <div key={i} className="ep1-scene-reveal" style={revealDelay(currentStep)}>

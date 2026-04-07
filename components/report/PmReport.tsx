@@ -8,10 +8,10 @@ import type { KpiState } from "@/store/useStore";
 
 
 const KPI_KEYS: (keyof KpiState)[] = [
-  "quality",
+  "stakeholderAlignment",
   "delivery",
   "teamEngagement",
-  "stakeholderAlignment",
+  "quality",
   "leaderEnergy",
 ];
 
@@ -58,7 +58,7 @@ function RadarChart({ values }: { values: number[] }) {
   });
   const dataPath = dataPoints.map((p) => `${p.x},${p.y}`).join(" ");
 
-  const labels = Object.values(KPI_LABELS);
+  const labels = KPI_KEYS.map((k) => KPI_LABELS[k]);
 
   const getLabelAnchor = (i: number): "start" | "middle" | "end" => {
     const angle = startAngle + i * angleStep;
@@ -207,7 +207,7 @@ export function PmReport() {
       </header>
 
       <main className="mx-auto max-w-[1200px] space-y-16 px-10 py-14 lg:px-16">
-        {/* ─── Section 1: 최종 성적표 ─── */}
+        {/* ─── Section 1: Final Ending ─── */}
         <Section number={1} title={reportData.scorecard.sectionTitle} accent="#f9a8d4">
           <div className="pm-card overflow-hidden rounded-md bg-white">
             {/* Grade + ending */}

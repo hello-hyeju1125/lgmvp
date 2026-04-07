@@ -25,6 +25,8 @@ interface SeniorTipsPanelProps {
   placeholder: string;
   userName: string;
   postItNotes?: PostItNote[];
+  /** `public` 기준 경로 — 착수 선배 노하우 등 전면 패턴 배경 */
+  pageBackgroundImage?: string;
 }
 
 const MAX_POSTITS = 9;
@@ -147,6 +149,7 @@ export default function SeniorTipsPanel({
   placeholder,
   userName,
   postItNotes,
+  pageBackgroundImage,
 }: SeniorTipsPanelProps) {
   const othersNotes = postItNotes ?? DEFAULT_NOTES;
   const [note, setNote] = useState("");
@@ -168,7 +171,17 @@ export default function SeniorTipsPanel({
   return (
     <section
       className="senior-tips-page min-h-full w-full"
-      style={{ backgroundColor: "transparent" }}
+      style={
+        pageBackgroundImage
+          ? {
+              backgroundColor: "#eefbf2",
+              backgroundImage: `url("${pageBackgroundImage}")`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+            }
+          : { backgroundColor: "transparent" }
+      }
     >
       <div className="mx-auto max-w-[1080px] px-4 py-12 sm:px-6 sm:py-16">
         {/* Title badge — initiation-brief-badge 스타일 + 보라색 배경 */}

@@ -190,7 +190,7 @@ export function Ep8SeniorResult({}: Ep8SeniorResultProps) {
               <div className="ep1-result-feedback-panel border-0 bg-[#F7FBFF] px-6 pb-8 pt-7 sm:px-8 sm:pb-9 sm:pt-8">
                 <div className="mb-5 flex items-center gap-3 sm:mb-6">
                   <div className="ep1-result-feedback-avatar h-14 w-14 shrink-0 overflow-hidden rounded-full border-0 bg-white sm:h-16 sm:w-16">
-                    <Image src="/chatbot.png" alt="챗봇 선배 PM" width={64} height={64} className="h-full w-full object-cover" />
+                    <Image src="/LG_MVP_chatbot.jpg" alt="챗봇 선배 PM" width={64} height={64} className="h-full w-full object-cover" />
                   </div>
                   <div className="min-w-0">
                     <span className="ep1-result-feedback-label inline-flex items-center rounded-none bg-[#d97706] px-4 py-1.5 text-[14px] font-extrabold tracking-wide sm:text-[15px]">

@@ -136,17 +136,17 @@ function renderDialogueBold(paragraph: string): ReactNode {
 function Ep6BoardCommentRow({ row, isLast }: { row: Ep6BoardComment; isLast: boolean }) {
   return (
     <article
-      className={`flex gap-3 rounded-xl border border-black/[0.08] bg-white p-3.5 shadow-[0_1px_0_rgba(15,23,42,0.06)] sm:gap-4 sm:p-4 ${
+      className={`flex gap-4 rounded-xl border border-black/[0.08] bg-white p-3.5 shadow-[0_1px_0_rgba(15,23,42,0.06)] sm:gap-5 sm:p-4 ${
         !isLast ? "mb-3" : ""
       }`}
     >
-      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-2 ring-white shadow-[0_2px_8px_rgba(15,23,42,0.12)] sm:h-[52px] sm:w-[52px]">
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-2 ring-white shadow-[0_2px_8px_rgba(15,23,42,0.12)] sm:h-20 sm:w-20">
         <Image
           src={row.avatarSrc}
           alt={row.avatarAlt}
           fill
           className="object-contain object-center"
-          sizes="(max-width: 640px) 44px, 52px"
+          sizes="(max-width: 640px) 64px, 80px"
         />
       </div>
       <div className="min-w-0 flex-1 pt-0.5">

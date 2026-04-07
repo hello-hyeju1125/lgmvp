@@ -177,7 +177,7 @@ export function RiskRadar({ userName }: RiskRadarProps) {
             <div className="flex gap-5 px-6 pt-6 pb-3 items-start">
               <div className="shrink-0 flex flex-col items-center">
                 <div className="h-[80px] w-[80px] overflow-hidden rounded-full sm:h-[100px] sm:w-[100px]">
-                  <img src="/chatbot.png" alt="챗봇 선배 PM" className="h-full w-full object-cover" />
+                  <img src="/LG_MVP_chatbot.jpg" alt="챗봇 선배 PM" className="h-full w-full object-cover" />
                 </div>
                 <p className="mt-2 text-center text-[13px] font-extrabold text-[#111]">챗봇 선배 PM</p>
               </div>

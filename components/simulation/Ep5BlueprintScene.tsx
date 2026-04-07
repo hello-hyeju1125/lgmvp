@@ -35,8 +35,8 @@ const EP5_ACTION_QUESTION =
 
 function Ep5StanceCard({ row }: { row: Ep5MeetingStance }) {
   return (
-    <div className="flex min-w-0 flex-col items-center gap-3 sm:gap-4">
-      <div className="relative h-[120px] w-[120px] shrink-0 sm:h-[132px] sm:w-[132px]">
+    <div className="flex min-w-0 flex-col items-center gap-4 sm:gap-5">
+      <div className="relative h-[160px] w-[160px] shrink-0 sm:h-[180px] sm:w-[180px]">
         <div className="absolute inset-0 rounded-full border-4 border-[color:var(--sim-accent)] bg-white p-1.5">
           <div className="relative h-full w-full overflow-hidden rounded-full bg-white">
             <Image
@@ -44,14 +44,14 @@ function Ep5StanceCard({ row }: { row: Ep5MeetingStance }) {
               alt={row.imageAlt}
               fill
               className="object-contain object-center"
-              sizes="(max-width: 640px) 120px, 132px"
+              sizes="(max-width: 640px) 160px, 180px"
             />
           </div>
         </div>
       </div>
-      <div className="space-y-0.5 text-center">
-        <p className="font-sans text-[16px] font-black leading-tight text-[#111] sm:text-[17px]">{row.name}</p>
-        <p className="font-sans text-[13px] font-semibold tracking-wide text-[#555] sm:text-[14px]">{row.team}</p>
+      <div className="space-y-1 text-center">
+        <p className="font-sans text-[20px] font-black leading-tight text-[#111] sm:text-[22px]">{row.name}</p>
+        <p className="font-sans text-[15px] font-semibold tracking-wide text-[#555] sm:text-[17px]">{row.team}</p>
       </div>
       <div className="ep1-supervisor-bubble ep5-stance-bubble w-full min-w-0 rounded-2xl px-4 py-4 text-center sm:px-5 sm:py-[18px]">
         <p className="font-sans text-[15px] font-medium leading-relaxed text-[#111] sm:text-[16px] [word-break:keep-all]">

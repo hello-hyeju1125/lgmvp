@@ -27,10 +27,10 @@ const KPI_META: {
   label: string;
   Icon: LucideIcon;
 }[] = [
-  { field: "quality", label: "산출물 품질", Icon: FileText },
+  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
   { field: "delivery", label: "일정 준수", Icon: Calendar },
   { field: "teamEngagement", label: "팀 몰입도", Icon: Users },
-  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
+  { field: "quality", label: "산출물 품질", Icon: FileText },
   { field: "leaderEnergy", label: "리더 에너지", Icon: Sparkles },
 ];
 
@@ -139,7 +139,7 @@ function D1KpiBar({
         />
       </div>
       <span
-        className="w-[48px] shrink-0 text-right text-[16px] font-extrabold tabular-nums sm:text-[18px]"
+        className="w-[52px] shrink-0 whitespace-nowrap text-right text-[16px] font-extrabold tabular-nums sm:w-[56px] sm:text-[18px]"
         style={{ color: went_down && transitioning ? "#ef4444" : "#1e3a5f" }}
       >
         {displayPct}%

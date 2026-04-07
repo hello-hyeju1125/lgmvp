@@ -20,7 +20,7 @@ const HIGHLIGHT_PHRASES = [
   "제한된 정보와 자원",
   "프로젝트 리더의 역할",
   "정답이 없는 상황",
-  "선배·후배·유관부서",
+  "선후배 및 동료 · 유관부서",
   "제한된 시간 안에 성과",
   "'AI 기반 고객 VOC 통합 분석 프로젝트'",
   "실제에 가까운 에피소드",
@@ -82,11 +82,11 @@ function getVideoEmbed(url: string): { kind: "youtube"; src: string } | { kind: 
 }
 
 const JOURNEY_STEPS = [
-  { icon: Target, label: "착수", desc: "프로젝트의 방향을 정하고 스폰서를 확보합니다" },
-  { icon: BookOpen, label: "기획", desc: "항해 지도를 그리고 자원과 R&R을 분배합니다" },
-  { icon: BarChart3, label: "실행", desc: "팀원들이 현장에서 아웃풋을 만들어냅니다" },
-  { icon: Users, label: "감시/통제", desc: "리스크를 감지하고 프로젝트를 바로잡습니다" },
-  { icon: Rocket, label: "종료", desc: "성과를 입증하고 성공적 피날레를 만듭니다" },
+  { icon: Target, label: "착수", desc: "프로젝트의 방향성을 설정하고 목표를 명확히 합니다." },
+  { icon: BookOpen, label: "기획", desc: "프로젝트의 계획을 수립하고, 자원 및 R&R을 배분합니다." },
+  { icon: BarChart3, label: "실행", desc: "팀원들이 현장에서 실제 업무를 하며 아웃풋을 도출합니다." },
+  { icon: Users, label: "감시/통제", desc: "리스크를 사전에 감지하고 관리합니다." },
+  { icon: Rocket, label: "종료", desc: "프로젝트 아웃풋을 도출하고, 성공적으로 마무리합니다." },
 ];
 
 function useReveal<T extends HTMLElement>(threshold = 0.1) {
@@ -139,13 +139,14 @@ export function OnboardingStep0({ onNext }: OnboardingStep0Props) {
         <div ref={hero.ref} className="ob0-hero relative overflow-hidden px-4 pb-14 pt-12 sm:px-6 sm:pb-20 sm:pt-16">
           <div className="ob0-hero-bg pointer-events-none absolute inset-0" />
           <div className="ob0-hero-grid pointer-events-none absolute inset-0" />
-          {/* Floating particles */}
-          <div className="ob0-particle ob0-particle--1 pointer-events-none absolute" />
-          <div className="ob0-particle ob0-particle--2 pointer-events-none absolute" />
-          <div className="ob0-particle ob0-particle--3 pointer-events-none absolute" />
-          <div className="ob0-particle ob0-particle--4 pointer-events-none absolute" />
-          <div className="ob0-particle ob0-particle--5 pointer-events-none absolute" />
-          <div className="ob0-particle ob0-particle--6 pointer-events-none absolute" />
+          {/* Floating particles (18 — 기존 6의 3배, 네모·원·가로막대 혼합) */}
+          {Array.from({ length: 18 }, (_, i) => (
+            <div
+              key={`ob0-particle-${i + 1}`}
+              className={`ob0-particle ob0-particle--${i + 1} pointer-events-none absolute`}
+              aria-hidden
+            />
+          ))}
 
           <div className="relative z-10 mx-auto max-w-4xl text-center">
             <div

@@ -15,6 +15,9 @@ function ep8RevealDelay(step: number): CSSProperties {
   return { animationDelay: `${step * EP8_REVEAL_STAGGER_MS}ms` };
 }
 
+const EP8_LEE_MINSOO_BASIC_SRC = "/LG_MVP_lee-minsoo.jpg";
+const EP8_LEE_MINSOO_UPSET_SRC = "/LG_MVP_lee-minsoo_upset.jpg";
+
 function renderDialogueBold(paragraph: string): ReactNode {
   const parts = paragraph.split(/\*\*(.+?)\*\*/g);
   return parts.map((p, i) =>
@@ -28,14 +31,14 @@ function renderDialogueBold(paragraph: string): ReactNode {
   );
 }
 
-function LeeMinsooBubble({ text }: { text: string }) {
+function LeeMinsooBubble({ text, imageSrc }: { text: string; imageSrc: string }) {
   return (
     <div className="flex items-start gap-0">
       <div className="relative z-20 h-[168px] w-[168px] shrink-0 sm:h-48 sm:w-48">
         <div className="absolute inset-0 rounded-full border-4 border-[#d97706] bg-white p-1.5">
           <div className="relative h-full w-full overflow-hidden rounded-full bg-white">
             <Image
-              src="/ep5-lee-minsoo.svg"
+              src={imageSrc}
               alt="이민수 책임"
               fill
               className="object-contain object-center"
@@ -135,10 +138,10 @@ export function Ep8SeniorScene({ userName }: Ep8SeniorSceneProps) {
 
       <div className="space-y-10 sm:space-y-12">
         <div className="ep1-scene-reveal" style={ep8RevealDelay(5)}>
-          <LeeMinsooBubble text={d0} />
+          <LeeMinsooBubble text={d0} imageSrc={EP8_LEE_MINSOO_BASIC_SRC} />
         </div>
         <div className="ep1-scene-reveal" style={ep8RevealDelay(6)}>
-          <LeeMinsooBubble text={d1} />
+          <LeeMinsooBubble text={d1} imageSrc={EP8_LEE_MINSOO_UPSET_SRC} />
         </div>
       </div>
 

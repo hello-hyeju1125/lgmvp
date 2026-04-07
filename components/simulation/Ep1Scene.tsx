@@ -198,18 +198,24 @@ function SupervisorTypingBody({
   );
 }
 
+const EP1_SUPERVISOR_AVATAR_SPEAKING = "/choi-seongmin_speaking.jpg";
+const EP1_SUPERVISOR_AVATAR_ANGRY = "/choi-seongmin_angry.jpg";
+
 function SupervisorBubble({
   text,
   userName,
   typingStartDelayMs,
   canStart = true,
   onTypingComplete,
+  avatarSrc = EP1_SUPERVISOR_AVATAR_SPEAKING,
 }: {
   text: string;
   userName: string;
   typingStartDelayMs: number;
   canStart?: boolean;
   onTypingComplete?: () => void;
+  /** 첫 대사: speaking / 둘째 대사: angry 등 */
+  avatarSrc?: string;
 }) {
   const body = stripOuterQuotes(replaceUserName(text, userName));
   return (
@@ -219,7 +225,7 @@ function SupervisorBubble({
         <div className="absolute inset-0 rounded-full border-4 border-[#64e87a] bg-white p-1.5">
           <div className="relative h-full w-full overflow-hidden rounded-full bg-white">
             <Image
-              src="/choi-seongmin.svg"
+              src={avatarSrc}
               alt="최성민 상무"
               fill
               className="object-contain object-bottom"
@@ -398,6 +404,7 @@ export function Ep1Scene({ userName }: Ep1SceneProps) {
             text={firstQuote}
             userName={userName}
             typingStartDelayMs={4 * EP1_REVEAL_STAGGER_MS + 520}
+            avatarSrc={EP1_SUPERVISOR_AVATAR_SPEAKING}
             onTypingComplete={handleFirstTypingComplete}
           />
         </div>
@@ -418,6 +425,7 @@ export function Ep1Scene({ userName }: Ep1SceneProps) {
               userName={userName}
               canStart={secondTypingUnlocked}
               typingStartDelayMs={EP1_SECOND_TYPING_PAUSE_MS}
+              avatarSrc={EP1_SUPERVISOR_AVATAR_ANGRY}
               onTypingComplete={handleSecondDialogueTypingComplete}
             />
           </div>

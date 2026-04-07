@@ -13,7 +13,7 @@ interface OnboardingStepTeamsMessageProps {
 const SUMMARY_POINTS: string[] = [
   "데이터는 아직 수작업 중이므로, AI로 의사결정 체계를 바꿔야 합니다.",
   "단순히 시스템을 구축하는 것에 그치는 것이 아니라, 일하는 방식을 혁신해야 합니다.",
-  "경영진 관심이 큽니다. 도전적인 목표로 팀을 한데 묶어 주세요.",
+  "경영진의 관심이 큽니다. 도전적 목표로 팀을 이끌어 주세요.",
 ];
 
 function Hl({ children }: { children: React.ReactNode }) {
@@ -31,7 +31,7 @@ function SpeechContent({ userName }: { userName: string }) {
       {"\n\n"}
       현재 우리 회사의 데이터 관리는 여전히 수작업 위주의 과거 방식에 머물러 있습니다. 고객의 숨은 니즈를 조기에 감지하고 선제적으로 대응하려면, <Hl>AI를 활용한 데이터 기반 의사결정 체계 도입</Hl>이 그 어느 때보다 시급합니다.
       {"\n\n"}
-      제가 {userName} 리더님께 기대하는 것은 단순한 시스템 구축이 아닙니다. <Hl>우리 조직이 일하는 방식 그 자체의 혁신</Hl>입니다. <Hl>도전적인 목표</Hl>가 진짜 혁신을 만듭니다.
+      제가 {userName} 리더님께 기대하는 것은 단순한 시스템 구축이 아닙니다. <Hl>우리 조직이 일하는 방식 그 자체의 혁신</Hl>입니다. <Hl>도전적 목표</Hl>가 진짜 혁신을 만듭니다.
       {"\n\n"}
       리더님의 <Hl>과감한 결단과 리더십</Hl>을 통해, 우리 회사가 AX 시대의 혁신을 주도해 나갈 수 있기를 고대하겠습니다.
     </>
@@ -65,7 +65,7 @@ export function OnboardingStepTeamsMessage({ onNext: _onNext, userName }: Onboar
           style={{ animationDelay: "0ms" }}
         >
           <h1 className="step2-title-box inline-block border-2 border-black px-7 py-2.5 text-center font-sans text-[32px] font-extrabold text-black sm:px-10 sm:py-3 sm:text-[40px]">
-            상무님의 기대사항
+            Project Champion의 기대사항
           </h1>
         </div>
 
@@ -78,7 +78,7 @@ export function OnboardingStepTeamsMessage({ onNext: _onNext, userName }: Onboar
           <div className="flex shrink-0 flex-col items-center gap-1.5">
             <div className="step2-portrait relative h-[130px] w-[130px] overflow-hidden rounded-full border-[3px] border-black shadow-[3px_3px_0_#111] sm:h-[150px] sm:w-[150px]">
               <Image
-                src="/images/characters/choi.png"
+                src="/choi-seongmin-speaking.png"
                 alt="최성민 상무"
                 fill
                 className="object-cover"

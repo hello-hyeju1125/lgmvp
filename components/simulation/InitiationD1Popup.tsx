@@ -30,10 +30,10 @@ const KPI_META: {
   label: string;
   Icon: LucideIcon;
 }[] = [
-  { field: "quality", label: "산출물 품질", Icon: FileText },
+  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
   { field: "delivery", label: "일정 준수", Icon: Calendar },
   { field: "teamEngagement", label: "팀 몰입도", Icon: Users },
-  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
+  { field: "quality", label: "산출물 품질", Icon: FileText },
   { field: "leaderEnergy", label: "리더 에너지", Icon: Sparkles },
 ];
 
@@ -142,7 +142,7 @@ function D1KpiBar({
         />
       </div>
       <span
-        className="w-[48px] shrink-0 text-right text-[16px] font-extrabold tabular-nums sm:text-[18px]"
+        className="w-[52px] shrink-0 whitespace-nowrap text-right text-[16px] font-extrabold tabular-nums sm:w-[56px] sm:text-[18px]"
         style={{ color: went_down && transitioning ? "#ef4444" : "#22c55e" }}
       >
         {displayPct}%
@@ -211,26 +211,19 @@ export function InitiationD1Popup({ userName }: InitiationD1PopupProps) {
             id="initiation-d1-title"
             className="initiation-d1-hero-core initiation-d1-hero-core--animated inline-block max-w-full font-sans text-[clamp(1.65rem,5.2vw,3rem)] font-black leading-[1.08] text-black sm:text-[clamp(1.85rem,4.2vw,3.5rem)]"
           >
-            D-1
+            본격 업무 시작 D-1
           </span>
         </p>
         <div className="space-y-5 sm:space-y-6">
           <p
-            id="initiation-d1-title"
             className="initiation-action-reveal initiation-brief-copy initiation-scenario-copy"
             style={d1RevealDelay(1)}
-          >
-            {initiationScreenCopy.popupTitle}
-          </p>
-          <p
-            className="initiation-action-reveal initiation-brief-copy initiation-scenario-copy"
-            style={d1RevealDelay(2)}
           >
             {renderGreenEmphasis(introLine)}
           </p>
           <p
             className="initiation-action-reveal initiation-brief-copy initiation-scenario-copy"
-            style={d1RevealDelay(3)}
+            style={d1RevealDelay(2)}
           >
             {initiationScreenCopy.popupOutro}
           </p>
@@ -240,7 +233,7 @@ export function InitiationD1Popup({ userName }: InitiationD1PopupProps) {
       <div className="mb-9 flex w-full justify-center sm:mb-10">
         <div
           className="initiation-action-reveal action-card-idle action-card-wrap w-full max-w-xl sm:max-w-2xl"
-          style={d1RevealDelay(4)}
+          style={d1RevealDelay(3)}
         >
           <div className="action-card-body w-full min-w-0">
             <span className="impact-tag inline-flex w-fit font-sans">
@@ -268,7 +261,7 @@ export function InitiationD1Popup({ userName }: InitiationD1PopupProps) {
       <div ref={kpiCardRef} className="mb-9 flex w-full justify-center sm:mb-10">
         <div
           className="initiation-action-reveal action-card-idle action-card-wrap w-full max-w-xl sm:max-w-2xl"
-          style={d1RevealDelay(5)}
+          style={d1RevealDelay(4)}
         >
           <div className="action-card-body w-full min-w-0">
             <span className="impact-tag inline-flex w-fit font-sans">{initiationScreenCopy.popupKpiLabel}</span>

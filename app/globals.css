@@ -1712,6 +1712,12 @@ main.planning-accent-phase.simulation-flat .planning-ep-feedback-panel .ep1-resu
   border: none !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
+/* 에피소드 결과 피드백 챗봇 아바타 — 검은 테두리, 배경 검정·살짝 확대로 흰 링/안티앨리어싱 완화 */
+.simulation-flat .ep1-result-feedback-avatar.ep-result-feedback-chatbot-avatar {
+  border: 2px solid #000000 !important;
+  box-shadow: none !important;
+  background-color: #000000 !important;
+}
 .simulation-flat .ep1-result-show-others-btn {
   border-color: #000000 !important;
   color: #111111 !important;
@@ -2461,6 +2467,17 @@ button.onboarding-step0-start-btn:active {
   50% { transform: translate(-8px, -30px) rotate(180deg); opacity: 0.6; }
   75% { transform: translate(15px, -12px) rotate(270deg); opacity: 0.7; }
 }
+@keyframes ob0-float-rev {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.42; }
+  25% { transform: translate(-14px, -16px) rotate(-90deg); opacity: 0.78; }
+  50% { transform: translate(10px, -28px) rotate(-180deg); opacity: 0.55; }
+  75% { transform: translate(-16px, 12px) rotate(-270deg); opacity: 0.68; }
+}
+@keyframes ob0-float-slow {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.4; }
+  33% { transform: translate(20px, 14px) rotate(120deg); opacity: 0.68; }
+  66% { transform: translate(-16px, 24px) rotate(240deg); opacity: 0.52; }
+}
 .ob0-particle {
   width: 12px;
   height: 12px;
@@ -2474,6 +2491,18 @@ button.onboarding-step0-start-btn:active {
 .ob0-particle--4 { top: 35%; right: 25%; width: 6px; height: 6px; background: rgba(0,0,0,0.06); animation-duration: 14s; animation-delay: -2s; border-radius: 50%; }
 .ob0-particle--5 { top: 20%; left: 50%; width: 16px; height: 4px; background: rgba(255,255,255,0.35); animation-duration: 13s; animation-delay: -5s; }
 .ob0-particle--6 { top: 40%; right: 10%; width: 10px; height: 10px; background: rgba(255,255,255,0.25); animation-duration: 16s; animation-delay: -9s; }
+.ob0-particle--7 { bottom: 12%; left: 10%; width: 9px; height: 9px; background: rgba(255,255,255,0.32); animation-name: ob0-float-rev; animation-duration: 14s; animation-delay: -3s; border-radius: 50%; }
+.ob0-particle--8 { bottom: 20%; right: 18%; width: 11px; height: 11px; background: rgba(0,0,0,0.07); animation-name: ob0-float-slow; animation-duration: 19s; animation-delay: -6s; }
+.ob0-particle--9 { top: 52%; left: 4%; width: 7px; height: 7px; background: rgba(255,255,255,0.38); animation-duration: 10s; animation-delay: -8s; border-radius: 50%; }
+.ob0-particle--10 { top: 58%; right: 6%; width: 12px; height: 12px; background: rgba(0,0,0,0.05); animation-name: ob0-float-rev; animation-duration: 17s; animation-delay: -11s; }
+.ob0-particle--11 { bottom: 28%; left: 38%; width: 18px; height: 5px; background: rgba(255,255,255,0.3); animation-name: ob0-float-slow; animation-duration: 21s; animation-delay: -4s; }
+.ob0-particle--12 { top: 48%; left: 32%; width: 5px; height: 5px; background: rgba(255,255,255,0.45); animation-duration: 13s; animation-delay: -10s; border-radius: 50%; }
+.ob0-particle--13 { bottom: 8%; right: 32%; width: 8px; height: 8px; background: rgba(0,0,0,0.09); animation-name: ob0-float-rev; animation-duration: 15s; animation-delay: -12s; }
+.ob0-particle--14 { top: 6%; left: 42%; width: 6px; height: 6px; background: rgba(255,255,255,0.36); animation-name: ob0-float-slow; animation-duration: 22s; animation-delay: -2s; border-radius: 50%; }
+.ob0-particle--15 { bottom: 15%; right: 4%; width: 13px; height: 13px; background: rgba(255,255,255,0.22); animation-duration: 11s; animation-delay: -5.5s; border-radius: 50%; }
+.ob0-particle--16 { top: 72%; left: 18%; width: 10px; height: 10px; background: rgba(0,0,0,0.06); animation-name: ob0-float-rev; animation-duration: 16s; animation-delay: -7s; }
+.ob0-particle--17 { bottom: 38%; left: 62%; width: 7px; height: 7px; background: rgba(255,255,255,0.4); animation-name: ob0-float-slow; animation-duration: 18s; animation-delay: -9s; border-radius: 50%; }
+.ob0-particle--18 { top: 30%; right: 38%; width: 9px; height: 9px; background: rgba(0,0,0,0.07); animation-duration: 14s; animation-delay: -13s; border-radius: 50%; }
 
 /* ─── Stat cards ─── */
 .neo-page .ob0-stat-card,
@@ -2754,7 +2783,6 @@ button.onboarding-step0-start-btn:active {
   font-size: 19px !important;
   line-height: 20px !important;
   color: #ffffff !important;
-  transform: rotate(-2deg);
 }
 
 .neo-page .main-option-badge * {
@@ -2817,6 +2845,7 @@ button.onboarding-step0-start-btn:active {
 
 .neo-page .comic-start-btn {
   position: relative;
+  opacity: 1 !important;
   border: 3px solid #111111 !important;
 }
 
@@ -2836,6 +2865,11 @@ button.onboarding-step0-start-btn:active {
 
 .neo-page .comic-start-btn.is-disabled {
   box-shadow: 0 2px 0 #111111 !important;
+  color: #ffffff !important;
+}
+
+.neo-page .comic-start-btn.is-disabled * {
+  color: #ffffff !important;
 }
 
 @keyframes main-bg-drift {
@@ -2916,15 +2950,62 @@ button.onboarding-step0-start-btn:active {
   }
 }
 
-@keyframes main-btn-pop {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-2px) scale(1.02); }
+.neo-page.main-dynamic {
+  background-color: #eefbf2;
+  background-image: url("/bg_pattern_3.png") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
 }
 
-.neo-page.main-dynamic {
-  background-image: linear-gradient(100deg, #3dd162 0%, #5aee74 28%, #8cff9e 52%, #5aee74 78%, #46e878 100%) !important;
-  background-size: 320% 200% !important;
-  animation: main-bg-drift 6s ease-in-out infinite;
+/* 클로징 씬: 뷰포트 전체에 bg_pattern_3 */
+main.closing-scene-fullbleed {
+  background-color: #eefbf2;
+  background-image: url("/bg_pattern_3.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* 시뮬레이션 착수·선배 노하우: 본문 컬럼이 아니라 뷰포트 전체에 패턴 */
+main.initiation-senior-tips-fullbleed {
+  background-color: #eefbf2;
+  background-image: url("/bg_pattern_3.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* 실행 단계 선배 노하우: 뷰포트 전체에 bg_pattern_2 */
+main.exec-senior-tips-fullbleed {
+  background-color: #fffbeb;
+  background-image: url("/bg_pattern_2.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* 감시·통제 단계 선배 노하우: 뷰포트 전체에 bg_pattern_opt */
+main.monitoring-senior-tips-fullbleed {
+  background-color: #f5f5f5;
+  background-image: url("/bg_pattern_opt.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* 기획 생존 가이드(plan-survival): 뷰포트 전체에 bg_pattern_opt */
+main.plan-survival-fullbleed {
+  background-color: #f5f5f5;
+  background-image: url("/bg_pattern_opt.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .neo-page .main-card-enter {
@@ -2964,12 +3045,6 @@ button.onboarding-step0-start-btn:active {
 .neo-page .main-stagger-5 { animation-delay: 460ms; }
 .neo-page .main-stagger-6 { animation-delay: 560ms; }
 
-.neo-page .main-btn-pop.is-active {
-  animation:
-    main-stagger-pop 560ms cubic-bezier(0.2, 0.9, 0.2, 1) forwards,
-    main-btn-pop 700ms ease-in-out 1.05s 1 both;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .neo-page.main-dynamic,
   .neo-page .main-card-enter,
@@ -2982,8 +3057,7 @@ button.onboarding-step0-start-btn:active {
   .neo-page .main-stagger-3,
   .neo-page .main-stagger-4,
   .neo-page .main-stagger-5,
-  .neo-page .main-stagger-6,
-  .neo-page .main-btn-pop.is-active {
+  .neo-page .main-stagger-6 {
     animation: none !important;
     opacity: 1 !important;
   }
@@ -3469,20 +3543,20 @@ button.neo-footer-nav-btn:not(:disabled):active {
   background-color: #e5e7eb !important;
 }
 .s2-page .s2-avatar--sponsor {
-  width: 100px !important;
-  height: 100px !important;
+  width: 120px !important;
+  height: 120px !important;
   border-color: #64e87a !important;
 }
 .s2-page .s2-avatar--member {
-  width: 80px !important;
-  height: 80px !important;
+  width: 100px !important;
+  height: 100px !important;
 }
 .s2-page .s2-avatar--blue {
   border-color: #2563eb !important;
 }
 .s2-page .s2-avatar--modal {
-  width: 90px !important;
-  height: 90px !important;
+  width: 108px !important;
+  height: 108px !important;
   border-color: rgba(255,255,255,0.4) !important;
 }
 

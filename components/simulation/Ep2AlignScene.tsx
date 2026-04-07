@@ -45,6 +45,9 @@ function stripOuterQuotes(s: string) {
   return t;
 }
 
+const EP2_KIM_JIHUN_SPEAKING = "/LG_MVP_kim-jihun_speaking.jpg";
+const EP2_PARK_SOJIN_ANGRY = "/LG_MVP_park-sojin_upset.jpg";
+
 /** Ep1 최성민 상무 말풍선과 동일: 아바타 + 네온 그린 테두리 말풍선(`.ep1-supervisor-bubble`) */
 function Ep2SpeakerBubble({
   name,
@@ -163,7 +166,7 @@ export function Ep2AlignScene({ userName: _userName }: Ep2AlignSceneProps) {
           <div className="ep1-dialogue-seq-fade" onAnimationEnd={bumpFadeSection}>
             <Ep2SpeakerBubble
               name="김지훈 선임 (IT)"
-              imageSrc="/ep2-kim-jihun.svg"
+              imageSrc={EP2_KIM_JIHUN_SPEAKING}
               imageAlt="김지훈 선임"
               text={d1}
             />
@@ -185,7 +188,7 @@ export function Ep2AlignScene({ userName: _userName }: Ep2AlignSceneProps) {
           <div className="ep1-dialogue-seq-fade" onAnimationEnd={bumpFadeSection}>
             <Ep2SpeakerBubble
               name="박소진 책임 (마케팅)"
-              imageSrc="/ep2-park-sojin.svg"
+              imageSrc={EP2_PARK_SOJIN_ANGRY}
               imageAlt="박소진 책임"
               text={d3}
             />

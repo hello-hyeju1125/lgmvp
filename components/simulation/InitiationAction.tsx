@@ -146,7 +146,7 @@ export function InitiationAction({ userName, stage: _stage = "alloc" }: Initiati
             {initiationScreenCopy.tipBullets.map((text) => (
               <li key={text}>
                 <span className="initiation-tip-bullet inline-block" aria-hidden />
-                <span>{text}</span>
+                <span className="whitespace-pre-line">{text}</span>
               </li>
             ))}
           </ul>

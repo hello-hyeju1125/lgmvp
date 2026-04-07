@@ -123,7 +123,7 @@ export function Ep3TeamScene({ userName: _userName }: Ep3TeamSceneProps) {
       <div className="space-y-10 sm:space-y-12">
         <Ep3SpeakerBubble
           name="정태영 책임 (인프라보안)"
-          imageSrc="/ep3-jeong-taeyoung.svg"
+          imageSrc="/jeong-taeyoung.jpg"
           imageAlt="정태영 책임"
           text={ep3Scene.dialogue[0]}
           avatarRevealStyle={ep3RevealDelay(2)}

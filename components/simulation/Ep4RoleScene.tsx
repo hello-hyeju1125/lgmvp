@@ -6,6 +6,8 @@ import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 
 const EP4_REVEAL_STAGGER_MS = 110;
+const EP4_CHOI_YURA_UPSET = "/LG_MVP_choi-yura_upset.jpg";
+
 function ep4RevealDelay(step: number): CSSProperties {
   return { animationDelay: `${step * EP4_REVEAL_STAGGER_MS}ms` };
 }
@@ -132,7 +134,7 @@ export function Ep4RoleScene({ userName: _userName }: Ep4RoleSceneProps) {
       <div className="space-y-10 sm:space-y-12">
         <Ep4SpeakerBubble
           name="최유라 선임 (글로벌CS)"
-          imageSrc="/ep4-choi-yura.svg"
+          imageSrc={EP4_CHOI_YURA_UPSET}
           imageAlt="최유라 선임"
           text={ep4Scene.dialogue[0]}
           revealSteps={{ avatar: 2, bubble: 3 }}
