@@ -78,11 +78,24 @@ export default function EpisodeResult({
               <p className="text-sm leading-7 text-black">{renderWithBold(selected.advice)}</p>
               {selected.kpiLabels?.length ? (
                 <div className="flex flex-wrap gap-2">
-                  {selected.kpiLabels.map((label) => (
-                    <span key={label} className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-extrabold text-black">
-                      [{label}]
-                    </span>
-                  ))}
+                  {selected.kpiLabels.map((label) => {
+                    const isUp = /▲/.test(label);
+                    const isDown = /▼/.test(label);
+                    return (
+                      <span
+                        key={label}
+                        className={`kpi-trend-pill rounded-full border-2 px-4 py-1.5 text-[13px] font-black ${
+                          isUp
+                            ? "kpi-trend-pill--up border-[#10b981]/30 bg-[#ecfdf5] text-[#059669]"
+                            : isDown
+                              ? "kpi-trend-pill--down border-[#FF4444]/30 bg-[#FFF5F5] text-[#dc2626]"
+                              : "border-gray-200 bg-white text-black"
+                        }`}
+                      >
+                        [{label}]
+                      </span>
+                    );
+                  })}
                 </div>
               ) : null}
               {selected.adviceParagraphs?.length ? (
@@ -118,11 +131,24 @@ export default function EpisodeResult({
                     <p className="text-sm leading-7 text-black">{renderWithBold(result.advice)}</p>
                     {result.kpiLabels?.length ? (
                       <div className="flex flex-wrap gap-2">
-                        {result.kpiLabels.map((label) => (
-                          <span key={label} className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-extrabold text-black">
-                            [{label}]
-                          </span>
-                        ))}
+                        {result.kpiLabels.map((label) => {
+                          const isUp = /▲/.test(label);
+                          const isDown = /▼/.test(label);
+                          return (
+                            <span
+                              key={label}
+                              className={`rounded-full border-2 px-4 py-1.5 text-[13px] font-black ${
+                                isUp
+                                  ? "border-[#10b981]/30 bg-[#ecfdf5] text-[#059669]"
+                                  : isDown
+                                    ? "border-[#FF4444]/30 bg-[#FFF5F5] text-[#dc2626]"
+                                    : "border-gray-200 bg-white text-black"
+                              }`}
+                            >
+                              [{label}]
+                            </span>
+                          );
+                        })}
                       </div>
                     ) : null}
                     {result.adviceParagraphs?.length ? (

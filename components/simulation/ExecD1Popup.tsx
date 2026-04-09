@@ -3,7 +3,13 @@
 import { useStore } from "@/store/useStore";
 import { executionActions, executionScreenCopy, EXECUTION_STEP_HOURS } from "@/content/executionActions";
 import type { KpiState } from "@/store/useStore";
-import { Check, Calendar, FileText, Sparkles, Users, UsersRound } from "lucide-react";
+import { AlertTriangle, Check, Calendar, FileText, Sparkles, Users, UsersRound } from "lucide-react";
+
+const KPI_CRITICAL_THRESHOLD = 40;
+const ENERGY_CRITICAL_THRESHOLD = 20;
+function isCritical(field: string, value: number): boolean {
+  return value <= (field === "leaderEnergy" ? ENERGY_CRITICAL_THRESHOLD : KPI_CRITICAL_THRESHOLD);
+}
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
@@ -22,10 +28,10 @@ const KPI_META: {
   label: string;
   Icon: LucideIcon;
 }[] = [
-  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
+  { field: "quality", label: "산출물 품질", Icon: FileText },
   { field: "delivery", label: "일정 준수", Icon: Calendar },
   { field: "teamEngagement", label: "팀 몰입도", Icon: Users },
-  { field: "quality", label: "산출물 품질", Icon: FileText },
+  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
   { field: "leaderEnergy", label: "리더 에너지", Icon: Sparkles },
 ];
 
@@ -50,6 +56,7 @@ function D1KpiBar({
   label,
   value,
   beforeValue,
+  field,
   Icon,
   delayMs,
   play,
@@ -57,6 +64,7 @@ function D1KpiBar({
   label: string;
   value: number;
   beforeValue: number;
+  field: string;
   Icon: LucideIcon;
   delayMs: number;
   play: boolean;
@@ -109,6 +117,7 @@ function D1KpiBar({
   }, [play, afterPct, beforePct, delayMs]);
 
   const deltaLabel = delta !== 0 ? (went_up ? `▲${delta}` : `▼${Math.abs(delta)}`) : null;
+  const critical = isCritical(field, afterPct);
 
   return (
     <div
@@ -120,31 +129,35 @@ function D1KpiBar({
       }}
     >
       <div className="flex w-[130px] shrink-0 items-center gap-2 sm:w-[150px]">
-        <Icon className="h-5 w-5 shrink-0 text-[#6b7280]" />
-        <span className="text-[15px] font-extrabold text-[#333] sm:text-[16px]">{label}</span>
+        {critical ? (
+          <AlertTriangle className="kpi-critical-icon h-5 w-5 shrink-0" strokeWidth={2.5} />
+        ) : (
+          <Icon className="h-5 w-5 shrink-0 text-[#6b7280]" />
+        )}
+        <span className={`text-[15px] font-extrabold sm:text-[16px] ${critical ? "kpi-critical-text" : "text-[#333]"}`}>{label}</span>
       </div>
-      <div className="d1-kpi-bar-track relative h-[14px] flex-1 overflow-hidden rounded-full bg-[#e5e7eb]">
+      <div className={`d1-kpi-bar-track relative h-[14px] flex-1 overflow-hidden rounded-full bg-[#e5e7eb] ${critical ? "kpi-critical-track" : ""}`}>
         <div
-          className="d1-kpi-bar-fill absolute inset-y-0 left-0 rounded-full"
+          className={`d1-kpi-bar-fill absolute inset-y-0 left-0 rounded-full ${critical ? "kpi-critical-bar" : ""}`}
           style={{
             width: `${barWidth}%`,
             transition: transitioning ? `width ${KPI_TRANSITION_MS}ms cubic-bezier(0.33, 1, 0.68, 1)` : "none",
-            backgroundColor: went_down && transitioning ? "#ef4444" : "#d97706",
+            ...(!critical ? { backgroundColor: went_down && transitioning ? "#ef4444" : "#FF7A00" } : {}),
           }}
         />
       </div>
       <span
-        className="w-[52px] shrink-0 whitespace-nowrap text-right text-[16px] font-extrabold tabular-nums sm:w-[56px] sm:text-[18px]"
-        style={{ color: went_down && transitioning ? "#ef4444" : "#d97706" }}
+        className={`w-[52px] shrink-0 whitespace-nowrap text-right text-[16px] font-extrabold tabular-nums sm:w-[56px] sm:text-[18px] ${critical ? "kpi-critical-text" : ""}`}
+        style={!critical ? { color: went_down && transitioning ? "#ef4444" : "#FF7A00" } : {}}
       >
         {displayPct}%
       </span>
       <span
-        className={`w-[44px] shrink-0 text-right text-[11px] font-bold tabular-nums sm:w-[48px] sm:text-[12px] ${
+        className={`w-[62px] shrink-0 text-right text-[18px] font-black tabular-nums sm:w-[72px] sm:text-[20px] ${
           deltaLabel
             ? went_up
-              ? "recap-kpi-delta--up"
-              : "recap-kpi-delta--down"
+              ? "d1-kpi-delta--up"
+              : "d1-kpi-delta--down"
             : "opacity-0"
         }`}
         style={{
@@ -226,7 +239,7 @@ export function ExecD1Popup({ userName: _userName }: ExecD1PopupProps) {
                 badges.map((b) => (
                   <span
                     key={b}
-                    className="initiation-d1-chip initiation-footer-chip-green inline-flex max-w-[min(100%,240px)] items-center gap-1.5 rounded-[10px] border-2 border-black bg-[#d97706] px-3 py-2 font-sans text-[12px] font-extrabold text-black shadow-[2px_2px_0_#111111] sm:text-[13px]"
+                    className="initiation-d1-chip initiation-footer-chip-green inline-flex max-w-[min(100%,240px)] items-center gap-1.5 rounded-[10px] border-2 border-black bg-[#FF7A00] px-3 py-2 font-sans text-[12px] font-extrabold text-black shadow-[2px_2px_0_#111111] sm:text-[13px]"
                   >
                     <Check className="h-3.5 w-3.5 shrink-0 text-white" strokeWidth={3} aria-hidden />
                     <span className="min-w-0 truncate">{b}</span>
@@ -254,6 +267,7 @@ export function ExecD1Popup({ userName: _userName }: ExecD1PopupProps) {
                   label={label}
                   value={kpi[field]}
                   beforeValue={capturedBefore[field]}
+                  field={field}
                   Icon={Icon}
                   play={kpiInView}
                   delayMs={KPI_APPEAR_DELAY_MS + i * KPI_STAGGER_MS}

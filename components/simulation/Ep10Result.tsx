@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { ep10Options, getEp10Result, type Ep10Choice } from "@/content/episode10";
+import { KpiTrendPill, sortKpiLabels } from "@/components/shared/KpiTrendPill";
 
 function renderBoldMarkdown(paragraph: string): ReactNode {
   const parts = paragraph.split(/\*\*(.+?)\*\*/g);
@@ -77,29 +78,6 @@ function renderFeedbackMarkdown(paragraph: string): ReactNode {
     ) : (
       p
     ),
-  );
-}
-
-function KpiTrendPill({ label }: { label: string }) {
-  const isUp = /▲/.test(label);
-  const display = label.replace(/▼▼▼|▼▼|▼|▲▲▲|▲▲|▲/g, "").trim();
-  if (isUp) {
-    return (
-      <div className="inline-flex items-center gap-2 rounded-[20px] border-0 bg-[#fef2f2] px-5 py-2.5" role="status">
-        <span className="text-[15px] font-bold text-[#ef4444] sm:text-[16px]">{display}</span>
-        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden>
-          <path d="M8 13V6M5 8.5L8 5.5 11 8.5" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-    );
-  }
-  return (
-    <div className="inline-flex items-center gap-2 rounded-[20px] border-0 bg-[#FFF5F5] px-5 py-2.5" role="status">
-      <span className="text-[15px] font-bold text-[#FF4444] sm:text-[16px]">{display}</span>
-      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden>
-        <path d="M8 3v7M5 7.5L8 10.5 11 7.5" stroke="#FF4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
   );
 }
 
@@ -235,7 +213,7 @@ export function Ep10Result({ userName: _userName }: Ep10ResultProps) {
           </div>
           {selected.kpiLabels.length > 0 && (
             <div className="flex flex-wrap justify-center gap-3 border-t-0 bg-white px-6 pb-6 pt-4 sm:px-8">
-              {selected.kpiLabels.map((label) => (
+              {sortKpiLabels(selected.kpiLabels).map((label) => (
                 <KpiTrendPill key={label} label={label} />
               ))}
             </div>
@@ -276,7 +254,7 @@ export function Ep10Result({ userName: _userName }: Ep10ResultProps) {
                   </div>
                   {r.kpiLabels.length > 0 && (
                     <div className="flex flex-wrap justify-center gap-3 border-t-0 bg-white px-6 pb-6 pt-4 sm:px-8">
-                      {r.kpiLabels.map((label) => (
+                      {sortKpiLabels(r.kpiLabels).map((label) => (
                         <KpiTrendPill key={label} label={label} />
                       ))}
                     </div>

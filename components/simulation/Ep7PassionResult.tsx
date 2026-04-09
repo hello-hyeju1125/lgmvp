@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { getEp7Result, ep7Scene } from "@/content/episode7";
 import type { Ep7Choice } from "@/content/episode7";
+import { KpiTrendPill, sortKpiLabels } from "@/components/shared/KpiTrendPill";
 
 interface Ep7PassionResultProps {
   userName: string;
@@ -63,25 +64,6 @@ function renderFeedbackMarkdown(paragraph: string): ReactNode {
   );
 }
 
-function KpiTrendPill({ label }: { label: string }) {
-  const isUp = /▲/.test(label);
-  const display = label.replace(/▼▼|▼|▲▲|▲/g, "").trim();
-  if (isUp) {
-    return (
-      <div className="inline-flex items-center gap-2 rounded-[20px] border-0 bg-[#fff7ed] px-5 py-2.5" role="status">
-        <span className="text-[15px] font-bold text-[#d97706] sm:text-[16px]">{display}</span>
-        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M8 13V6M5 8.5L8 5.5 11 8.5" stroke="#d97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      </div>
-    );
-  }
-  return (
-    <div className="inline-flex items-center gap-2 rounded-[20px] border-0 bg-[#FFF5F5] px-5 py-2.5" role="status">
-      <span className="text-[15px] font-bold text-[#FF4444] sm:text-[16px]">{display}</span>
-      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M8 3v7M5 7.5L8 10.5 11 7.5" stroke="#FF4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-    </div>
-  );
-}
-
 function FeedbackPanel({ paragraphs, embedded = false }: { paragraphs: string[]; embedded?: boolean }) {
   return (
     <div className={embedded ? "ep1-result-feedback-panel border-0 bg-[#F7FBFF] px-6 pb-8 pt-7 sm:px-8 sm:pb-9 sm:pt-8" : "ep1-result-feedback-panel mt-6 rounded-none border-0 bg-[#F7FBFF] px-6 py-6 pt-7 sm:px-8"}>
@@ -90,7 +72,7 @@ function FeedbackPanel({ paragraphs, embedded = false }: { paragraphs: string[];
           <Image src="/LG_MVP_chatbot.jpg" alt="챗봇 선배 PM" width={64} height={64} className="h-full w-full object-cover" />
         </div>
         <div className="min-w-0">
-          <span className="ep1-result-feedback-label inline-flex items-center rounded-none bg-[#d97706] px-4 py-1.5 text-[14px] font-extrabold tracking-wide sm:text-[15px]">챗봇 선배 PM의 피드백</span>
+          <span className="ep1-result-feedback-label inline-flex items-center rounded-none bg-[#FF7A00] px-4 py-1.5 text-[14px] font-extrabold tracking-wide sm:text-[15px]">챗봇 선배 PM의 피드백</span>
         </div>
       </div>
       <div className="ep1-result-feedback-bubble relative rounded-2xl bg-white px-5 py-5 sm:px-6 sm:py-6">
@@ -123,7 +105,7 @@ export function Ep7PassionResult({ userName: _userName }: Ep7PassionResultProps)
     return (
       <section className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 bg-transparent px-5 py-12 text-center sm:px-8" aria-label="E7 결과">
         <p className="text-sm text-[#374151]">선택 정보가 없습니다.</p>
-        <button type="button" onClick={() => router.push("/simulation?phase=ep7-scene")} className="mt-4 rounded-xl border-2 border-black bg-[#d97706] px-5 py-2.5 text-sm font-bold text-[#111]">옵션 선택으로 돌아가기</button>
+        <button type="button" onClick={() => router.push("/simulation?phase=ep7-scene")} className="mt-4 rounded-xl border-2 border-black bg-[#FF7A00] px-5 py-2.5 text-sm font-bold text-[#111]">옵션 선택으로 돌아가기</button>
       </section>
     );
   }
@@ -146,14 +128,14 @@ export function Ep7PassionResult({ userName: _userName }: Ep7PassionResultProps)
         <div className="mb-9 mt-10 space-y-0 text-center leading-[2] sm:mt-12">
           <p className="m-0 text-[19px] font-medium text-[#374151] sm:text-[20px]">선택이 반영되었습니다.</p>
           <p className="m-0 text-[19px] font-bold text-[#111] sm:text-[20px]">완벽하게 모든 것을 지켜내는 정답은 존재하지 않습니다.</p>
-          <p className="m-0 text-[19px] font-medium text-[#374151] sm:text-[20px]">당신의 선택이 만든 트레이드오프와 KPI 변화를 확인해 보십시오.</p>
+          <p className="m-0 text-[19px] font-medium text-[#374151] sm:text-[20px]">당신의 선택이 만든 Trade-off와 KPI 변화를 확인해 보십시오.</p>
         </div>
 
         <div className="ep1-result-card-root relative z-[1] mt-8 rounded-none border-[3px] border-black bg-white sm:mt-10">
           <div className="relative">
-            <div className="ep1-result-my-choice-chip absolute left-4 top-0 z-20 flex -translate-y-1/2 items-center gap-2 rounded-none border-0 bg-[#d97706] px-4 py-2.5 text-[16px] font-extrabold text-[#111] sm:left-7 sm:text-[17px]" role="status" aria-label="나의 선택">
+            <div className="ep1-result-my-choice-chip absolute left-4 top-0 z-20 flex -translate-y-1/2 items-center gap-2 rounded-none border-0 bg-[#FF7A00] px-4 py-2.5 text-[16px] font-extrabold text-[#111] sm:left-7 sm:text-[17px]" role="status" aria-label="나의 선택">
               <span className="flex h-6 w-6 items-center justify-center rounded-full border-0 bg-white">
-                <svg width="14" height="11" viewBox="0 0 12 10" fill="none" aria-hidden><path d="M1 5L4 8L11 1" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <svg width="14" height="11" viewBox="0 0 12 10" fill="none" aria-hidden><path d="M1 5L4 8L11 1" stroke="#FF7A00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </span>
               나의 선택
             </div>
@@ -166,7 +148,7 @@ export function Ep7PassionResult({ userName: _userName }: Ep7PassionResultProps)
           </div>
           {selected.kpiLabels?.length ? (
             <div className="flex flex-wrap justify-center gap-3 border-t-0 bg-white px-6 pb-6 pt-4 sm:px-8">
-              {selected.kpiLabels.map((label) => (<KpiTrendPill key={label} label={label} />))}
+              {sortKpiLabels(selected.kpiLabels).map((label) => (<KpiTrendPill key={label} label={label} />))}
             </div>
           ) : null}
           <FeedbackPanel paragraphs={selected.adviceParagraphs} embedded />
@@ -195,7 +177,7 @@ export function Ep7PassionResult({ userName: _userName }: Ep7PassionResultProps)
                   </div>
                   {r.kpiLabels?.length ? (
                     <div className="flex flex-wrap justify-center gap-3 border-t-0 bg-white px-6 pb-6 pt-4 sm:px-8">
-                      {r.kpiLabels.map((label) => (<KpiTrendPill key={label} label={label} />))}
+                      {sortKpiLabels(r.kpiLabels).map((label) => (<KpiTrendPill key={label} label={label} />))}
                     </div>
                   ) : null}
                   <FeedbackPanel paragraphs={r.adviceParagraphs} embedded />

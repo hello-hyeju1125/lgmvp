@@ -26,8 +26,8 @@ const MENU_ITEMS: {
   },
   {
     action: "pmInfo",
-    label: "프로젝트 매니지먼트 기타 정보",
-    description: "PMBOK·KPI 안내",
+    label: "튜토리얼",
+    description: "시뮬레이션 소개·여정 미리보기",
     Icon: Info,
   },
 ];

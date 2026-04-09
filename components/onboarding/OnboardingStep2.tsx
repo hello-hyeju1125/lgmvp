@@ -247,16 +247,16 @@ export function OnboardingStep2({ prevHref, nextHref }: OnboardingStep2Props) {
             style={{ animationDelay: "0ms" }}
           >
             {/* Header */}
-            <div className="s2-modal-header flex items-center gap-5 px-6 py-5 sm:px-8 sm:py-6">
+            <div className="s2-modal-header ds-white-text flex items-center gap-5 px-6 py-5 sm:px-8 sm:py-6">
               <div className="s2-avatar s2-avatar--modal relative shrink-0">
                 <Image src={popup.imagePath} alt={popup.name} fill className="object-cover" sizes="120px" />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-widest text-white/70 sm:text-[12px]">{popup.group}</p>
-                <h2 id="s2-modal-title" className="mt-1 text-[24px] font-black leading-tight text-white sm:text-[28px]">
+                <p className="ds-white-text text-[11px] font-bold uppercase tracking-widest sm:text-[12px]" style={{ opacity: 0.7 }}>{popup.group}</p>
+                <h2 id="s2-modal-title" className="ds-white-text mt-1 text-[24px] font-black leading-tight sm:text-[28px]">
                   {popup.name}
                 </h2>
-                <p className="mt-1 text-[13px] font-semibold text-white/80 sm:text-[14px]">{popup.roleLabel}</p>
+                <p className="ds-white-text mt-1 text-[13px] font-semibold sm:text-[14px]" style={{ opacity: 0.8 }}>{popup.roleLabel}</p>
               </div>
             </div>
 

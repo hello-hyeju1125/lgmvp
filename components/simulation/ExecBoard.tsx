@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   COLUMNS,
@@ -8,6 +8,7 @@ import {
   POOL,
   getIssueKey,
   getLabelFromText,
+  type ColumnId,
   type PlacementId,
 } from "@/content/execBoard";
 
@@ -48,6 +49,14 @@ export function ExecBoard({ userName: _userName, onPlacementChange }: ExecBoardP
   const [showIntroModal, setShowIntroModal] = useState(true);
   const [checkAttempted, setCheckAttempted] = useState(false);
   const [lastCheckedSignature, setLastCheckedSignature] = useState<string | null>(null);
+  const [feedbackModal, setFeedbackModal] = useState<{
+    ticketText: string;
+    isCorrect: boolean;
+    chosenLabel: string;
+    correctLabel: string;
+    feedback: { keyClue: string; keyClueDesc: string; reason: string };
+  } | null>(null);
+  const pendingReturnRef = useRef<string | null>(null);
 
   const allCorrect = TICKETS.every((t) => placement[t.id] === t.correctColumn);
 
@@ -77,13 +86,39 @@ export function ExecBoard({ userName: _userName, onPlacementChange }: ExecBoardP
     setDragOverColumnId(null);
     setDraggingTicketId(null);
     const ticketId = e.dataTransfer.getData("text/plain");
-    if (ticketId) moveTicket(ticketId, columnId);
+    if (!ticketId) return;
+    moveTicket(ticketId, columnId);
+
+    if (columnId !== POOL) {
+      const ticket = TICKETS.find((t) => t.id === ticketId);
+      if (ticket) {
+        const isCorrect = ticket.correctColumn === columnId;
+        const correctCol = COLUMNS.find((c) => c.id === ticket.correctColumn);
+        const chosenCol = COLUMNS.find((c) => c.id === (columnId as ColumnId));
+        if (!isCorrect) pendingReturnRef.current = ticketId;
+        setFeedbackModal({
+          ticketText: ticket.text,
+          isCorrect,
+          chosenLabel: chosenCol ? `${chosenCol.label} (${chosenCol.labelEn})` : "",
+          correctLabel: correctCol ? `${correctCol.label} (${correctCol.labelEn})` : "",
+          feedback: ticket.feedback,
+        });
+      }
+    }
   };
 
   const handleDragEnd = () => {
     setDraggingTicketId(null);
     setDragOverColumnId(null);
   };
+
+  const dismissFeedback = useCallback(() => {
+    if (pendingReturnRef.current) {
+      moveTicket(pendingReturnRef.current, POOL);
+      pendingReturnRef.current = null;
+    }
+    setFeedbackModal(null);
+  }, [moveTicket]);
 
   const checkComplete = useCallback(() => {
     setCheckAttempted(true);
@@ -150,13 +185,13 @@ export function ExecBoard({ userName: _userName, onPlacementChange }: ExecBoardP
                 <p className="mt-2 text-center text-[13px] font-extrabold text-[#111]">챗봇 선배 PM</p>
               </div>
 
-              <div className="relative min-w-0 flex-1 p-5 text-left" style={{ border: "2px solid #d97706", borderRadius: "6px", backgroundColor: "#ffffff", position: "relative" }}>
+              <div className="relative min-w-0 flex-1 p-5 text-left" style={{ border: "2px solid #FF7A00", borderRadius: "6px", backgroundColor: "#ffffff", position: "relative" }}>
                 {/* Speech tail */}
                 <div
                   className="absolute hidden sm:block"
                   style={{
                     top: "28px", left: "-10px", width: 0, height: 0,
-                    borderTop: "8px solid transparent", borderBottom: "8px solid transparent", borderRight: "10px solid #d97706",
+                    borderTop: "8px solid transparent", borderBottom: "8px solid transparent", borderRight: "10px solid #FF7A00",
                   }}
                   aria-hidden
                 />
@@ -437,6 +472,107 @@ export function ExecBoard({ userName: _userName, onPlacementChange }: ExecBoardP
             >
               확인
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 정답/오답 피드백 모달 */}
+      {feedbackModal && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
+          role="dialog"
+          aria-modal="true"
+          onClick={dismissFeedback}
+        >
+          <div
+            className="relative w-full overflow-hidden bg-white"
+            style={{
+              maxWidth: "34rem",
+              border: `3px solid ${feedbackModal.isCorrect ? "#10b981" : "#ef4444"}`,
+              borderRadius: "12px",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+              animation: "ds-modal-enter 300ms ease-out both",
+              maxHeight: "90vh",
+              display: "flex",
+              flexDirection: "column",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="px-6 py-5 text-center shrink-0"
+              style={{ backgroundColor: feedbackModal.isCorrect ? "#ecfdf5" : "#fef2f2" }}
+            >
+              <p className="text-[48px] leading-none">{feedbackModal.isCorrect ? "🟢" : "❌"}</p>
+              <h3
+                className="mt-3 text-[24px] font-extrabold sm:text-[28px]"
+                style={{ color: feedbackModal.isCorrect ? "#059669" : "#dc2626" }}
+              >
+                {feedbackModal.isCorrect ? "정답입니다!" : "오답입니다!"}
+              </h3>
+              {feedbackModal.isCorrect ? (
+                <p className="ds-white-text mt-3 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-extrabold" style={{ backgroundColor: "#059669" }}>
+                  {feedbackModal.correctLabel}
+                </p>
+              ) : (
+                <p className="ds-white-text mt-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[14px] font-extrabold" style={{ backgroundColor: "#dc2626" }}>
+                  <span style={{ opacity: 0.6, textDecoration: "line-through" }}>{feedbackModal.chosenLabel}</span>
+                  <span>→</span>
+                  <span>{feedbackModal.correctLabel}</span>
+                </p>
+              )}
+            </div>
+
+            <div className="overflow-y-auto flex-1 min-h-0">
+              <div className="px-6 pb-2 pt-5">
+                <p className="rounded-lg border border-black/10 bg-[#f9fafb] px-4 py-3 text-[13px] font-medium leading-relaxed text-[#333] sm:text-[14px]">
+                  {feedbackModal.ticketText}
+                </p>
+              </div>
+
+              <div className="px-6 pb-4 pt-4 space-y-3">
+                <div className="rounded-lg p-4" style={{
+                  backgroundColor: feedbackModal.isCorrect ? "#f0fdf4" : "#fef2f2",
+                  border: `1px solid ${feedbackModal.isCorrect ? "#bbf7d0" : "#fecaca"}`,
+                }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="ds-white-text inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-extrabold" style={{
+                      backgroundColor: feedbackModal.isCorrect ? "#059669" : "#dc2626",
+                    }}>
+                      핵심 단서: &ldquo;{feedbackModal.feedback.keyClue}&rdquo;
+                    </span>
+                  </div>
+                  <p className="text-[13px] leading-relaxed sm:text-[14px]" style={{ color: feedbackModal.isCorrect ? "#166534" : "#7f1d1d" }}>
+                    {feedbackModal.feedback.keyClueDesc}
+                  </p>
+                </div>
+
+                {!feedbackModal.isCorrect && (
+                  <p className="text-center text-[13px] font-medium text-[#999] pt-1">
+                    티켓이 대기열로 돌아갑니다. 다시 배치해 보세요!
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-center px-6 py-5 shrink-0" style={{ borderTop: "1px solid #e5e7eb" }}>
+              <button
+                type="button"
+                onClick={dismissFeedback}
+                className="btn-colored ds-white-text text-[15px] font-extrabold transition-all"
+                style={{
+                  ["--btn-bg" as string]: feedbackModal.isCorrect ? "#059669" : "#ef4444",
+                  borderRadius: "8px",
+                  boxShadow: "3px 3px 0 #111",
+                  padding: "10px 32px",
+                }}
+                onMouseDown={(e) => { e.currentTarget.style.transform = "translate(3px,3px)"; e.currentTarget.style.boxShadow = "0 0 0 #111"; }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "3px 3px 0 #111"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "3px 3px 0 #111"; }}
+              >
+                확인
+              </button>
+            </div>
           </div>
         </div>
       )}

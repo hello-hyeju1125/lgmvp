@@ -9,7 +9,7 @@ import {
   toKpiDelta,
 } from "@/content/simulationData";
 import type { SimEffects } from "@/content/simulationData";
-import { Check } from "lucide-react";
+import { AlertTriangle, Check } from "lucide-react";
 import {
   SIM_COLUMN_GUTTER,
   SIM_COLUMN_MAX_INNER,
@@ -152,32 +152,42 @@ export default function SimulationEngine() {
               <div className="grid w-full max-w-lg grid-cols-2 gap-4">
                 {(
                   [
-                    ["산출물 품질", kpi.quality],
-                    ["일정 준수", kpi.delivery],
-                    ["팀 몰입도", kpi.teamEngagement],
-                    ["이해관계자 조율", kpi.stakeholderAlignment],
+                    ["산출물 품질", kpi.quality, "quality"],
+                    ["일정 준수", kpi.delivery, "delivery"],
+                    ["팀 몰입도", kpi.teamEngagement, "teamEngagement"],
+                    ["이해관계자 조율", kpi.stakeholderAlignment, "stakeholderAlignment"],
                   ] as const
-                ).map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="action-card-wrap action-card-idle rounded-xl p-4"
-                  >
-                    <p className="font-sans text-[12px] font-bold text-black/50">
-                      {label}
-                    </p>
-                    <p className="font-mono text-[28px] font-black tabular-nums text-black">
-                      {Math.round(value)}%
-                    </p>
-                  </div>
-                ))}
-                <div className="action-card-wrap action-card-idle col-span-2 rounded-xl p-4">
-                  <p className="font-sans text-[12px] font-bold text-black/50">
-                    리더 에너지
-                  </p>
-                  <p className="font-mono text-[28px] font-black tabular-nums text-black">
-                    {Math.round(kpi.leaderEnergy)}%
-                  </p>
-                </div>
+                ).map(([label, value, field]) => {
+                  const critical = value <= 40;
+                  return (
+                    <div
+                      key={label}
+                      className={`action-card-wrap action-card-idle rounded-xl p-4 ${critical ? "kpi-critical-card" : ""}`}
+                    >
+                      <p className={`font-sans text-[12px] font-bold ${critical ? "kpi-critical-text" : "text-black/50"}`}>
+                        {critical && <AlertTriangle className="kpi-critical-icon mr-1 inline h-3.5 w-3.5" strokeWidth={2.5} />}
+                        {label}
+                      </p>
+                      <p className={`font-mono text-[28px] font-black tabular-nums ${critical ? "kpi-critical-text" : "text-black"}`}>
+                        {Math.round(value)}%
+                      </p>
+                    </div>
+                  );
+                })}
+                {(() => {
+                  const energyCritical = kpi.leaderEnergy <= 20;
+                  return (
+                    <div className={`action-card-wrap action-card-idle col-span-2 rounded-xl p-4 ${energyCritical ? "kpi-critical-card" : ""}`}>
+                      <p className={`font-sans text-[12px] font-bold ${energyCritical ? "kpi-critical-text" : "text-black/50"}`}>
+                        {energyCritical && <AlertTriangle className="kpi-critical-icon mr-1 inline h-3.5 w-3.5" strokeWidth={2.5} />}
+                        리더 에너지
+                      </p>
+                      <p className={`font-mono text-[28px] font-black tabular-nums ${energyCritical ? "kpi-critical-text" : "text-black"}`}>
+                        {Math.round(kpi.leaderEnergy)}%
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>

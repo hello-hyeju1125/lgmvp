@@ -7,8 +7,14 @@ import { initiationActions } from "@/content/initiationActions";
 import { ep1Options } from "@/content/episode1";
 import { ep2AlignOptions } from "@/content/episode2Align";
 import type { ReactNode, CSSProperties } from "react";
-import { Calendar, FileText, Sparkles, Users, UsersRound } from "lucide-react";
+import { AlertTriangle, Calendar, FileText, Sparkles, Users, UsersRound } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+
+const KPI_CRITICAL_THRESHOLD = 40;
+const ENERGY_CRITICAL_THRESHOLD = 20;
+function isCritical(field: string, value: number): boolean {
+  return value <= (field === "leaderEnergy" ? ENERGY_CRITICAL_THRESHOLD : KPI_CRITICAL_THRESHOLD);
+}
 
 interface InitiationRecapProps {
   userName: string;
@@ -19,10 +25,10 @@ const KPI_META: {
   label: string;
   Icon: LucideIcon;
 }[] = [
-  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
-  { field: "delivery", label: "일정준수", Icon: Calendar },
-  { field: "teamEngagement", label: "팀 몰입도", Icon: Users },
   { field: "quality", label: "산출물 품질", Icon: FileText },
+  { field: "delivery", label: "일정 준수", Icon: Calendar },
+  { field: "teamEngagement", label: "팀 몰입도", Icon: Users },
+  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
   { field: "leaderEnergy", label: "리더 에너지", Icon: Sparkles },
 ];
 
@@ -75,10 +81,10 @@ function SummaryItem({ title, body, isLast, step }: { title: string; body: strin
 }
 
 const INITIAL_KPI_VALUES: Record<string, number> = {
-  quality: 75,
-  delivery: 75,
-  teamEngagement: 75,
-  stakeholderAlignment: 75,
+  quality: 70,
+  delivery: 70,
+  teamEngagement: 70,
+  stakeholderAlignment: 70,
   leaderEnergy: 100,
 };
 
@@ -140,29 +146,34 @@ function AnimatedKpiBar({
   }, [play, pct, delayMs]);
 
   const deltaLabel = delta !== 0 ? (went_up ? `▲${delta}` : `▼${Math.abs(delta)}`) : null;
+  const critical = isCritical(field, pct);
 
   return (
     <div
       className={`flex flex-nowrap items-center gap-2 transition-opacity duration-500 sm:gap-3 ${started ? "opacity-100" : "opacity-0"}`}
     >
       <div className="flex w-[128px] shrink-0 items-center gap-2 sm:w-[148px]">
-        <Icon className="h-5 w-5 shrink-0 text-[#6b7280]" />
-        <span className="text-[14px] font-extrabold leading-tight text-[#333] sm:text-[16px]">{label}</span>
+        {critical ? (
+          <AlertTriangle className="kpi-critical-icon h-5 w-5 shrink-0" strokeWidth={2.5} />
+        ) : (
+          <Icon className="h-5 w-5 shrink-0 text-[#6b7280]" />
+        )}
+        <span className={`text-[14px] font-extrabold leading-tight sm:text-[16px] ${critical ? "kpi-critical-text" : "text-[#333]"}`}>{label}</span>
       </div>
-      <div className="relative h-[14px] min-w-0 flex-1 overflow-hidden rounded-full bg-[#e5e7eb]">
+      <div className={`relative h-[14px] min-w-0 flex-1 overflow-hidden rounded-full bg-[#e5e7eb] ${critical ? "kpi-critical-track" : ""}`}>
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-[#64e87a]"
+          className={`absolute inset-y-0 left-0 rounded-full ${critical ? "kpi-critical-bar" : "bg-[#64e87a]"}`}
           style={{
             width: `${animatedWidth}%`,
             transition: started ? `width ${KPI_BAR_FILL_MS}ms cubic-bezier(0.33, 1, 0.68, 1)` : "none",
           }}
         />
       </div>
-      <span className="min-w-[3rem] shrink-0 whitespace-nowrap text-right text-[14px] font-extrabold tabular-nums leading-none text-[#22c55e] sm:min-w-[3.25rem] sm:text-[16px]">
+      <span className={`min-w-[3rem] shrink-0 whitespace-nowrap text-right text-[14px] font-extrabold tabular-nums leading-none sm:min-w-[3.25rem] sm:text-[16px] ${critical ? "kpi-critical-text" : "text-[#22c55e]"}`}>
         {displayPct}%
       </span>
       <span
-        className={`recap-kpi-delta w-[40px] shrink-0 whitespace-nowrap text-right text-[11px] font-bold tabular-nums sm:w-[46px] sm:text-[12px] ${
+        className={`recap-kpi-delta w-[62px] shrink-0 whitespace-nowrap text-right text-[18px] font-black tabular-nums sm:w-[72px] sm:text-[20px] ${
           deltaLabel
             ? went_up
               ? "recap-kpi-delta--up"
@@ -388,7 +399,7 @@ export function InitiationRecap({ userName }: InitiationRecapProps) {
           의사결정을 수행하시느라 고생 많으셨습니다!
         </p>
         <p className="ep1-scene-reveal m-0 text-[17px] font-medium leading-[2] text-[#374151] sm:text-[18px]" style={revealDelay(15)}>
-          다음 단계로 넘어가면 <strong className="font-bold text-[#059669]">선배 PM 노하우</strong>가 이어집니다.
+          다음 단계로 넘어가면 <strong className="font-bold text-[#059669]">선배 PM들의 노하우</strong>가 이어집니다.
         </p>
       </div>
     </section>

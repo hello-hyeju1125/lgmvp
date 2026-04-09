@@ -4,11 +4,17 @@ import { useEffect, useState, useRef } from "react";
 import { useStore } from "@/store/useStore";
 import { executionRecapCopy } from "@/content/executionRecap";
 import { executionActions } from "@/content/executionActions";
-import { ep6Block1Options, ep6Block2Options, ep6Block3Options, ep6Block4Options, getBlockLabelShort } from "@/content/episode6";
+import { ep6Block1Options, ep6Block2Options, ep6Block3Options, getBlockLabelShort } from "@/content/episode6";
 import { ep7Options } from "@/content/episode7";
 import type { ReactNode, CSSProperties } from "react";
-import { Calendar, FileText, Sparkles, Users, UsersRound } from "lucide-react";
+import { AlertTriangle, Calendar, FileText, Sparkles, Users, UsersRound } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+
+const KPI_CRITICAL_THRESHOLD = 40;
+const ENERGY_CRITICAL_THRESHOLD = 20;
+function isCritical(field: string, value: number): boolean {
+  return value <= (field === "leaderEnergy" ? ENERGY_CRITICAL_THRESHOLD : KPI_CRITICAL_THRESHOLD);
+}
 
 interface ExecRecapProps {
   userName: string;
@@ -19,20 +25,12 @@ const KPI_META: {
   label: string;
   Icon: LucideIcon;
 }[] = [
-  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
-  { field: "delivery", label: "일정준수", Icon: Calendar },
-  { field: "teamEngagement", label: "팀 몰입도", Icon: Users },
   { field: "quality", label: "산출물 품질", Icon: FileText },
+  { field: "delivery", label: "일정 준수", Icon: Calendar },
+  { field: "teamEngagement", label: "팀 몰입도", Icon: Users },
+  { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
   { field: "leaderEnergy", label: "리더 에너지", Icon: Sparkles },
 ];
-
-const INITIAL_KPI_VALUES: Record<string, number> = {
-  quality: 50,
-  delivery: 50,
-  teamEngagement: 50,
-  stakeholderAlignment: 50,
-  leaderEnergy: 100,
-};
 
 /** KPI 막대·숫자 카운트 — 스크롤로 해당 구간이 보일 때만 재생 (initiation-recap과 동일) */
 const KPI_BAR_FILL_MS = 2200;
@@ -71,7 +69,7 @@ function SummaryItem({ title, body, step }: { title: string; body: string; step:
   return (
     <div className="ep1-scene-reveal space-y-2 pb-6 sm:pb-7" style={revealDelay(step)}>
       <div className="flex items-start gap-2.5">
-        <span className="mt-[3px] flex h-5 w-5 shrink-0 items-center justify-center text-[#d97706]">
+        <span className="mt-[3px] flex h-5 w-5 shrink-0 items-center justify-center text-[#FF7A00]">
           <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
             <path d="M4 10.5L8.5 15L16 5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -88,6 +86,7 @@ function SummaryItem({ title, body, step }: { title: string; body: string; step:
 function AnimatedKpiBar({
   label,
   value,
+  base,
   field,
   Icon,
   delayMs,
@@ -95,14 +94,13 @@ function AnimatedKpiBar({
 }: {
   label: string;
   value: number;
+  base: number;
   field: string;
   Icon: LucideIcon;
   delayMs: number;
-  /** 뷰포트에 들어온 뒤에만 애니메이션 시작 */
   play: boolean;
 }) {
   const pct = Math.max(0, Math.min(100, value));
-  const base = INITIAL_KPI_VALUES[field] ?? 50;
   const delta = pct - base;
   const went_up = delta > 0;
 
@@ -139,29 +137,34 @@ function AnimatedKpiBar({
   }, [play, pct, delayMs]);
 
   const deltaLabel = delta !== 0 ? (went_up ? `▲${delta}` : `▼${Math.abs(delta)}`) : null;
+  const critical = isCritical(field, pct);
 
   return (
     <div
       className={`flex flex-nowrap items-center gap-3 transition-opacity duration-500 ${started ? "opacity-100" : "opacity-0"}`}
     >
       <div className="flex w-[130px] shrink-0 items-center gap-2 sm:w-[150px]">
-        <Icon className="h-5 w-5 shrink-0 text-[#6b7280]" />
-        <span className="min-w-0 text-[15px] font-extrabold leading-tight text-[#333] sm:text-[16px]">{label}</span>
+        {critical ? (
+          <AlertTriangle className="kpi-critical-icon h-5 w-5 shrink-0" strokeWidth={2.5} />
+        ) : (
+          <Icon className="h-5 w-5 shrink-0 text-[#6b7280]" />
+        )}
+        <span className={`min-w-0 text-[15px] font-extrabold leading-tight sm:text-[16px] ${critical ? "kpi-critical-text" : "text-[#333]"}`}>{label}</span>
       </div>
-      <div className="relative h-[14px] min-w-0 flex-1 overflow-hidden rounded-full bg-[#e5e7eb]">
+      <div className={`relative h-[14px] min-w-0 flex-1 overflow-hidden rounded-full bg-[#e5e7eb] ${critical ? "kpi-critical-track" : ""}`}>
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-[#d97706]"
+          className={`absolute inset-y-0 left-0 rounded-full ${critical ? "kpi-critical-bar" : "bg-[#FF7A00]"}`}
           style={{
             width: `${animatedWidth}%`,
             transition: started ? `width ${KPI_BAR_FILL_MS}ms cubic-bezier(0.33, 1, 0.68, 1)` : "none",
           }}
         />
       </div>
-      <span className="min-w-[3rem] shrink-0 whitespace-nowrap text-right text-[16px] font-extrabold tabular-nums leading-none text-[#d97706] sm:min-w-[3.25rem] sm:text-[18px]">
+      <span className={`min-w-[3rem] shrink-0 whitespace-nowrap text-right text-[16px] font-extrabold tabular-nums leading-none sm:min-w-[3.25rem] sm:text-[18px] ${critical ? "kpi-critical-text" : "text-[#FF7A00]"}`}>
         {displayPct}%
       </span>
       <span
-        className={`recap-kpi-delta w-[44px] shrink-0 whitespace-nowrap text-right text-[11px] font-bold tabular-nums sm:w-[48px] sm:text-[12px] ${
+        className={`recap-kpi-delta w-[62px] shrink-0 whitespace-nowrap text-right text-[18px] font-black tabular-nums sm:w-[72px] sm:text-[20px] ${
           deltaLabel
             ? went_up
               ? "recap-kpi-delta--up"
@@ -177,9 +180,9 @@ function AnimatedKpiBar({
 
 function GreenChip({ children }: { children: ReactNode }) {
   return (
-    <span className="recap-green-chip flex w-full items-center gap-2 rounded-none bg-[#d97706] px-4 py-2.5 text-[13px] font-bold text-white sm:text-[14px]">
+    <span className="recap-green-chip flex w-full items-center gap-2 rounded-none bg-[#FF7A00] px-4 py-2.5 text-[13px] font-bold text-white sm:text-[14px]">
       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white">
-        <svg className="h-3 w-3 text-[#d97706]" viewBox="0 0 12 10" fill="none" aria-hidden>
+        <svg className="h-3 w-3 text-[#FF7A00]" viewBox="0 0 12 10" fill="none" aria-hidden>
           <path d="M1 5L4 8L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
@@ -189,7 +192,7 @@ function GreenChip({ children }: { children: ReactNode }) {
 }
 
 export function ExecRecap({ userName }: ExecRecapProps) {
-  const { kpi, executionActionHours, episode6Blocks, episode7Choice, episode8CoachingText } = useStore();
+  const { kpi, kpiStartExecution, executionActionHours, episode6Blocks, episode7Choice, episode8CoachingText } = useStore();
 
   const selectedActions = executionActions.filter((a) => (executionActionHours[a.id] ?? 0) > 0);
 
@@ -198,8 +201,7 @@ export function ExecRecap({ userName }: ExecRecapProps) {
     const b1 = ep6Block1Options.find((o) => o.id === episode6Blocks.block1)?.label ?? episode6Blocks.block1;
     const b2Raw = ep6Block2Options.find((o) => o.id === episode6Blocks.block2)?.label ?? episode6Blocks.block2;
     const b3Raw = ep6Block3Options.find((o) => o.id === episode6Blocks.block3)?.label ?? episode6Blocks.block3;
-    const b4 = ep6Block4Options.find((o) => o.id === episode6Blocks.block4)?.headline ?? episode6Blocks.block4;
-    return `${b1} / ${getBlockLabelShort(b2Raw)} / ${getBlockLabelShort(b3Raw)} / ${b4}`;
+    return `${b1} / ${getBlockLabelShort(b2Raw)} / ${getBlockLabelShort(b3Raw)}`;
   })();
 
   const ep7Label =
@@ -275,7 +277,7 @@ export function ExecRecap({ userName }: ExecRecapProps) {
           리더님의 현명한 상황 판단과 코칭 덕분에,
         </p>
         <p className="ep1-scene-reveal m-0 text-[17px] font-medium leading-[2] text-[#374151] sm:text-[18px]" style={revealDelay(3)}>
-          팀원들이 다시 <strong className="font-bold text-[#d97706]">오너십을 발휘하며 아웃풋</strong>을 만들어내고 있습니다.
+          팀원들이 다시 <strong className="font-bold text-[#FF7A00]">오너십을 발휘하며 아웃풋</strong>을 만들어내고 있습니다.
         </p>
       </div>
 
@@ -347,6 +349,7 @@ export function ExecRecap({ userName }: ExecRecapProps) {
                 key={field}
                 label={label}
                 value={kpi[field]}
+                base={kpiStartExecution?.[field] ?? kpi[field]}
                 field={field}
                 Icon={Icon}
                 play={decisionKpiInView}
@@ -363,7 +366,7 @@ export function ExecRecap({ userName }: ExecRecapProps) {
           실행 단계를 무사히 완주하셨습니다!
         </p>
         <p className="ep1-scene-reveal m-0 text-[17px] font-medium leading-[2] text-[#374151] sm:text-[18px]" style={revealDelay(15)}>
-          다음 단계로 넘어가면 <strong className="font-bold text-[#d97706]">선배 PM 노하우</strong>가 이어집니다.
+          다음 단계로 넘어가면 <strong className="font-bold text-[#FF7A00]">선배 PM들의 노하우</strong>가 이어집니다.
         </p>
       </div>
     </section>

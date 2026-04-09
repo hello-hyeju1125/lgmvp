@@ -20,7 +20,7 @@ const KPI_LABELS: Record<keyof KpiState, string> = {
   delivery: "일정 준수",
   teamEngagement: "팀 몰입도",
   stakeholderAlignment: "이해관계자 조율",
-  leaderEnergy: "리더의 에너지",
+  leaderEnergy: "리더 에너지",
 };
 
 function getGrade(avg: number): { grade: string; color: string } {
@@ -32,11 +32,11 @@ function getGrade(avg: number): { grade: string; color: string } {
 
 /* ── Radar Chart (SVG) ── */
 function RadarChart({ values }: { values: number[] }) {
-  const size = 400;
+  const size = 460;
   const cx = size / 2;
   const cy = size / 2;
   const levels = 5;
-  const maxR = 110;
+  const maxR = 120;
 
   const angleStep = (2 * Math.PI) / values.length;
   const startAngle = -Math.PI / 2;
@@ -71,7 +71,7 @@ function RadarChart({ values }: { values: number[] }) {
   };
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto w-full max-w-[400px]">
+    <svg viewBox={`0 0 ${size} ${size}`} className="mx-auto w-full max-w-[460px]" style={{ overflow: "visible" }}>
       {gridLines.map((pts, i) => (
         <polygon key={i} points={pts} fill="none" stroke="#ddd" strokeWidth={1} />
       ))}

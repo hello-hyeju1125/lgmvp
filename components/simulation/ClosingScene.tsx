@@ -38,7 +38,7 @@ const KPI_LABELS: Record<keyof KpiState, string> = {
   delivery: "일정 준수",
   teamEngagement: "팀 몰입도",
   stakeholderAlignment: "이해관계자 조율",
-  leaderEnergy: "리더의 에너지",
+  leaderEnergy: "리더 에너지",
 };
 
 function getGrade(avg: number): { grade: string; color: string; message: string } {
@@ -158,22 +158,26 @@ export function ClosingScene({ userName: _userName }: ClosingSceneProps) {
           <div className="po-anim mx-auto max-w-lg space-y-4" style={revealDelay(1)}>
             <p className="text-center text-[13px] font-extrabold tracking-[0.12em] text-[#111]">{closingResultCopy.intro}</p>
             <div className="space-y-3">
-              {KPI_KEYS.map((key) => (
-                <div key={key} className="flex items-center gap-3">
-                  <span className="w-[110px] shrink-0 text-right text-[14px] font-extrabold text-[#111] sm:w-[130px]">
-                    {KPI_LABELS[key]}
-                  </span>
-                  <div className="h-6 flex-1 overflow-hidden rounded-md" style={{ backgroundColor: "#e8e8e8", border: "1.5px solid #111" }}>
-                    <div
-                      className="h-full rounded-sm transition-all duration-1000 ease-out"
-                      style={{ width: `${animatedValues[key]}%`, backgroundColor: animatedValues[key] >= 70 ? "#64e87a" : animatedValues[key] >= 40 ? "#FFD600" : "#ff6b6b" }}
-                    />
+              {KPI_KEYS.map((key) => {
+                const v = animatedValues[key];
+                const critical = key === "leaderEnergy" ? v <= 20 : v <= 40;
+                return (
+                  <div key={key} className="flex items-center gap-3">
+                    <span className={`w-[110px] shrink-0 text-right text-[14px] font-extrabold sm:w-[130px] ${critical ? "kpi-critical-text" : "text-[#111]"}`}>
+                      {KPI_LABELS[key]}
+                    </span>
+                    <div className={`h-6 flex-1 overflow-hidden rounded-md ${critical ? "kpi-critical-track" : ""}`} style={{ backgroundColor: "#e8e8e8", border: critical ? undefined : "1.5px solid #111" }}>
+                      <div
+                        className={`h-full rounded-sm transition-all duration-1000 ease-out ${critical ? "kpi-critical-bar" : ""}`}
+                        style={{ width: `${v}%`, ...(!critical ? { backgroundColor: v >= 70 ? "#64e87a" : v >= 40 ? "#FFD600" : "#ff6b6b" } : {}) }}
+                      />
+                    </div>
+                    <span className={`w-[42px] shrink-0 font-mono text-[14px] font-extrabold tabular-nums ${critical ? "kpi-critical-text" : "text-[#111]"}`}>
+                      {v}
+                    </span>
                   </div>
-                  <span className="w-[42px] shrink-0 font-mono text-[14px] font-extrabold tabular-nums text-[#111]">
-                    {animatedValues[key]}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

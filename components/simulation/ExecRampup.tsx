@@ -9,8 +9,8 @@ interface ExecRampupProps {
   progressPercent: number;
 }
 
-const AMBER = "#d97706";
-const AMBER_LIGHT = "#f59e0b";
+const AMBER = "#FF7A00";
+const AMBER_LIGHT = "#FFB347";
 const AMBER_SOFT_BG = "rgba(217, 119, 6, 0.08)";
 const AMBER_CARD_BG = "#fffbeb";
 
@@ -100,9 +100,9 @@ function PhaseCard({
         <div
           className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 sm:h-12 sm:w-12 ${
             isDone
-              ? "border-[#d97706] bg-[#d97706]"
+              ? "border-[#FF7A00] bg-[#FF7A00]"
               : isNext
-                ? "border-[#d97706] bg-white exec-rampup-dot-pulse"
+                ? "border-[#FF7A00] bg-white exec-rampup-dot-pulse"
                 : "border-[#d1d5db] bg-white"
           }`}
         >
@@ -110,7 +110,7 @@ function PhaseCard({
             <CheckCircle2 className="h-5 w-5 text-white sm:h-6 sm:w-6" strokeWidth={2.5} />
           ) : (
             <Icon
-              className={`h-5 w-5 sm:h-6 sm:w-6 ${isNext ? "text-[#d97706]" : "text-[#9ca3af]"}`}
+              className={`h-5 w-5 sm:h-6 sm:w-6 ${isNext ? "text-[#FF7A00]" : "text-[#9ca3af]"}`}
             />
           )}
         </div>
@@ -118,7 +118,7 @@ function PhaseCard({
           <div
             className={`mt-0 w-[3px] flex-1 ${
               isDone
-                ? "bg-[#d97706]"
+                ? "bg-[#FF7A00]"
                 : isNext
                   ? "exec-rampup-line-gradient"
                   : "bg-[#e5e7eb]"
@@ -131,20 +131,20 @@ function PhaseCard({
       <div
         className={`mb-4 min-w-0 flex-1 rounded-xl border-2 p-5 transition-all sm:mb-5 sm:p-6 ${
           isDone
-            ? "border-[#d97706]/30 bg-[#fffbeb]"
+            ? "border-[#FF7A00]/30 bg-[#fffbeb]"
             : isNext
-              ? "exec-rampup-next-card border-[#d97706] bg-white shadow-[0_0_24px_rgba(217,119,6,0.12)]"
+              ? "exec-rampup-next-card border-[#FF7A00] bg-white shadow-[0_0_24px_rgba(255,122,0,0.12)]"
               : "border-[#e5e7eb] bg-[#fafafa]"
         }`}
       >
         <div className="mb-2 flex items-center gap-2">
           {isDone && (
-            <span className="exec-rampup-done-badge inline-flex items-center gap-1 rounded-md bg-[#d97706] px-2 py-0.5 text-[11px] font-black tracking-wider text-white sm:text-[12px]">
+            <span className="exec-rampup-done-badge inline-flex items-center gap-1 rounded-md bg-[#FF7A00] px-2 py-0.5 text-[11px] font-black tracking-wider text-white sm:text-[12px]">
               DONE
             </span>
           )}
           {isNext && (
-            <span className="exec-rampup-next-badge inline-flex items-center gap-1 rounded-md border-2 border-[#d97706] bg-[#d97706]/10 px-2 py-0.5 text-[11px] font-black tracking-wider text-[#92400e] sm:text-[12px]">
+            <span className="exec-rampup-next-badge inline-flex items-center gap-1 rounded-md border-2 border-[#FF7A00] bg-[#FF7A00]/10 px-2 py-0.5 text-[11px] font-black tracking-wider text-[#B35500] sm:text-[12px]">
               <ChevronRight className="h-3 w-3" strokeWidth={3} />
               NEXT
             </span>
@@ -157,14 +157,14 @@ function PhaseCard({
         </div>
         <p
           className={`text-[16px] font-extrabold leading-snug sm:text-[18px] ${
-            isDone ? "text-[#92400e]" : isNext ? "text-[#111]" : "text-[#9ca3af]"
+            isDone ? "text-[#B35500]" : isNext ? "text-[#111]" : "text-[#9ca3af]"
           }`}
         >
           {label}
         </p>
         <p
           className={`mt-1.5 text-[14px] font-medium leading-[1.8] sm:text-[15px] ${
-            isDone ? "text-[#92400e]/70" : isNext ? "text-[#555]" : "text-[#bcbcbc]"
+            isDone ? "text-[#B35500]/70" : isNext ? "text-[#555]" : "text-[#bcbcbc]"
           }`}
         >
           {text}
@@ -209,7 +209,7 @@ function ProgressRing({ progress, visible }: { progress: number; visible: boolea
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[38px] font-black tabular-nums text-[#92400e] sm:text-[46px]">
+        <span className="text-[38px] font-black tabular-nums text-[#B35500] sm:text-[46px]">
           {progress}%
         </span>
         <span className="text-[12px] font-bold tracking-wider text-[#6b7280] sm:text-[13px]">
@@ -258,7 +258,7 @@ export function ExecRampup({ userName, progressPercent }: ExecRampupProps) {
           </RevealGroup>
           <RevealGroup visible={hero.visible} delay={STAGGER_MS * 2}>
             <p className="mt-5 text-center text-[30px] font-extrabold leading-snug text-[#111] sm:text-[40px]">
-              {userName}님, <span className="text-[#d97706]">세 번째 관문</span>을 돌파했습니다!
+              {userName}님, <span className="text-[#FF7A00]">세 번째 관문</span>을 돌파했습니다!
             </p>
           </RevealGroup>
           <RevealGroup visible={hero.visible} delay={STAGGER_MS * 3}>
@@ -287,11 +287,11 @@ export function ExecRampup({ userName, progressPercent }: ExecRampupProps) {
           delay={0}
           className="mb-8 flex items-center justify-center gap-3 sm:mb-10"
         >
-          <div className="h-[2px] w-8 bg-[#d97706] sm:w-12" />
+          <div className="h-[2px] w-8 bg-[#FF7A00] sm:w-12" />
           <h3 className="text-center text-[20px] font-extrabold tracking-tight text-[#111] sm:text-[24px]">
             프로젝트 여정 로드맵
           </h3>
-          <div className="h-[2px] w-8 bg-[#d97706] sm:w-12" />
+          <div className="h-[2px] w-8 bg-[#FF7A00] sm:w-12" />
         </RevealGroup>
       </div>
 
@@ -314,9 +314,9 @@ export function ExecRampup({ userName, progressPercent }: ExecRampupProps) {
       {/* Outro CTA section */}
       <div ref={outro.ref}>
         <RevealGroup visible={outro.visible} delay={0}>
-          <div className="mx-auto mt-12 max-w-2xl rounded-2xl border-2 border-[#d97706] bg-gradient-to-br from-[#fffbeb] to-[#fef3c7] px-6 py-8 text-center shadow-[0_4px_32px_rgba(217,119,6,0.10)] sm:mt-16 sm:px-10 sm:py-10">
-            <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#d97706]/10 sm:h-16 sm:w-16">
-              <Rocket className="h-7 w-7 text-[#d97706] sm:h-8 sm:w-8" />
+          <div className="mx-auto mt-12 max-w-2xl rounded-2xl border-2 border-[#FF7A00] bg-gradient-to-br from-[#fffbeb] to-[#fef3c7] px-6 py-8 text-center shadow-[0_4px_32px_rgba(255,122,0,0.10)] sm:mt-16 sm:px-10 sm:py-10">
+            <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#FF7A00]/10 sm:h-16 sm:w-16">
+              <Rocket className="h-7 w-7 text-[#FF7A00] sm:h-8 sm:w-8" />
             </div>
             <div className="space-y-0.5">
               {outroLines.map((line, i) => (
@@ -327,7 +327,7 @@ export function ExecRampup({ userName, progressPercent }: ExecRampupProps) {
                   {line.includes("[감시 및 통제 단계]") ? (
                     <>
                       {line.split("[감시 및 통제 단계]")[0]}
-                      <span className="inline-flex items-center gap-1 rounded-md bg-[#d97706] px-2 py-0.5 font-extrabold text-white">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-[#FF7A00] px-2 py-0.5 font-extrabold text-white">
                         감시 및 통제 단계
                       </span>
                       {line.split("[감시 및 통제 단계]")[1]}

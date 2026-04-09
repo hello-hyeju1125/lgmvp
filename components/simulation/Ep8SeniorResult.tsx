@@ -58,7 +58,7 @@ function PostItCard({
           onClick={onToggleLike}
           aria-pressed={liked}
           aria-label={`${note.nickname} 메모 좋아요`}
-          className={`shrink-0 rounded-md p-1 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
+          className={`flex shrink-0 items-center gap-0.5 rounded-md p-1 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
             liked ? "!text-rose-600" : "text-zinc-400 hover:text-rose-500"
           }`}
         >
@@ -71,6 +71,7 @@ function PostItCard({
               d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
             />
           </svg>
+          <span className="min-w-[1ch] text-[11px] font-bold tabular-nums">{(note.likes ?? 0) + (liked ? 1 : 0)}</span>
         </button>
       </div>
       <p className="flex-1 font-sans text-[13px] font-medium leading-[1.7] text-[#1a1a1a] sm:text-[14px] [overflow-wrap:anywhere] [word-break:keep-all]">
@@ -163,7 +164,7 @@ export function Ep8SeniorResult({}: Ep8SeniorResultProps) {
                               onClick={() => setPage(i)}
                               className={`flex h-8 min-w-[2rem] items-center justify-center rounded-none border-2 font-sans text-[12px] font-extrabold tabular-nums sm:h-9 sm:min-w-[2.25rem] sm:text-[13px] ${
                                 i === safePage
-                                  ? "border-black bg-[#d97706] text-black shadow-[2px_2px_0_#111]"
+                                  ? "border-black bg-[#FF7A00] text-black shadow-[2px_2px_0_#111]"
                                   : "border-black/20 bg-white text-[#111] hover:border-black/40"
                               }`}
                               aria-current={i === safePage ? "page" : undefined}
@@ -193,7 +194,7 @@ export function Ep8SeniorResult({}: Ep8SeniorResultProps) {
                     <Image src="/LG_MVP_chatbot.jpg" alt="챗봇 선배 PM" width={64} height={64} className="h-full w-full object-cover" />
                   </div>
                   <div className="min-w-0">
-                    <span className="ep1-result-feedback-label inline-flex items-center rounded-none bg-[#d97706] px-4 py-1.5 text-[14px] font-extrabold tracking-wide sm:text-[15px]">
+                    <span className="ep1-result-feedback-label inline-flex items-center rounded-none bg-[#FF7A00] px-4 py-1.5 text-[14px] font-extrabold tracking-wide sm:text-[15px]">
                       챗봇 선배 PM의 피드백
                     </span>
                   </div>
@@ -202,11 +203,11 @@ export function Ep8SeniorResult({}: Ep8SeniorResultProps) {
                   <div className="ep1-result-feedback-notch absolute -top-2 left-10 h-4 w-4 rotate-45 bg-white" aria-hidden />
                   <div className="relative space-y-3 text-left text-[15px] leading-[1.9] text-[#333] sm:text-[16px]">
                     <p className="m-0">
-                      고연차 팀원의 도메인 지식은 프로젝트의 <span className="font-bold text-[#d97706]">숨은 자산</span>입니다.
-                      기술 용어를 모두 이해시키려 하기보다, <span className="font-bold text-[#d97706]">현장 경험을 프로젝트의 품질 기준으로 연결</span>해 주는 것이 리더의 역할입니다.
+                      고연차 팀원의 도메인 지식은 프로젝트의 <span className="font-bold text-[#FF7A00]">숨은 자산</span>입니다.
+                      기술 용어를 모두 이해시키려 하기보다, <span className="font-bold text-[#FF7A00]">현장 경험을 프로젝트의 품질 기준으로 연결</span>해 주는 것이 리더의 역할입니다.
                     </p>
                     <p className="m-0">
-                      <span className="font-bold text-[#d97706]">&lsquo;고객 관점 체크&rsquo;</span>라는 명확한 역할을 부여하면,
+                      <span className="font-bold text-[#FF7A00]">&lsquo;고객 관점 체크&rsquo;</span>라는 명확한 역할을 부여하면,
                       시니어는 자신감을 회복하고 팀은 현장 감각을 잃지 않게 됩니다.
                     </p>
                   </div>

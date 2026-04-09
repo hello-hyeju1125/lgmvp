@@ -29,7 +29,7 @@ export default function CompositeEpisodeOptions({
 }: CompositeEpisodeOptionsProps) {
   const [selectedByBlock, setSelectedByBlock] = useState<Record<string, string>>(() =>
     blocks.reduce<Record<string, string>>((acc, block) => {
-      acc[block.id] = block.defaultOptionId ?? block.options[0]?.id ?? "";
+      acc[block.id] = "";
       return acc;
     }, {})
   );
@@ -46,6 +46,9 @@ export default function CompositeEpisodeOptions({
               onChange={(e) => setSelectedByBlock((prev) => ({ ...prev, [block.id]: e.target.value }))}
               className="w-full rounded-lg border border-gray-200 bg-white p-2 text-sm text-black"
             >
+              <option value="" disabled>
+                선택하세요
+              </option>
               {block.options.map((opt) => (
                 <option key={opt.id} value={opt.id}>
                   {opt.label}

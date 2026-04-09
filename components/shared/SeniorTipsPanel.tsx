@@ -15,6 +15,7 @@ export interface PostItNote {
   id: string;
   nickname: string;
   text: string;
+  likes?: number;
 }
 
 interface SeniorTipsPanelProps {
@@ -32,14 +33,14 @@ interface SeniorTipsPanelProps {
 const MAX_POSTITS = 9;
 
 const DEFAULT_NOTES: PostItNote[] = [
-  { id: "s1", nickname: "실전파PM", text: "저도 첫 프로젝트 때 탑다운 목표를 그대로 받아서 팀원들이 3개월 만에 지쳐 나갔어요. 현실화 조율이 진짜 중요합니다." },
-  { id: "s2", nickname: "조율왕", text: "R&R 안 정하고 시작했다가 프로젝트 후반에 서로 '그건 내 일이 아닌데'가 난무했습니다. 킥오프 때 경계 합의 꼭 하세요." },
-  { id: "s3", nickname: "현장밀착러", text: "경영진 기대치 조율할 때 '안 됩니다'가 아니라 '이 범위까지는 확실히 됩니다'로 말하니까 오히려 신뢰를 얻었어요." },
-  { id: "s4", nickname: "7년차리더", text: "스트레치 골 자체가 나쁜 건 아닌데, 리더가 그걸 팀에 어떻게 번역하느냐가 핵심이더라고요. 목표의 현실화가 리더의 역량입니다." },
-  { id: "s5", nickname: "실수에서배운PM", text: "분위기 좋게 넘어가려고 R&R 논의를 미뤘는데, 결국 프로젝트 끝나고 성과 분배에서 큰 갈등이 터졌습니다." },
-  { id: "s6", nickname: "데이터기반리더", text: "착수 단계에서 데이터로 현실 가능한 범위를 보여주니 경영진도 납득하더라고요. 감이 아닌 근거가 설득의 무기입니다." },
-  { id: "s7", nickname: "소통러PM", text: "킥오프 때 팀원 한 명 한 명과 1:1로 역할 기대치를 확인했더니 이후 업무 충돌이 거의 없었습니다." },
-  { id: "s8", nickname: "전략가리더", text: "목표를 세울 때 '왜 이 수치인가'를 팀원들에게 설명할 수 있어야 해요. 납득 없는 목표는 동기부여가 안 됩니다." },
+  { id: "s1", nickname: "실전파PM", text: "저도 첫 프로젝트 때 탑다운 목표를 그대로 받아서 팀원들이 3개월 만에 지쳐 나갔어요. 현실화 조율이 진짜 중요합니다.", likes: 12 },
+  { id: "s2", nickname: "조율왕", text: "R&R 안 정하고 시작했다가 프로젝트 후반에 서로 '그건 내 일이 아닌데'가 난무했습니다. 킥오프 때 경계 합의 꼭 하세요.", likes: 8 },
+  { id: "s3", nickname: "현장밀착러", text: "경영진 기대치 조율할 때 '안 됩니다'가 아니라 '이 범위까지는 확실히 됩니다'로 말하니까 오히려 신뢰를 얻었어요.", likes: 15 },
+  { id: "s4", nickname: "7년차리더", text: "스트레치 골 자체가 나쁜 건 아닌데, 리더가 그걸 팀에 어떻게 번역하느냐가 핵심이더라고요. 목표의 현실화가 리더의 역량입니다.", likes: 6 },
+  { id: "s5", nickname: "실수에서배운PM", text: "분위기 좋게 넘어가려고 R&R 논의를 미뤘는데, 결국 프로젝트 끝나고 성과 분배에서 큰 갈등이 터졌습니다.", likes: 10 },
+  { id: "s6", nickname: "데이터기반리더", text: "착수 단계에서 데이터로 현실 가능한 범위를 보여주니 경영진도 납득하더라고요. 감이 아닌 근거가 설득의 무기입니다.", likes: 9 },
+  { id: "s7", nickname: "소통러PM", text: "킥오프 때 팀원 한 명 한 명과 1:1로 역할 기대치를 확인했더니 이후 업무 충돌이 거의 없었습니다.", likes: 7 },
+  { id: "s8", nickname: "전략가리더", text: "목표를 세울 때 '왜 이 수치인가'를 팀원들에게 설명할 수 있어야 해요. 납득 없는 목표는 동기부여가 안 됩니다.", likes: 11 },
 ];
 
 const POSTIT_COLORS = [
@@ -308,9 +309,10 @@ export default function SeniorTipsPanel({
                         onClick={() => toggleLike(n.id)}
                         aria-pressed={liked}
                         aria-label={`${n.nickname} 좋아요`}
-                        className={`senior-tips-like-btn shrink-0 rounded-md p-1 transition-colors ${liked ? "text-rose-500" : "text-zinc-400 hover:text-rose-400"}`}
+                        className={`senior-tips-like-btn flex shrink-0 items-center gap-0.5 rounded-md p-1 transition-colors ${liked ? "text-rose-500" : "text-zinc-400 hover:text-rose-400"}`}
                       >
                         <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} strokeWidth={2} />
+                        <span className="min-w-[1ch] text-[11px] font-bold tabular-nums">{(n.likes ?? 0) + (liked ? 1 : 0)}</span>
                       </button>
                     </div>
                     <p className="flex-1 font-sans text-[13px] font-medium leading-[1.7] text-[#1a1a1a] sm:text-[14px] [overflow-wrap:anywhere] [word-break:keep-all]">

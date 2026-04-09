@@ -8,6 +8,8 @@ import { KpiGauges } from "@/components/KpiGauges";
 import { SimulationHudMenu, type HudMenuAction } from "@/components/simulation/SimulationHudMenu";
 import { SimulationHudModal } from "@/components/simulation/SimulationHudModal";
 import ProjectOverview from "@/components/onboarding/OnboardingStepProjectOverview";
+import { OnboardingStep2 } from "@/components/onboarding/OnboardingStep2";
+import { OnboardingStep0 } from "@/components/onboarding/OnboardingStep0";
 import { PrevNextNav } from "@/components/common/PrevNextNav";
 import { InitiationAction } from "@/components/simulation/InitiationAction";
 import { InitiationD1Popup } from "@/components/simulation/InitiationD1Popup";
@@ -67,10 +69,9 @@ import { ep2AlignOptions, ep2AlignResults } from "@/content/episode2Align";
 import { ep3Options, getEp3Result } from "@/content/episode3";
 import { ep4Options, getEp4Result } from "@/content/episode4";
 import { ep5Options, getEp5Result } from "@/content/episode5";
-import { ep6Block1Options, ep6Block2Options, ep6Block3Options, ep6Block4Options, getEp6Result } from "@/content/episode6";
+import { ep6Block1Options, ep6Block2Options, ep6Block3Options, getEp6Result } from "@/content/episode6";
 import { ep7Options, getEp7Result } from "@/content/episode7";
 import { ep10Options, getEp10Result } from "@/content/episode10";
-import { teamMembers } from "@/content/team";
 import type { PlacementId } from "@/content/execBoard";
 import { SIM_COLUMN_GUTTER, SIM_COLUMN_MAX_INNER } from "@/lib/simulationLayout";
 import { isExecutionAccentPhase, isMonitoringAccentPhase, isPlanningAccentPhase } from "@/lib/simulationAccent";
@@ -304,16 +305,28 @@ function SimulationContent() {
     setKpiBeforeEp6Result,
     setKpiBeforeEp7Result,
     setKpiBeforeEp10Result,
+    setKpiStartPlanning,
+    setKpiStartExecution,
+    setKpiStartMonitoring,
     committedPhases,
     markCommitted,
     episode1Choice,
+    setEpisode1Choice,
     episode2AlignChoice,
+    setEpisode2AlignChoice,
     episode3Choice,
+    setEpisode3Choice,
     episode4Choice,
+    setEpisode4Choice,
     episode5Choice,
+    setEpisode5Choice,
     episode6Blocks,
+    setEpisode6Blocks,
     episode7Choice,
+    setEpisode7Choice,
     episode10Choice,
+    setEpisode10Choice,
+    setEpisode8CoachingText,
   } = useStore();
   const [initiationConfirmOpen, setInitiationConfirmOpen] = useState(false);
   const [planningConfirmOpen, setPlanningConfirmOpen] = useState(false);
@@ -360,6 +373,54 @@ function SimulationContent() {
   }, [phase]);
 
   useEffect(() => {
+    const { committedPhases: cp, kpiStartPlanning: ksp, kpiStartExecution: kse, kpiStartMonitoring: ksm } = useStore.getState();
+    switch (phase) {
+      case "initiation-action":
+        if (!cp["initiation"]) setInitiationActionHours({});
+        break;
+      case "ep1-scene":
+        if (!cp["ep1"]) setEpisode1Choice(null);
+        break;
+      case "ep2-scene":
+        if (!cp["ep2"]) setEpisode2AlignChoice(null);
+        break;
+      case "plan-action":
+        if (!cp["planning"]) setPlanningActionHours({});
+        if (!ksp) setKpiStartPlanning({ ...useStore.getState().kpi });
+        break;
+      case "ep3-scene":
+        if (!cp["ep3"]) setEpisode3Choice(null);
+        break;
+      case "ep4-scene":
+        if (!cp["ep4"]) setEpisode4Choice(null);
+        break;
+      case "ep5-scene":
+        if (!cp["ep5"]) setEpisode5Choice(null);
+        break;
+      case "exec-action":
+        if (!cp["execution"]) setExecutionActionHours({});
+        if (!kse) setKpiStartExecution({ ...useStore.getState().kpi });
+        break;
+      case "ep6-scene":
+        if (!cp["ep6"]) setEpisode6Blocks(null);
+        break;
+      case "ep7-scene":
+        if (!cp["ep7"]) setEpisode7Choice(null);
+        break;
+      case "ep8-scene":
+      case "ep8-input":
+        setEpisode8CoachingText("");
+        break;
+      case "risk-radar":
+        if (!ksm) setKpiStartMonitoring({ ...useStore.getState().kpi });
+        break;
+      case "ep10-scene":
+        if (!cp["ep10"]) setEpisode10Choice(null);
+        break;
+    }
+  }, [phase, setInitiationActionHours, setEpisode1Choice, setEpisode2AlignChoice, setPlanningActionHours, setEpisode3Choice, setEpisode4Choice, setEpisode5Choice, setExecutionActionHours, setEpisode6Blocks, setEpisode7Choice, setEpisode8CoachingText, setEpisode10Choice, setKpiStartPlanning, setKpiStartExecution, setKpiStartMonitoring]);
+
+  useEffect(() => {
     const raw = searchParams.get("phase");
     if (raw === "ep2-options") {
       router.replace("/simulation?phase=ep2-scene");
@@ -388,19 +449,6 @@ function SimulationContent() {
   const monitoringSeniorTipsFullBleed = phase === "monitoring-senior-tips";
   const planSurvivalFullBleed = phase === "plan-survival";
 
-  const useRecapBackground =
-    phase === "initiation-recap" ||
-    phase === "initiation-senior-tips" ||
-    phase === "initiation-rampup" ||
-    phase === "plan-recap" ||
-    phase === "plan-survival" ||
-    phase === "plan-rampup" ||
-    phase === "exec-recap" ||
-    phase === "exec-senior-tips" ||
-    phase === "exec-rampup" ||
-    phase === "monitoring-recap" ||
-    phase === "monitoring-senior-tips" ||
-    phase === "monitoring-rampup";
 
   const initiationStage = useMemo(() => {
     if (phase !== "initiation-action") return "alloc" as const;
@@ -511,7 +559,7 @@ function SimulationContent() {
     if (!committedPhases["initiation"]) {
       setKpiBeforeInitiation({ ...kpi });
       const delta = getInitiationKpiDelta(hours);
-      applyKpiDelta({ ...delta, leaderEnergy: (delta.leaderEnergy ?? 0) - initiationExceed });
+      applyKpiDelta(delta);
       markCommitted("initiation");
     }
     setInitiationConfirmOpen(false);
@@ -656,11 +704,11 @@ function SimulationContent() {
     setEp6ConfirmOpen(true);
   };
   const commitEp6AndGoNext = () => {
-    const ep6 =
-      episode6Blocks ?? { block1: "B", block2: "E", block3: "D", block4: "B" };
+    if (!episode6Blocks || !episode6Blocks.block1 || !episode6Blocks.block2 || !episode6Blocks.block3) return;
+    const ep6 = episode6Blocks;
     if (!committedPhases["ep6"]) {
       setKpiBeforeEp6Result({ ...kpi });
-      const result = getEp6Result(ep6.block4, ep6.block2);
+      const result = getEp6Result(ep6.block1, ep6.block2, ep6.block3);
       if (result?.kpi) applyKpiDelta(result.kpi);
       markCommitted("ep6");
     }
@@ -668,15 +716,13 @@ function SimulationContent() {
     router.push("/simulation?phase=ep6-result");
   };
   const ep6Selection = useMemo(() => {
-    const b1 = episode6Blocks?.block1 ?? "B";
-    const b2 = episode6Blocks?.block2 ?? "E";
-    const b3 = episode6Blocks?.block3 ?? "D";
-    const b4 = episode6Blocks?.block4 ?? "B";
+    const b1 = episode6Blocks?.block1 ?? "";
+    const b2 = episode6Blocks?.block2 ?? "";
+    const b3 = episode6Blocks?.block3 ?? "";
     return {
       b1: ep6Block1Options.find((o) => o.id === b1)?.label ?? "",
       b2: ep6Block2Options.find((o) => o.id === b2)?.label ?? "",
       b3: ep6Block3Options.find((o) => o.id === b3)?.label ?? "",
-      b4: ep6Block4Options.find((o) => o.id === b4)?.label ?? "",
     };
   }, [episode6Blocks]);
   const handleEp7Next = () => {
@@ -729,6 +775,18 @@ function SimulationContent() {
   const executionAccentPhase = isExecutionAccentPhase(phase);
   const monitoringAccentPhase = isMonitoringAccentPhase(phase);
 
+  const isRampup = phase.endsWith("-rampup");
+
+  const phaseTintBg = isRampup
+    ? "bg-white"
+    : monitoringAccentPhase
+      ? "bg-[#fef5f5]"
+      : executionAccentPhase
+        ? "bg-[#fff9f3]"
+        : planningAccentPhase
+          ? "bg-[#f1f4f9]"
+          : "bg-[#f4fef6]";
+
   /** 선배 노하우 전용 화면 — 상단 Stepper·KPI 헤더 숨김 (closing과 동일 UX) */
   const showSimulationHeader =
     phase !== "closing-scene" &&
@@ -750,11 +808,7 @@ function SimulationContent() {
                 ? "monitoring-senior-tips-fullbleed"
                 : planSurvivalFullBleed
                   ? "plan-survival-fullbleed"
-                  : useRecapBackground
-                    ? "bg-white"
-                    : grayHudChrome
-                      ? "bg-[#F6F7F9]"
-                      : "bg-white"
+                  : phaseTintBg
       } simulation-flat ${grayHudChrome ? "initiation-action-phase" : ""} ${planningAccentPhase ? "planning-accent-phase" : ""} ${executionAccentPhase ? "execution-accent-phase" : ""} ${monitoringAccentPhase ? "monitoring-accent-phase" : ""}`}
     >
       {showSimulationHeader && (
@@ -1047,7 +1101,6 @@ function SimulationContent() {
                   <li><span className="font-extrabold text-black/85">소통 대상</span> · {ep6Selection.b1}</li>
                   <li><span className="font-extrabold text-black/85">소통 채널</span> · {ep6Selection.b2}</li>
                   <li><span className="font-extrabold text-black/85">소통 톤</span> · {ep6Selection.b3}</li>
-                  <li><span className="font-extrabold text-black/85">소통 내용</span> · {ep6Selection.b4}</li>
                 </ul>
               </div>
               <p>이 조합으로 결과를 확인하시겠습니까?</p>
@@ -1151,23 +1204,13 @@ function SimulationContent() {
       <SimulationHudModal
         open={pmInfoModalOpen}
         onClose={() => setPmInfoModalOpen(false)}
-        title="프로젝트 매니지먼트 기타 정보"
+        title="튜토리얼"
         titleId="hud-pm-info-title"
-        size="md"
+        size="2xl"
+        bodyClassName="p-0 sm:p-0"
       >
-        <div className="space-y-4 font-sans text-[14px] leading-relaxed text-black/80">
-          <p>
-            본 시뮬레이션은 PMI PMBOK 가이드의 프로세스 그룹(착수·기획·실행·감시·통제·종료)을 바탕으로, PM이 현장에서 겪는 판단과
-            트레이드오프를 연습할 수 있도록 구성되어 있습니다.
-          </p>
-          <p>
-            상단 KPI(이해관계자 조율, 일정 준수, 팀 몰입도, 산출물 품질, 리더 에너지)는 선택과 진행에 따라 변하며, 각 에피소드의 피드백과
-            연결됩니다.
-          </p>
-          <ul className="space-y-2 border-l-2 border-[#64e87a] pl-4 text-black/75">
-            <li>메뉴의 「프로젝트 개요」에서 과제 배경·목적·KPI 정의를 다시 확인할 수 있습니다.</li>
-            <li>「주요 인물 정보」에서 팀·이해관계자 프로필을 열람할 수 있습니다.</li>
-          </ul>
+        <div className="max-h-[min(80vh,860px)] min-h-0 overflow-y-auto">
+          <OnboardingStep0 onNext={() => setPmInfoModalOpen(false)} />
         </div>
       </SimulationHudModal>
 
@@ -1176,10 +1219,10 @@ function SimulationContent() {
         onClose={() => setProjectOverviewModalOpen(false)}
         title="프로젝트 개요"
         titleId="hud-project-overview-title"
-        size="xl"
+        size="2xl"
         bodyClassName="p-0 sm:p-0"
       >
-        <div className="max-h-[min(75vh,780px)] min-h-0 overflow-y-auto">
+        <div className="max-h-[min(80vh,860px)] min-h-0 overflow-y-auto">
           <ProjectOverview />
         </div>
       </SimulationHudModal>
@@ -1189,22 +1232,11 @@ function SimulationContent() {
         onClose={() => setMembersModalOpen(false)}
         title="주요 인물 정보"
         titleId="hud-members-title"
-        size="lg"
+        size="2xl"
+        bodyClassName="p-0 sm:p-0"
       >
-        <div className="space-y-3">
-          {teamMembers.map((member) => (
-            <div
-              key={member.id}
-              className="rounded-xl border-2 border-black bg-white p-4 shadow-[4px_4px_0_#111111]"
-            >
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <p className="text-[16px] font-extrabold text-black">{member.name}</p>
-                <p className="text-[13px] font-bold text-black/60">{member.role}</p>
-              </div>
-              <p className="mt-2 text-[13px] text-black/70">{member.position}</p>
-              <p className="mt-1 text-[13px] leading-relaxed text-black/65">{member.description}</p>
-            </div>
-          ))}
+        <div className="max-h-[min(80vh,860px)] min-h-0 overflow-y-auto">
+          <OnboardingStep2 onNext={() => setMembersModalOpen(false)} userName={userName} />
         </div>
       </SimulationHudModal>
       {phase !== "closing-scene" && <PrevNextNav
@@ -1271,7 +1303,7 @@ function SimulationContent() {
                 .map((a) => (
                   <span
                     key={a.id}
-                    className="initiation-footer-chip-green inline-flex max-w-[9.5rem] shrink-0 items-center gap-1 rounded-[8px] border-2 border-black bg-[#d97706] px-2 py-1.5 font-sans text-[10px] font-extrabold leading-tight text-black shadow-[2px_2px_0_#111111] sm:max-w-[11rem] sm:text-[11px]"
+                    className="initiation-footer-chip-green inline-flex max-w-[9.5rem] shrink-0 items-center gap-1 rounded-[8px] border-2 border-black bg-[#FF7A00] px-2 py-1.5 font-sans text-[10px] font-extrabold leading-tight text-black shadow-[2px_2px_0_#111111] sm:max-w-[11rem] sm:text-[11px]"
                   >
                     <span aria-hidden className="neo-no-bg shrink-0 text-white">
                       ✓
@@ -1296,6 +1328,7 @@ function SimulationContent() {
           (phase === "ep3-scene" && !episode3Choice) ||
           (phase === "ep4-scene" && !episode4Choice) ||
           (phase === "ep5-scene" && !episode5Choice) ||
+          (phase === "ep6-scene" && (!episode6Blocks || !episode6Blocks.block1 || !episode6Blocks.block2 || !episode6Blocks.block3)) ||
           (phase === "ep7-scene" && !episode7Choice) ||
           (phase === "ep10-scene" && !episode10Choice) ||
           (phase === "exec-action" && executionSelectedCount !== EXEC_ACTION_MAX_SELECTED)

@@ -18,7 +18,7 @@ const KPI_LABELS: Record<keyof KpiState, string> = {
   delivery: "일정 준수",
   teamEngagement: "팀 몰입도",
   stakeholderAlignment: "이해관계자 조율",
-  leaderEnergy: "리더의 에너지",
+  leaderEnergy: "리더 에너지",
 };
 
 interface ClosingResultProps {

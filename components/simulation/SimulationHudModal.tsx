@@ -9,8 +9,8 @@ type Props = {
   title: string;
   titleId: string;
   children: React.ReactNode;
-  /** md: 기본, lg: 넓은 본문, xl: 프로젝트 개요 등 */
-  size?: "md" | "lg" | "xl";
+  /** md: 기본, lg: 넓은 본문, xl: 프로젝트 개요 등, 2xl: 최대 */
+  size?: "md" | "lg" | "xl" | "2xl";
   /** 본문 영역 패딩 (프로젝트 개요 등 풀블리드 콘텐츠는 p-0) */
   bodyClassName?: string;
 };
@@ -18,7 +18,8 @@ type Props = {
 const maxW: Record<NonNullable<Props["size"]>, string> = {
   md: "max-w-lg",
   lg: "max-w-2xl",
-  xl: "max-w-4xl",
+  xl: "max-w-5xl",
+  "2xl": "max-w-6xl",
 };
 
 /**

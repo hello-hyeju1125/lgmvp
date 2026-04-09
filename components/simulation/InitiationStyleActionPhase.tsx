@@ -350,6 +350,29 @@ export function InitiationStyleActionPhase({
               </button>
             );
           })}
+          {actionsPageSize && totalActionPages > 1 ? (
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-3 sm:justify-between">
+              <button
+                type="button"
+                disabled={actionsPageIndex <= 0}
+                onClick={() => setActionsPageIndex((p) => Math.max(0, p - 1))}
+                className="inline-flex min-h-[44px] min-w-[100px] items-center justify-center rounded-xl border-2 border-black bg-white px-4 py-2 font-sans text-[14px] font-extrabold text-black shadow-[3px_3px_0_#111] transition hover:bg-[#f8f9fa] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+              >
+                ← 이전 {actionsPageSize}개
+              </button>
+              <p className="font-sans text-[13px] font-extrabold tabular-nums text-black/70" aria-live="polite">
+                액션 {actionsPageIndex * actionsPageSize + 1}–{Math.min((actionsPageIndex + 1) * actionsPageSize, actions.length)} / 전체 {actions.length}
+              </p>
+              <button
+                type="button"
+                disabled={actionsPageIndex >= totalActionPages - 1}
+                onClick={() => setActionsPageIndex((p) => Math.min(totalActionPages - 1, p + 1))}
+                className="inline-flex min-h-[44px] min-w-[100px] items-center justify-center rounded-xl border-2 border-black bg-white px-4 py-2 font-sans text-[14px] font-extrabold text-black shadow-[3px_3px_0_#111] transition hover:bg-[#f8f9fa] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+              >
+                다음 {actionsPageSize}개 →
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

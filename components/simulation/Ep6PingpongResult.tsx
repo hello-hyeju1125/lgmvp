@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import Image from "next/image";
 import { useStore } from "@/store/useStore";
 import { getEp6Result, ep6Scene } from "@/content/episode6";
+import { KpiTrendPill, sortKpiLabels } from "@/components/shared/KpiTrendPill";
 
 interface Ep6PingpongResultProps {
   userName: string;
@@ -52,33 +53,14 @@ function renderFeedbackMarkdown(paragraph: string): ReactNode {
   const parts = paragraph.split(/\*\*(.+?)\*\*/g);
   return parts.map((p, i) =>
     i % 2 === 1 ? (
-      <span key={i} className="font-bold text-[#1A73E8]">{p}</span>
+      <span key={i} className="font-bold" style={{ color: "var(--sim-accent)" }}>{p}</span>
     ) : (
       p
     ),
   );
 }
 
-function KpiTrendPill({ label }: { label: string }) {
-  const isUp = /▲/.test(label);
-  const display = label.replace(/▼▼▼|▼▼|▼|▲▲▲|▲▲|▲/g, "").trim();
-  if (isUp) {
-    return (
-      <div className="inline-flex items-center gap-2 rounded-[20px] border-0 bg-[#fff7ed] px-5 py-2.5" role="status">
-        <span className="text-[15px] font-bold text-[#d97706] sm:text-[16px]">{display}</span>
-        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M8 13V6M5 8.5L8 5.5 11 8.5" stroke="#d97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      </div>
-    );
-  }
-  return (
-    <div className="inline-flex items-center gap-2 rounded-[20px] border-0 bg-[#FFF5F5] px-5 py-2.5" role="status">
-      <span className="text-[15px] font-bold text-[#FF4444] sm:text-[16px]">{display}</span>
-      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M8 3v7M5 7.5L8 10.5 11 7.5" stroke="#FF4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-    </div>
-  );
-}
-
-function FeedbackPanel({ text }: { text: string }) {
+function FeedbackPanel({ paragraphs }: { paragraphs: string[] }) {
   return (
     <div className="ep1-result-feedback-panel border-0 bg-[#F7FBFF] px-6 pb-8 pt-7 sm:px-8 sm:pb-9 sm:pt-8">
       <div className="mb-5 flex items-center gap-3 sm:mb-6">
@@ -86,13 +68,15 @@ function FeedbackPanel({ text }: { text: string }) {
           <Image src="/LG_MVP_chatbot.jpg" alt="챗봇 선배 PM" width={64} height={64} className="h-full w-full object-cover" />
         </div>
         <div className="min-w-0">
-          <span className="ep1-result-feedback-label inline-flex items-center rounded-none bg-[#d97706] px-4 py-1.5 text-[14px] font-extrabold tracking-wide sm:text-[15px]">챗봇 선배 PM의 피드백</span>
+          <span className="ep1-result-feedback-label inline-flex items-center rounded-none bg-[#FF7A00] px-4 py-1.5 text-[14px] font-extrabold tracking-wide sm:text-[15px]">챗봇 선배 PM의 피드백</span>
         </div>
       </div>
       <div className="ep1-result-feedback-bubble relative rounded-2xl bg-white px-5 py-5 sm:px-6 sm:py-6">
         <div className="ep1-result-feedback-notch absolute -top-2 left-10 h-4 w-4 rotate-45 bg-white" aria-hidden />
         <div className="relative space-y-3 text-left text-[15px] leading-[1.9] text-[#333] sm:text-[16px]">
-          <p className="m-0">{renderFeedbackMarkdown(text)}</p>
+          {paragraphs.map((p, i) => (
+            <p key={i} className="m-0">{renderFeedbackMarkdown(p)}</p>
+          ))}
         </div>
       </div>
     </div>
@@ -109,8 +93,8 @@ function NarrationBox({ markdown }: { markdown: string }) {
 
 export function Ep6PingpongResult({ userName: _userName }: Ep6PingpongResultProps) {
   const { episode6Blocks } = useStore();
-  const b = episode6Blocks ?? { block1: "B", block2: "E", block3: "D", block4: "B" };
-  const result = getEp6Result(b.block4, b.block2);
+  const b = episode6Blocks ?? { block1: "B", block2: "E", block3: "D", block4: "" };
+  const result = getEp6Result(b.block1, b.block2, b.block3);
   const episodeTitle = ep6Scene.title;
 
   return (
@@ -155,13 +139,13 @@ export function Ep6PingpongResult({ userName: _userName }: Ep6PingpongResultProp
 
           {result.kpiLabels.length ? (
             <div className="flex flex-wrap justify-center gap-3 border-t-0 bg-white px-6 pb-6 pt-4 sm:px-8">
-              {result.kpiLabels.map((label) => (
+              {sortKpiLabels(result.kpiLabels).map((label) => (
                 <KpiTrendPill key={label} label={label} />
               ))}
             </div>
           ) : null}
 
-          <FeedbackPanel text={result.advice} />
+          <FeedbackPanel paragraphs={result.adviceParagraphs} />
         </div>
       </div>
     </section>

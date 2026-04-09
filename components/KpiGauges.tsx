@@ -5,7 +5,15 @@ import { SIM_COLUMN_GUTTER, SIM_COLUMN_MAX_INNER } from "@/lib/simulationLayout"
 import { useStore } from "@/store/useStore";
 import type { KpiState } from "@/store/useStore";
 import type { LucideIcon } from "lucide-react";
-import { Calendar, FileText, Sparkles, Users, UsersRound } from "lucide-react";
+import { AlertTriangle, Calendar, FileText, Sparkles, Users, UsersRound } from "lucide-react";
+
+const KPI_CRITICAL_THRESHOLD = 40;
+const ENERGY_CRITICAL_THRESHOLD = 20;
+
+function isCritical(field: string, value: number): boolean {
+  const threshold = field === "leaderEnergy" ? ENERGY_CRITICAL_THRESHOLD : KPI_CRITICAL_THRESHOLD;
+  return value <= threshold;
+}
 
 const KPI_ROWS: {
   field: keyof Pick<KpiState, "quality" | "delivery" | "teamEngagement" | "stakeholderAlignment" | "leaderEnergy">;
@@ -14,10 +22,10 @@ const KPI_ROWS: {
   help: string;
 }[] = [
   {
-    field: "stakeholderAlignment",
-    label: "이해관계자 조율",
-    Icon: UsersRound,
-    help: "유관부서·임원진의 협조와 프로젝트 지지도 수준을 의미합니다.",
+    field: "quality",
+    label: "산출물 품질",
+    Icon: FileText,
+    help: "결과물의 완성도와 실효성을 나타내는 품질 지표입니다.",
   },
   {
     field: "delivery",
@@ -32,10 +40,10 @@ const KPI_ROWS: {
     help: "팀원들이 목표에 자발적으로 참여하고 협업에 몰입하는 수준입니다.",
   },
   {
-    field: "quality",
-    label: "산출물 품질",
-    Icon: FileText,
-    help: "결과물의 완성도와 실효성을 나타내는 품질 지표입니다.",
+    field: "stakeholderAlignment",
+    label: "이해관계자 조율",
+    Icon: UsersRound,
+    help: "유관부서·임원진의 협조와 프로젝트 지지도 수준을 의미합니다.",
   },
   {
     field: "leaderEnergy",
@@ -43,7 +51,7 @@ const KPI_ROWS: {
     Icon: Sparkles,
     help: "리더가 의사결정과 실행을 지속할 수 있는 한정 자원입니다.",
   },
-];
+] as const;
 
 function clampPct(n: number) {
   return Math.max(0, Math.min(100, n));
@@ -183,7 +191,7 @@ export function KpiGauges({ phase }: KpiGaugesProps) {
           const deltaBadge =
             playAnim && meta ? (
               <span
-                className={`kpi-delta-badge kpi-delta-badge--anim inline-flex shrink-0 items-center rounded-md px-1.5 py-0.5 font-mono text-[11px] font-black tabular-nums leading-none sm:text-[12px] ${
+                className={`kpi-delta-badge kpi-delta-badge--anim inline-flex shrink-0 items-center rounded-md px-2 py-1 font-mono text-[13px] font-black tabular-nums leading-none sm:text-[14px] ${
                   meta.deltaPts > 0
                     ? "kpi-delta-badge--up"
                     : meta.deltaPts < 0
@@ -203,24 +211,32 @@ export function KpiGauges({ phase }: KpiGaugesProps) {
               </span>
             ) : null;
 
+          const critical = isCritical(field, value);
+
           return (
             <div key={field} className="group relative min-w-0">
               <div className="mb-1.5 flex min-w-0 items-center justify-between gap-1">
                 <div className="flex min-w-0 items-center gap-1.5">
-                  <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-[#111]" aria-hidden>
-                    <Icon className="h-[18px] w-[18px]" strokeWidth={2.25} />
-                  </span>
-                  <span className="truncate font-sans text-[12px] font-bold leading-tight text-black sm:text-[13px]">{label}</span>
+                  {critical ? (
+                    <span className="kpi-critical-icon inline-flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
+                      <AlertTriangle className="h-[18px] w-[18px]" strokeWidth={2.5} />
+                    </span>
+                  ) : (
+                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-[#111]" aria-hidden>
+                      <Icon className="h-[18px] w-[18px]" strokeWidth={2.25} />
+                    </span>
+                  )}
+                  <span className={`truncate font-sans text-[12px] font-bold leading-tight sm:text-[13px] ${critical ? "kpi-critical-text" : "text-black"}`}>{label}</span>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
                   {deltaBadge}
-                  <span className="whitespace-nowrap font-mono text-[12px] font-extrabold tabular-nums text-black sm:text-[13px]">
+                  <span className={`whitespace-nowrap font-mono text-[12px] font-extrabold tabular-nums sm:text-[13px] ${critical ? "kpi-critical-text" : "text-black"}`}>
                     {Math.round(value)}%
                   </span>
                 </div>
               </div>
-              <div className="kpi-bar-track w-full overflow-hidden">
-                <div className={barClass} style={animStyle} />
+              <div className={`kpi-bar-track w-full overflow-hidden ${critical ? "kpi-critical-track" : ""}`}>
+                <div className={`${barClass} ${critical && !playAnim ? "kpi-critical-bar" : ""}`} style={animStyle} />
               </div>
               <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 w-max min-w-[120px] -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                 <div className="sim-hud-tooltip min-w-[220px] max-w-[260px] px-2.5 py-2 text-left font-sans text-[11px] font-semibold text-white">

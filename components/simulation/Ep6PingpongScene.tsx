@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useStore } from "@/store/useStore";
 import type { Episode6Block } from "@/store/useStore";
 import {
@@ -9,7 +8,6 @@ import {
   ep6Block1Options,
   ep6Block2Options,
   ep6Block3Options,
-  ep6Block4Options,
 } from "@/content/episode6";
 import type { Ep6BoardComment, Ep6BlockOption } from "@/content/episode6";
 import Image from "next/image";
@@ -20,11 +18,11 @@ function ep6RevealDelay(step: number): CSSProperties {
   return { animationDelay: `${step * EP6_REVEAL_STAGGER_MS}ms` };
 }
 
-const EP6_DEFAULT_BLOCKS: Episode6Block = {
-  block1: "B",
-  block2: "E",
-  block3: "D",
-  block4: "B",
+const EP6_EMPTY_BLOCKS: Episode6Block = {
+  block1: "",
+  block2: "",
+  block3: "",
+  block4: "",
 };
 
 /** 블록 단계 라벨 — 한 줄로 읽히게, 세로 공간 최소화 */
@@ -33,7 +31,7 @@ function Ep6BlockStepBar({
   children,
   style,
 }: {
-  blockNum: 1 | 2 | 3 | 4;
+  blockNum: 1 | 2 | 3;
   children: ReactNode;
   style: CSSProperties;
 }) {
@@ -81,14 +79,14 @@ function Ep6BlockPickList({
               style={ep6RevealDelay(firstRowDelayStep + idx)}
               className={`ep1-scene-reveal flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors sm:gap-3.5 sm:px-3.5 sm:py-3 ${
                 selected
-                  ? "!bg-[#fff7ed] ring-2 ring-inset ring-[#d97706]"
+                  ? "!bg-[#fff7ed] ring-2 ring-inset ring-[#FF7A00]"
                   : "hover:bg-slate-50 active:bg-slate-100/90"
               } focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-black`}
               onClick={() => onSelect(o.id)}
             >
               <span
                 className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-black/10 font-sans text-[12px] font-black tabular-nums sm:h-9 sm:w-9 sm:text-[14px] ${
-                  selected ? "!bg-[#d97706] !text-black" : "bg-zinc-900 !text-[#ffffff]"
+                  selected ? "!bg-[#FF7A00] !text-black" : "bg-zinc-900 !text-[#ffffff]"
                 }`}
                 aria-hidden
               >
@@ -106,7 +104,7 @@ function Ep6BlockPickList({
               </span>
               <span
                 className={`mt-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-black/20 sm:mt-2.5 ${
-                  selected ? "!border-black !bg-[#d97706]" : "border-zinc-300 bg-white"
+                  selected ? "!border-black !bg-[#FF7A00]" : "border-zinc-300 bg-white"
                 }`}
                 aria-hidden
               >
@@ -124,7 +122,7 @@ function renderDialogueBold(paragraph: string): ReactNode {
   const parts = paragraph.split(/\*\*(.+?)\*\*/g);
   return parts.map((p, i) =>
     i % 2 === 1 ? (
-      <strong key={i} className="font-bold !text-[#d97706]">
+      <strong key={i} className="font-bold !text-[#FF7A00]">
         {p}
       </strong>
     ) : (
@@ -173,16 +171,10 @@ export function Ep6PingpongScene({ userName }: Ep6PingpongSceneProps) {
   const { nickname, episode6Blocks, setEpisode6Blocks } = useStore();
   const displayName = nickname || userName || "PM";
 
-  useEffect(() => {
-    if (episode6Blocks === null) {
-      setEpisode6Blocks({ ...EP6_DEFAULT_BLOCKS });
-    }
-  }, [episode6Blocks, setEpisode6Blocks]);
-
-  const b = episode6Blocks ?? EP6_DEFAULT_BLOCKS;
+  const b = episode6Blocks ?? EP6_EMPTY_BLOCKS;
 
   const patch = (partial: Partial<Episode6Block>) => {
-    setEpisode6Blocks({ ...(episode6Blocks ?? EP6_DEFAULT_BLOCKS), ...partial });
+    setEpisode6Blocks({ ...(episode6Blocks ?? EP6_EMPTY_BLOCKS), ...partial });
   };
 
   const boardThread = ep6BoardComments.map((c) => ({
@@ -269,10 +261,10 @@ export function Ep6PingpongScene({ userName }: Ep6PingpongSceneProps) {
           style={ep6RevealDelay(5)}
         >
           <p className="max-lg:whitespace-normal lg:whitespace-nowrap">
-            누구에게, 어디서, 어떤 톤으로, 무엇을 전달할지 네 가지 블록을 각각 하나씩 고르세요.
+            누구에게, 어디서, 어떤 톤으로 전달할지 세 가지 블록을 각각 하나씩 고르세요.
           </p>
           <p className="max-lg:whitespace-normal lg:whitespace-nowrap">
-            <span className="font-bold !text-[#d97706]">조합을 마친 뒤 다음을 눌러 결과를 확인합니다.</span>
+            <span className="font-bold !text-[#FF7A00]">조합을 마친 뒤 다음을 눌러 결과를 확인합니다.</span>
           </p>
         </div>
       </div>
@@ -320,19 +312,6 @@ export function Ep6PingpongScene({ userName }: Ep6PingpongSceneProps) {
           />
         </div>
 
-        {/* 블록 4 */}
-        <div className="space-y-2 pt-1">
-          <Ep6BlockStepBar blockNum={4} style={ep6RevealDelay(24)}>
-            소통 내용 — 핵심 지시·요청 사항은 무엇입니까?
-          </Ep6BlockStepBar>
-          <Ep6BlockPickList
-            legend="블록 4"
-            options={ep6Block4Options}
-            selectedId={b.block4}
-            onSelect={(id) => patch({ block4: id })}
-            firstRowDelayStep={25}
-          />
-        </div>
       </div>
     </section>
   );
