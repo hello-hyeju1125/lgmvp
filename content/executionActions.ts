@@ -134,7 +134,7 @@ export function getExecutionKpiDelta(
   const h = (id: string) => Math.min(25, Math.max(0, hoursByAction[id] ?? 0));
   delta.quality += Math.round(h("voc_data") * 0.4);
   delta.stakeholderAlignment += Math.round(h("voc_data") * 0.4);
-  delta.quality += Math.round(h("ref_benchmark") * 0.8);
+  delta.quality += Math.round(h("ref_benchmark") * 0.75);
   delta.delivery += Math.round(h("ai_study") * 0.5);
   delta.delivery += Math.round(h("daily_scrum") * 0.3);
   delta.teamEngagement += Math.round(h("daily_scrum") * 0.3);
@@ -146,5 +146,8 @@ export function getExecutionKpiDelta(
   delta.quality += Math.round(h("peer_review") * 0.4);
   delta.delivery -= Math.round(h("peer_review") * 0.2);
   delta.delivery += Math.round(h("bottleneck_hotline") * 0.5);
+  // 선택된 카드 1개당 리더 에너지 -5
+  const selectedCount = Object.values(hoursByAction).filter((v) => (v ?? 0) > 0).length;
+  delta.leaderEnergy -= selectedCount * 2;
   return delta;
 }

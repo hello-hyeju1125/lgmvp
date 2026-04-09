@@ -5,9 +5,9 @@ export const SIM_ACCENT_GREEN_END = "#76d789";
 export const SIM_ACCENT_PLANNING_NAVY = "#1e3a5f";
 export const SIM_ACCENT_PLANNING_NAVY_END = "#2d5684";
 
-/** 실행(3단계) 전용 앰버 — 네온 그린 대체 */
-export const SIM_ACCENT_EXECUTION_AMBER = "#d97706";
-export const SIM_ACCENT_EXECUTION_AMBER_END = "#ea580c";
+/** 실행(3단계) 전용 네온 오렌지 — 네온 그린 대체 */
+export const SIM_ACCENT_EXECUTION_AMBER = "#FF7A00";
+export const SIM_ACCENT_EXECUTION_AMBER_END = "#FF5500";
 
 const EXECUTION_ACCENT_PHASES = new Set([
   "exec-action",

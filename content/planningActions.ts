@@ -40,7 +40,7 @@ export const planningActions: PlanningActionItem[] = [
     id: "resource_assign",
     title: "비상주 핵심 인원(인프라보안) 리소스 공식 할당받기",
     description:
-      "일주일에 한두 번만 참여하는 비상주 인원(정태영 책임)의 소속 부서 팀장에게 공식 메일을 보내고 찾아갑니다. 우리 프로젝트의 전사적 중요성을 어필하고, 매주 특정 요일만큼은 반드시 우리 업무에 리소스를 할당하겠다는 확답을 받아냅니다.",
+      "일주일에 한두 번만 참여하는 비상주 인원(정태영 책임)의 소속 부서 팀장에게 공식 메일을 보내고 찾아갑니다. 우리 프로젝트의 전사적 중요성을 어필하고, 매주 특정 요일만큼은 반드시 우리 업무에 리소스를 할당하겠다는 확답을 받습니다.",
     pmbok:
       "[자원 관리 (Resource Management)] 매트릭스 조직에서 타 부서의 인적 자원을 확보(Acquire Resources)하고 협상을 통해 물리적 리소스 제약을 돌파하는 스킬을 습득했습니다.",
     effect: ["이해관계자 조율 상승", "일정 준수 대폭 상승"],
@@ -49,27 +49,27 @@ export const planningActions: PlanningActionItem[] = [
     id: "it_security_study",
     title: "IT 아키텍처 및 데이터 보안 규정(Blocker) 사전 스터디",
     description:
-      "사내 IT 아키텍처 가이드라인 및 데이터 보안 규정 문서를 정독합니다. 클라우드 연동이나 외부 망 반출 시 실행 단계에서 개발의 발목을 잡을 수 있는 치명적인 '블로커' 요인들을 사전에 식별하고 우회로를 고민합니다.",
+      "사내 IT 아키텍처 가이드라인 및 데이터 보안 규정 문서를 정독합니다. 실행 단계에서 클라우드 연동이나 외부 망 반출 시 개발의 발목을 잡을 수 있는 '블로커' 요인들을 사전 식별하고 우회로를 고민합니다.",
     pmbok:
       "[리스크 관리 (Risk Management)] 프로젝트에 부정적 영향을 미칠 수 있는 기술적/규제적 리스크를 조기에 식별(Identify Risks)하고, 대응 전략을 수립하는 프레임워크를 장착했습니다.",
     effect: ["산출물 품질 상승"],
   },
   {
     id: "comm_rule",
-    title: "비상주 팀원 커뮤니케이션 룰(Rule) 셋팅",
+    title: "비상주 팀원 커뮤니케이션 룰 세팅",
     description:
-      "물리적 시차가 있는 Sarah Lee(북미 마케팅) 및 타 부서 상주 인원들과 화상 미팅을 잡습니다. 업무 지시는 이메일로, 긴급 논의는 사내 메신저로 하는 등 툴 사용 목적을 통일하고, 명확한 응답 기준 시간을 사전에 합의하여 사일로를 방지합니다.",
+      "비상주 팀원인 Sarah Lee(북미 마케팅), 정태영 책임과 화상 미팅을 잡습니다. 업무 지시는 이메일로, 긴급 논의는 사내 메신저로 하는 등 툴 사용 목적을 통일하고, 명확한 응답 기준 시간을 사전에 합의하여 커뮤니케이션 비효율을 방지합니다.",
     pmbok:
       "[의사소통 관리 (Communications Management)] 다양한 이해관계자의 정보 요구사항을 분석하고, 가장 효과적인 소통 채널과 주기를 설계하는 의사소통 계획 수립 능력을 길렀습니다.",
     effect: ["팀 몰입도 상승", "이해관계자 조율 상승"],
   },
   {
     id: "lessons_learned",
-    title: "과거 실패 사례(Lessons Learned) 및 리스크 체크리스트 분석",
+    title: "과거 실패 사례(Lessons-learned) 및 리스크 체크리스트 분석",
     description:
-      "과거 사내에서 실패했던 유사한 DX 프로젝트의 사후 분석 보고서를 찾아 실패의 근본 원인을 파악합니다. 본인이 과거에 썼던 '비행 전 체크리스트'를 이번 프로젝트 버전에 맞게 수정하여 돌발 변수에 대비합니다.",
+      "과거 사내에서 실패했던 유사한 DX 프로젝트의 사후 분석 보고서를 찾아 실패의 근본 원인을 파악합니다. 본인이 과거에 썼던 '리스크 체크리스트'를 이번 프로젝트 버전에 맞게 수정하여 돌발 변수에 대비합니다.",
     pmbok:
-      "[OPA(Organizational Process Assets, 조직 프로세스 자산화) 활용 및 지식 관리] 과거의 실패와 성공 경험(Lessons Learned)을 현재 프로젝트의 자산으로 통합하여, 반복되는 실수를 방지하는 관리 역량을 강화했습니다.",
+      "[OPA(Organizational Process Assets, 조직 프로세스 자산) 활용 및 지식 관리] 과거의 실패와 성공 경험을 현재 프로젝트의 자산으로 통합하여, 반복되는 실수를 방지하는 관리 역량을 강화했습니다.",
     effect: ["산출물 품질 상승"],
   },
 ];
@@ -92,9 +92,12 @@ export function getPlanningKpiDelta(
   delta.quality += Math.round(h("wbs") * 0.4);
   delta.stakeholderAlignment += Math.round(h("resource_assign") * 0.6);
   delta.delivery += Math.round(h("resource_assign") * 1.0);
-  delta.quality += Math.round(h("it_security_study") * 0.8);
+  delta.quality += Math.round(h("it_security_study") * 0.75);
   delta.teamEngagement += Math.round(h("comm_rule") * 0.5);
   delta.stakeholderAlignment += Math.round(h("comm_rule") * 0.5);
   delta.quality += Math.round(h("lessons_learned") * 0.6);
+  // 선택된 카드 1개당 리더 에너지 -5
+  const selectedCount = Object.values(hoursByAction).filter((v) => (v ?? 0) > 0).length;
+  delta.leaderEnergy -= selectedCount * 2;
   return delta;
 }

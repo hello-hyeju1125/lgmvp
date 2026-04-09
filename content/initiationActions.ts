@@ -86,19 +86,17 @@ export type InitiationActionId = typeof initiationActions[number]["id"];
 export function getInitiationKpiDelta(hoursByAction: Record<string, number>): Partial<Record<"quality" | "delivery" | "teamEngagement" | "stakeholderAlignment" | "leaderEnergy", number>> {
   const delta = { quality: 0, delivery: 0, teamEngagement: 0, stakeholderAlignment: 0, leaderEnergy: 0 };
   const h = (id: string) => Math.min(25, Math.max(0, hoursByAction[id] ?? 0));
-  // 챔피언 1on1
   const c = h("champion_1on1");
-  delta.stakeholderAlignment += Math.round(c * 0.8);
+  delta.stakeholderAlignment += Math.round(c * 0.75);
   delta.quality += Math.round(c * 0.4);
-  // 멘토링
   delta.delivery += Math.round(h("mentoring") * 0.6);
-  // PMBOK 스터디
   const p = h("pmbok_study");
   delta.delivery += Math.round(p * 0.4);
   delta.quality += Math.round(p * 0.4);
-  // 이해관계자 인터뷰
-  delta.stakeholderAlignment += Math.round(h("stakeholder_interview") * 1.2);
-  // 팀원 프로필
+  delta.stakeholderAlignment += Math.round(h("stakeholder_interview") * 1.0);
   delta.teamEngagement += Math.round(h("team_profile") * 1.0);
+  // 선택된 카드 1개당 리더 에너지 -5
+  const selectedCount = Object.values(hoursByAction).filter((v) => (v ?? 0) > 0).length;
+  delta.leaderEnergy -= selectedCount * 2;
   return delta;
 }
