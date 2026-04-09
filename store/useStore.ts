@@ -28,10 +28,10 @@ export interface KpiState {
 }
 
 const INITIAL_KPI: KpiState = {
-  quality: 75,
-  delivery: 75,
-  teamEngagement: 75,
-  stakeholderAlignment: 75,
+  quality: 70,
+  delivery: 70,
+  teamEngagement: 70,
+  stakeholderAlignment: 70,
   leaderEnergy: 100,
 };
 
@@ -75,6 +75,14 @@ interface AppState {
   /** 실행 D-1 팝업에서 "지표 변화" 표시용 (적용 직전 KPI 스냅샷) */
   kpiBeforeExecution: KpiState | null;
   setKpiBeforeExecution: (k: KpiState | null) => void;
+
+  /** Recap용 — 각 단계 시작 시점의 KPI 스냅샷 (직전 단계 종료 값) */
+  kpiStartPlanning: KpiState | null;
+  setKpiStartPlanning: (k: KpiState | null) => void;
+  kpiStartExecution: KpiState | null;
+  setKpiStartExecution: (k: KpiState | null) => void;
+  kpiStartMonitoring: KpiState | null;
+  setKpiStartMonitoring: (k: KpiState | null) => void;
 
   /** E1 결과 HUD 애니메이션용 (선택 직전 KPI — applyKpiDelta 이전 값) */
   kpiBeforeEp1Result: KpiState | null;
@@ -181,15 +189,25 @@ export const useStore = create<AppState>()(
 
       kpi: INITIAL_KPI,
       applyKpiDelta: (delta) =>
-        set((s) => ({
-          kpi: {
-            quality: Math.max(0, Math.min(100, s.kpi.quality + (delta.quality ?? 0))),
-            delivery: Math.max(0, Math.min(100, s.kpi.delivery + (delta.delivery ?? 0))),
-            teamEngagement: Math.max(0, Math.min(100, s.kpi.teamEngagement + (delta.teamEngagement ?? 0))),
-            stakeholderAlignment: Math.max(0, Math.min(100, s.kpi.stakeholderAlignment + (delta.stakeholderAlignment ?? 0))),
-            leaderEnergy: Math.max(0, Math.min(100, s.kpi.leaderEnergy + (delta.leaderEnergy ?? 0))),
-          },
-        })),
+        set((s) => {
+          const dr = (key: keyof KpiState, raw: number) => {
+            const cur = s.kpi[key];
+            if (raw > 0 && key !== "leaderEnergy") {
+              const factor = Math.max(0, Math.min(1, (98 - cur) / 28));
+              return Math.round(raw * factor);
+            }
+            return raw;
+          };
+          return {
+            kpi: {
+              quality: Math.max(0, Math.min(100, s.kpi.quality + dr("quality", delta.quality ?? 0))),
+              delivery: Math.max(0, Math.min(100, s.kpi.delivery + dr("delivery", delta.delivery ?? 0))),
+              teamEngagement: Math.max(0, Math.min(100, s.kpi.teamEngagement + dr("teamEngagement", delta.teamEngagement ?? 0))),
+              stakeholderAlignment: Math.max(0, Math.min(100, s.kpi.stakeholderAlignment + dr("stakeholderAlignment", delta.stakeholderAlignment ?? 0))),
+              leaderEnergy: Math.max(0, Math.min(100, s.kpi.leaderEnergy + (delta.leaderEnergy ?? 0))),
+            },
+          };
+        }),
       resetKpi: () => set({ kpi: INITIAL_KPI }),
 
       committedPhases: {},
@@ -205,6 +223,9 @@ export const useStore = create<AppState>()(
           kpiBeforeInitiation: null,
           kpiBeforePlanning: null,
           kpiBeforeExecution: null,
+          kpiStartPlanning: null,
+          kpiStartExecution: null,
+          kpiStartMonitoring: null,
           kpiBeforeEp1Result: null,
           kpiBeforeEp2Result: null,
           kpiBeforeEp3Result: null,
@@ -238,6 +259,13 @@ export const useStore = create<AppState>()(
 
       kpiBeforeExecution: null,
       setKpiBeforeExecution: (k) => set({ kpiBeforeExecution: k }),
+
+      kpiStartPlanning: null,
+      setKpiStartPlanning: (k) => set({ kpiStartPlanning: k }),
+      kpiStartExecution: null,
+      setKpiStartExecution: (k) => set({ kpiStartExecution: k }),
+      kpiStartMonitoring: null,
+      setKpiStartMonitoring: (k) => set({ kpiStartMonitoring: k }),
 
       kpiBeforeEp1Result: null,
       setKpiBeforeEp1Result: (k) => set({ kpiBeforeEp1Result: k }),
