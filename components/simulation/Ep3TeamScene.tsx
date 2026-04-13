@@ -218,7 +218,7 @@ export function Ep3TeamScene({ userName: _userName }: Ep3TeamSceneProps) {
               </p>
               {showQuestionWording && (
                 <div
-                  className="ep1-dialogue-seq-fade mx-auto max-w-[min(100%,40rem)] space-y-4 text-center font-sans text-[19px] font-medium leading-relaxed text-[#111] sm:text-[21px]"
+                  className="ep1-dialogue-seq-fade mx-auto max-w-[min(100%,56rem)] space-y-4 text-center font-sans text-[19px] font-medium leading-relaxed text-[#111] sm:text-[21px]"
                   onAnimationEnd={handleWordingFadeEnd}
                 >
                   <p>{renderDialogueBold(actionLead, ACCENT)}</p>

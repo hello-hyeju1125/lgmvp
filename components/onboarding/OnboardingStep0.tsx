@@ -318,18 +318,10 @@ export function OnboardingStep0({ onNext }: OnboardingStep0Props) {
                   <button
                     type="button"
                     onClick={() => setPrologueOpen(true)}
-                    className="ob0-prologue-btn group inline-flex items-center gap-3 rounded-xl border-[3px] border-black px-8 py-4 text-[17px] font-black tracking-tight shadow-[4px_4px_0_#111] transition-all duration-150 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#111] sm:text-[19px]"
+                    className="ob0-prologue-btn group inline-flex items-center gap-3 rounded-xl border-[3px] border-black px-8 py-5 text-[22px] font-black tracking-tight shadow-[4px_4px_0_#111] transition-all duration-150 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#111] sm:text-[28px] sm:py-6"
                   >
-                    <span className="ob0-prologue-icon inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-black">
-                      <BookOpen className="h-5 w-5" strokeWidth={2.5} />
-                    </span>
-                    <span className="flex flex-col items-start text-left">
-                      <span>프롤로그 보기</span>
-                      <span className="mt-0.5 text-[11px] font-bold normal-case text-[#6b7280]">
-                        Tap to unlock briefing · 약 1분 읽기
-                      </span>
-                    </span>
-                    <ChevronDown className="ml-1 h-5 w-5 text-[#9ca3af] transition-transform group-hover:translate-y-0.5" strokeWidth={2.5} />
+                    <span>프롤로그 보기</span>
+                    <ChevronDown className="h-6 w-6 shrink-0 text-[#9ca3af] transition-transform group-hover:translate-y-0.5 sm:h-7 sm:w-7" strokeWidth={2.5} />
                   </button>
                 </div>
               ) : (

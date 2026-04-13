@@ -1856,6 +1856,13 @@ main.planning-accent-phase.simulation-flat .planning-ep-feedback-panel .ep1-resu
 .simulation-flat .d1-kpi-delta--down {
   color: #dc2626 !important;
 }
+.kpi-step-delta--up {
+  color: #16a34a !important;
+}
+.kpi-step-delta--down {
+  color: #dc2626 !important;
+}
+
 main.planning-accent-phase .recap-green-title {
   color: var(--sim-accent) !important;
 }
@@ -3038,16 +3045,16 @@ button.onboarding-step0-start-btn:active {
 
 .neo-page.main-dynamic {
   background-color: #eefbf2;
-  background-image: url("/bg_pattern_3.png") !important;
+  background-image: url("/bg.png") !important;
   background-size: cover !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
 }
 
-/* 클로징 씬: 뷰포트 전체에 bg_pattern_3 */
+/* 클로징 씬: 뷰포트 전체에 bg5.png */
 main.closing-scene-fullbleed {
   background-color: #eefbf2;
-  background-image: url("/bg_pattern_3.png");
+  background-image: url("/bg5.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -3057,37 +3064,37 @@ main.closing-scene-fullbleed {
 /* 시뮬레이션 착수·선배 노하우: 본문 컬럼이 아니라 뷰포트 전체에 패턴 */
 main.initiation-senior-tips-fullbleed {
   background-color: #eefbf2;
-  background-image: url("/bg_pattern_3.png");
+  background-image: url("/bg2.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
 
-/* 실행 단계 선배 노하우: 뷰포트 전체에 bg_pattern_2 */
+/* 실행 단계 선배 노하우: 뷰포트 전체에 bg3.png */
 main.exec-senior-tips-fullbleed {
   background-color: #fffbeb;
-  background-image: url("/bg_pattern_2.png");
+  background-image: url("/bg3.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
 
-/* 감시·통제 단계 선배 노하우: 뷰포트 전체에 bg_pattern_opt */
+/* 감시·통제 단계 선배 노하우: 뷰포트 전체에 bg4.png */
 main.monitoring-senior-tips-fullbleed {
   background-color: #f5f5f5;
-  background-image: url("/bg_pattern_opt.jpg");
+  background-image: url("/bg4.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
 
-/* 기획 생존 가이드(plan-survival): 뷰포트 전체에 bg_pattern_opt */
+/* 기획 생존 가이드(plan-survival): 뷰포트 전체에 bg5 */
 main.plan-survival-fullbleed {
   background-color: #f5f5f5;
-  background-image: url("/bg_pattern_opt.jpg");
+  background-image: url("/bg5.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -3549,10 +3556,17 @@ button.neo-footer-nav-btn:not(:disabled):active {
 
 /* ═══ Step4 — 주요 인물 소개 (redesigned) ═══ */
 
-/* Page background */
+/* Page background (OnboardingStep2 — !important beats inline; scroll + footer column) */
+.s2-page-wrapper {
+  background-color: #f5f5f5 !important;
+  background-image: url('/bg_white2.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
 .s2-page {
-  background-color: #64e87a !important;
-  background-image: url('/bg_pattern_opt.jpg') !important;
+  background-color: #f5f5f5 !important;
+  background-image: url('/bg_white2.jpg') !important;
   background-size: cover !important;
   background-position: center !important;
   overflow-y: overlay !important;
@@ -4448,6 +4462,21 @@ main.planning-accent-phase .senior-tips-page .senior-story-label-pill {
 /* ====================================================
    ONBOARDING STEP 5 — 당부의 말씀
    ==================================================== */
+/* Page background — match onboarding step 4 (bg_white2) */
+.s5-page-wrapper {
+  background-color: #f5f5f5 !important;
+  background-image: url('/bg_white2.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.s5-page {
+  background-color: #f5f5f5 !important;
+  background-image: url('/bg_white2.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
 @keyframes s5-fade-up {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }

@@ -19,16 +19,7 @@ export function OnboardingStep3({ userName: _userName, onNext: _onNext, prevHref
   const showFooterNav = prevHref && nextHref;
 
   return (
-    <div
-      className="s5-page-wrapper flex min-h-0 flex-1 flex-col"
-      style={{
-        backgroundImage: "url('/bg_pattern_opt.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundColor: "#f5f5f5",
-      }}
-    >
+    <div className="s5-page-wrapper flex min-h-0 flex-1 flex-col">
       <div className="s5-page relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
         <div className="mx-auto w-full max-w-5xl px-6 py-10 sm:px-12 sm:py-14">
 

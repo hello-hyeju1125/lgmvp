@@ -51,7 +51,7 @@ export function OnboardingStepTeamsMessage({ onNext: _onNext, userName }: Onboar
     <div
       className="step2-simple relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pb-28 pt-8 sm:px-6 sm:pb-32 sm:pt-10"
       style={{
-        backgroundImage: "url('/bg_paper_opt.jpg')",
+        backgroundImage: "url('/bg_white1.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",

@@ -31,7 +31,6 @@ export function ExecAction({ userName }: ExecActionProps) {
       onToggleAction={toggle}
       maxSelected={EXEC_ACTION_MAX_SELECTED}
       showActionCards
-      actionsPageSize={5}
     />
   );
 }

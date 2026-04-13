@@ -72,7 +72,8 @@ import { ep5Options, getEp5Result } from "@/content/episode5";
 import { ep6Block1Options, ep6Block2Options, ep6Block3Options, getEp6Result } from "@/content/episode6";
 import { ep7Options, getEp7Result } from "@/content/episode7";
 import { ep10Options, getEp10Result } from "@/content/episode10";
-import type { PlacementId } from "@/content/execBoard";
+import { EXEC_BOARD_TICKETS, type PlacementId } from "@/content/execBoard";
+import { RISK_POSTITS } from "@/content/riskRadar";
 import { SIM_COLUMN_GUTTER, SIM_COLUMN_MAX_INNER } from "@/lib/simulationLayout";
 import { isExecutionAccentPhase, isMonitoringAccentPhase, isPlanningAccentPhase } from "@/lib/simulationAccent";
 
@@ -143,6 +144,12 @@ const BTN_SUBTLE_CLASS = "ds-btn-subtle";
 const BTN_PRIMARY_CLASS = "ds-btn-primary";
 /** 기획 단계 확인 모달 — 딥 네이비 패널 + 흰 글자 (globals `.planning-accent-confirm-modal`) */
 const PLANNING_CONFIRM_OVERLAY_CLASS = `${MODAL_OVERLAY_CLASS} planning-accent-confirm-modal`;
+
+const CONFIRM_CAUTION_MSG = (
+  <p className="mt-3 rounded-md bg-black/5 px-3 py-2.5 text-center text-[12px] leading-[1.7] text-black/55">
+    ※ 한번 확정된 의사결정은 이전 버튼을 누르더라도 번복할 수 없습니다. 신중하게 선택해 주십시오.
+  </p>
+);
 
 function getProcessStep(phase: string): ProcessStep {
   if (phase.startsWith("initiation")) return "착수";
@@ -351,6 +358,22 @@ function SimulationContent() {
     setExecBoardPlacement(p);
   }, []);
 
+  /** exec-board: 모든 티켓이 정답 컬럼에 있을 때만 다음(WBS) 가능 */
+  const execBoardAllCorrect = useMemo(
+    () => EXEC_BOARD_TICKETS.every((t) => execBoardPlacement[t.id] === t.correctColumn),
+    [execBoardPlacement],
+  );
+
+  const [riskRadarPlacement, setRiskRadarPlacement] = useState<Record<string, string>>({});
+  const handleRiskRadarPlacement = useCallback((p: Record<string, string>) => {
+    setRiskRadarPlacement(p);
+  }, []);
+  /** risk-radar: 8개 포스트잇이 모두 정답 사분면에 있을 때만 다음 가능 */
+  const riskRadarAllCorrect = useMemo(
+    () => RISK_POSTITS.every((r) => riskRadarPlacement[r.id] === r.suggestedQuadrant),
+    [riskRadarPlacement],
+  );
+
   const phase = useMemo(() => {
     const raw = searchParams.get("phase") || "initiation-action";
     const p =
@@ -366,6 +389,10 @@ function SimulationContent() {
 
   useEffect(() => {
     if (phase !== "exec-board") setExecBoardWbsOpen(false);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "risk-radar") setRiskRadarPlacement({});
   }, [phase]);
 
   useEffect(() => {
@@ -863,7 +890,9 @@ function SimulationContent() {
             {phase === "exec-recap" && <ExecRecap userName={userName} />}
             {phase === "exec-senior-tips" && <ExecSeniorTips userName={userName} />}
             {phase === "exec-rampup" && <ExecRampup userName={userName} progressPercent={progressPercent} />}
-            {phase === "risk-radar" && <RiskRadar userName={userName} />}
+            {phase === "risk-radar" && (
+              <RiskRadar userName={userName} onPlacementChange={handleRiskRadarPlacement} />
+            )}
             {phase === "monitoring-scene" && <MonitoringScene userName={userName} />}
             {phase === "ep10-scene" && <Ep10FailureScene userName={userName} />}
             {phase === "ep10-result" && <Ep10Result userName={userName} />}
@@ -889,6 +918,7 @@ function SimulationContent() {
                 <br />
                 이 선택 그대로 진행하시겠습니까?
               </p>
+              {CONFIRM_CAUTION_MSG}
               <div className="ds-modal-actions">
                 <button type="button" onClick={() => setInitiationConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
@@ -914,6 +944,7 @@ function SimulationContent() {
                 <br />
                 이 선택 그대로 진행하시겠습니까?
               </p>
+              {CONFIRM_CAUTION_MSG}
               <div className="ds-modal-actions">
                 <button type="button" onClick={() => setPlanningConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
@@ -939,6 +970,7 @@ function SimulationContent() {
                 <br />
                 이 선택 그대로 진행하시겠습니까?
               </p>
+              {CONFIRM_CAUTION_MSG}
               <div className="ds-modal-actions">
                 <button type="button" onClick={() => setExecConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
@@ -966,6 +998,7 @@ function SimulationContent() {
                 </span>
                 입니다.
               </p>
+              {CONFIRM_CAUTION_MSG}
               <div className="ds-modal-actions">
                 <button type="button" onClick={() => setEp2ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
@@ -994,6 +1027,7 @@ function SimulationContent() {
                 </span>
                 입니다.
               </p>
+              {CONFIRM_CAUTION_MSG}
               <div className="ds-modal-actions">
                 <button type="button" onClick={() => setEp1ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
@@ -1021,6 +1055,7 @@ function SimulationContent() {
                 </span>
                 입니다.
               </p>
+              {CONFIRM_CAUTION_MSG}
               <div className="ds-modal-actions">
                 <button type="button" onClick={() => setEp3ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
@@ -1048,6 +1083,7 @@ function SimulationContent() {
                 </span>
                 입니다.
               </p>
+              {CONFIRM_CAUTION_MSG}
               <div className="ds-modal-actions">
                 <button type="button" onClick={() => setEp4ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
@@ -1075,6 +1111,7 @@ function SimulationContent() {
                 </span>
                 입니다.
               </p>
+              {CONFIRM_CAUTION_MSG}
               <div className="ds-modal-actions">
                 <button type="button" onClick={() => setEp5ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
@@ -1104,6 +1141,7 @@ function SimulationContent() {
                 </ul>
               </div>
               <p>이 조합으로 결과를 확인하시겠습니까?</p>
+              {CONFIRM_CAUTION_MSG}
               <div className="ds-modal-actions">
                 <button type="button" onClick={() => setEp6ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
@@ -1131,6 +1169,7 @@ function SimulationContent() {
                 </span>
                 입니다.
               </p>
+              {CONFIRM_CAUTION_MSG}
               <div className="ds-modal-actions">
                 <button type="button" onClick={() => setEp7ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
@@ -1158,6 +1197,7 @@ function SimulationContent() {
                 </span>
                 입니다.
               </p>
+              {CONFIRM_CAUTION_MSG}
               <div className="ds-modal-actions">
                 <button type="button" onClick={() => setEp10ConfirmOpen(false)} className={BTN_SUBTLE_CLASS}>
                   아니오
@@ -1331,7 +1371,9 @@ function SimulationContent() {
           (phase === "ep6-scene" && (!episode6Blocks || !episode6Blocks.block1 || !episode6Blocks.block2 || !episode6Blocks.block3)) ||
           (phase === "ep7-scene" && !episode7Choice) ||
           (phase === "ep10-scene" && !episode10Choice) ||
-          (phase === "exec-action" && executionSelectedCount !== EXEC_ACTION_MAX_SELECTED)
+          (phase === "exec-action" && executionSelectedCount !== EXEC_ACTION_MAX_SELECTED) ||
+          (phase === "exec-board" && !execBoardAllCorrect) ||
+          (phase === "risk-radar" && !riskRadarAllCorrect)
         }
         onNextClick={
           phase === "initiation-action"

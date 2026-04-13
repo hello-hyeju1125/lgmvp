@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { PrevNextNav } from "@/components/common/PrevNextNav";
 import {
   AlertCircle,
@@ -70,7 +70,7 @@ const kpiGroups = [
       {
         subtitle: "Quality",
         title: "산출물 품질",
-        desc: "\"현업이 즉시 만족스럽게 활용할 수 있는, 완성도와 실효성 높은 AI 대시보드를 구축하였는가?\" 현업(CS/마케팅)의 데이터 처리 공수를 단축시켜줄 'AI VOC 대시보드' 프로토타입의 정상 구동 여부 및 완성도를 평가합니다.\n\u00a0",
+        desc: "\"현업이 즉시 만족스럽게 활용할 수 있는, 완성도와 실효성 높은 AI 대시보드를 구축하였는가?\" 현업(CS/마케팅)의 데이터 처리 공수를 단축시켜줄 'AI VOC 대시보드' 프로토타입의 정상 구동 여부 및 완성도를 평가합니다.",
       },
       {
         subtitle: "Delivery",
@@ -108,6 +108,9 @@ function highlightNumbers(text: string) {
 }
 
 export default function ProjectOverview({ prevHref, nextHref }: OnboardingStepProjectOverviewProps) {
+  const [backgroundDetailOpen, setBackgroundDetailOpen] = useState(false);
+  const [purposeDetailOpen, setPurposeDetailOpen] = useState(false);
+
   const showFooterNav = Boolean(prevHref && nextHref);
   const outerClass = showFooterNav ? "flex min-h-0 flex-1 flex-col" : "relative flex min-h-0 flex-1 flex-col overflow-hidden";
 
@@ -115,7 +118,7 @@ export default function ProjectOverview({ prevHref, nextHref }: OnboardingStepPr
     <div
       className={outerClass}
       style={{
-        backgroundImage: "url('/bg_pattern_opt.jpg')",
+        backgroundImage: "url('/bg_white1.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -139,18 +142,33 @@ export default function ProjectOverview({ prevHref, nextHref }: OnboardingStepPr
               <SectionLabel>프로젝트 배경</SectionLabel>
               <div className="grid gap-4 sm:grid-cols-3">
                 {backgroundItems.map((item, i) => (
-                  <div key={i} className="po-bg-card flex flex-col items-center px-5 py-6 text-center">
+                  <div
+                    key={i}
+                    className="po-bg-card flex flex-col items-center px-5 py-6 text-center transition hover:border-[#9ca3af]"
+                  >
                     <span className="po-card-icon mb-3 shrink-0 text-[#111] [&_svg]:block">
                       {React.cloneElement(item.icon, { size: 28, strokeWidth: 2 })}
                     </span>
-                    <h3 className="mb-2.5 text-[17px] font-extrabold leading-snug text-[#111] sm:text-[19px]">
+                    <h3 className="text-[17px] font-extrabold leading-snug text-[#111] sm:text-[19px]">
                       {item.title}
                     </h3>
-                    <p className="text-[13px] font-medium leading-[1.8] text-[#555] sm:text-[14px]">
-                      {item.desc}
-                    </p>
+                    {backgroundDetailOpen && (
+                      <p className="mt-4 w-full border-t border-dashed border-black/15 pt-4 text-left text-[13px] font-medium leading-[1.85] text-[#555] sm:text-[14px]">
+                        {item.desc}
+                      </p>
+                    )}
                   </div>
                 ))}
+              </div>
+              <div className="mt-5 flex justify-center sm:mt-6">
+                <button
+                  type="button"
+                  aria-expanded={backgroundDetailOpen}
+                  onClick={() => setBackgroundDetailOpen((v) => !v)}
+                  className="rounded-lg border-2 border-black bg-white px-8 py-2.5 text-[15px] font-extrabold text-[#111] shadow-[3px_3px_0_#111] transition hover:translate-x-px hover:translate-y-px hover:shadow-[2px_2px_0_#111] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111]"
+                >
+                  {backgroundDetailOpen ? "접기" : "상세보기"}
+                </button>
               </div>
             </section>
 
@@ -159,18 +177,33 @@ export default function ProjectOverview({ prevHref, nextHref }: OnboardingStepPr
               <SectionLabel>프로젝트 목적</SectionLabel>
               <div className="grid gap-4 sm:grid-cols-3">
                 {purposeItems.map((item, i) => (
-                  <div key={i} className="po-purpose-card flex flex-col items-center px-5 py-6 text-center">
+                  <div
+                    key={i}
+                    className="po-purpose-card flex flex-col items-center px-5 py-6 text-center transition hover:border-[#9ca3af]"
+                  >
                     <span className="po-card-icon mb-3 shrink-0 text-[#111] [&_svg]:block">
                       {React.cloneElement(item.icon, { size: 28, strokeWidth: 2 })}
                     </span>
-                    <h3 className="mb-2.5 text-[17px] font-extrabold leading-snug text-[#111] sm:text-[19px]">
+                    <h3 className="text-[17px] font-extrabold leading-snug text-[#111] sm:text-[19px]">
                       {item.title}
                     </h3>
-                    <p className="text-[13px] font-medium leading-[1.8] text-[#555] sm:text-[14px]">
-                      {item.desc}
-                    </p>
+                    {purposeDetailOpen && (
+                      <p className="mt-4 w-full border-t border-dashed border-black/15 pt-4 text-left text-[13px] font-medium leading-[1.85] text-[#555] sm:text-[14px]">
+                        {item.desc}
+                      </p>
+                    )}
                   </div>
                 ))}
+              </div>
+              <div className="mt-5 flex justify-center sm:mt-6">
+                <button
+                  type="button"
+                  aria-expanded={purposeDetailOpen}
+                  onClick={() => setPurposeDetailOpen((v) => !v)}
+                  className="rounded-lg border-2 border-black bg-white px-8 py-2.5 text-[15px] font-extrabold text-[#111] shadow-[3px_3px_0_#111] transition hover:translate-x-px hover:translate-y-px hover:shadow-[2px_2px_0_#111] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111]"
+                >
+                  {purposeDetailOpen ? "접기" : "상세보기"}
+                </button>
               </div>
             </section>
 
@@ -236,6 +269,7 @@ export default function ProjectOverview({ prevHref, nextHref }: OnboardingStepPr
           <PrevNextNav prevHref={prevHref!} nextHref={nextHref!} />
         </div>
       )}
+
     </div>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useStore } from "@/store/useStore";
+import type { KpiState } from "@/store/useStore";
 import { monitoringRecapCopy } from "@/content/monitoringRecap";
-import { ep10Options } from "@/content/episode10";
+import { ep10Options, getEp10Result } from "@/content/episode10";
 import type { ReactNode, CSSProperties } from "react";
 import { AlertTriangle, Calendar, FileText, Sparkles, Users, UsersRound } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -29,6 +30,31 @@ const KPI_META: {
   { field: "stakeholderAlignment", label: "이해관계자 조율", Icon: UsersRound },
   { field: "leaderEnergy", label: "리더 에너지", Icon: Sparkles },
 ];
+
+const KPI_FULL_LABELS: Record<string, string> = {
+  quality: "산출물 품질",
+  delivery: "일정 준수",
+  teamEngagement: "팀 몰입도",
+  stakeholderAlignment: "이해관계자 조율",
+  leaderEnergy: "리더 에너지",
+};
+
+function simulateApplyDelta(base: KpiState, delta: Partial<Record<keyof KpiState, number>>): KpiState {
+  const dr = (key: keyof KpiState, raw: number, cur: number) => {
+    if (raw > 0 && key !== "leaderEnergy") {
+      const factor = Math.max(0, Math.min(1, (98 - cur) / 28));
+      return Math.round(raw * factor);
+    }
+    return raw;
+  };
+  return {
+    quality: Math.max(0, Math.min(100, base.quality + dr("quality", delta.quality ?? 0, base.quality))),
+    delivery: Math.max(0, Math.min(100, base.delivery + dr("delivery", delta.delivery ?? 0, base.delivery))),
+    teamEngagement: Math.max(0, Math.min(100, base.teamEngagement + dr("teamEngagement", delta.teamEngagement ?? 0, base.teamEngagement))),
+    stakeholderAlignment: Math.max(0, Math.min(100, base.stakeholderAlignment + dr("stakeholderAlignment", delta.stakeholderAlignment ?? 0, base.stakeholderAlignment))),
+    leaderEnergy: Math.max(0, Math.min(100, base.leaderEnergy + (delta.leaderEnergy ?? 0))),
+  };
+}
 
 /** KPI 막대·숫자 카운트 — plan-recap / initiation-recap과 동일 (스크롤 진입 후 재생) */
 const KPI_BAR_FILL_MS = 2200;
@@ -190,12 +216,28 @@ function GreenChip({ children }: { children: ReactNode }) {
 }
 
 export function MonitoringRecap({ userName: _userName }: MonitoringRecapProps) {
-  const { kpi, kpiStartMonitoring, episode10Choice } = useStore();
+  const { kpi, kpiStartMonitoring, episode10Choice, kpiBeforeEp10Result } = useStore();
 
   const ep10Label =
     episode10Choice != null
       ? `옵션 ${episode10Choice}: ${ep10Options.find((o) => o.id === episode10Choice)?.title ?? ""}`
       : null;
+
+  const stepSnapshots = useMemo(() => {
+    const base = kpiStartMonitoring ?? kpi;
+
+    const computeDelta = (cur: KpiState, prev: KpiState) => {
+      const d = {} as Record<keyof KpiState, number>;
+      for (const f of KPI_META) d[f.field] = cur[f.field] - prev[f.field];
+      return d;
+    };
+
+    type Row = { label: string; sub: string | null; values: KpiState; deltas: Record<keyof KpiState, number> | null };
+    return [
+      { label: "시작 시점", sub: null, values: base, deltas: null },
+      { label: "E10 결과", sub: ep10Label, values: kpi, deltas: computeDelta(kpi, base) },
+    ] as Row[];
+  }, [kpiStartMonitoring, kpi, ep10Label]);
 
   const summaryItems = monitoringRecapCopy.summaryItems;
 
@@ -328,19 +370,91 @@ export function MonitoringRecap({ userName: _userName }: MonitoringRecapProps) {
             ))}
           </div>
         </div>
+
+        {/* 단계별 KPI 변화 추적 테이블 */}
+        <div className="border-t border-black/10 px-4 pb-8 pt-6 sm:px-8 sm:pb-10">
+          <h4 className="ep1-scene-reveal mb-5 text-center text-[16px] font-extrabold text-[#111] sm:text-[18px]" style={revealDelay(decisionCardStep + 3)}>
+            단계별 KPI 변화 추적
+          </h4>
+          <div className="-mx-1 overflow-x-auto sm:mx-0">
+            <table className="w-full min-w-[720px] border-collapse text-[14px] sm:text-[15px]">
+              <thead>
+                <tr className="ep1-scene-reveal border-b-2 border-black/15" style={revealDelay(decisionCardStep + 4)}>
+                  <th className="w-[140px] px-3 py-2.5 text-center text-[13px] font-extrabold text-[#333] sm:w-[200px] sm:text-[14px]">
+                    단계
+                  </th>
+                  {KPI_META.map(({ field }) => (
+                    <th key={field} className="px-2 py-2.5 text-center text-[13px] font-extrabold text-[#555] sm:text-[14px]">
+                      {KPI_FULL_LABELS[field]}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {stepSnapshots.map((step, i) => {
+                  const isLast = i === stepSnapshots.length - 1;
+                  return (
+                    <tr
+                      key={i}
+                      className={`ep1-scene-reveal ${!isLast ? "border-b border-black/8" : ""} ${isLast ? "bg-[#f0fdf4]" : ""}`}
+                      style={revealDelay(decisionCardStep + 5 + i)}
+                    >
+                      <td className="px-3 py-3 text-center align-middle">
+                        <span className={`block text-[14px] font-bold leading-[1.4] sm:text-[15px] ${isLast ? "text-[#111]" : "text-[#333]"}`}>
+                          {step.label}
+                        </span>
+                        {step.sub && (
+                          <span className="mt-0.5 block text-[11px] leading-[1.6] text-[#9ca3af]">
+                            {step.sub.split("\n").map((line, li, arr) => (
+                              <span key={li}>
+                                {line}
+                                {li < arr.length - 1 && <br />}
+                              </span>
+                            ))}
+                          </span>
+                        )}
+                      </td>
+                      {KPI_META.map(({ field }) => {
+                        const val = step.values[field];
+                        const d = step.deltas?.[field] ?? null;
+                        const hasDelta = d !== null;
+                        return (
+                          <td key={field} className="px-2 py-3 text-center align-middle">
+                            <span className={`block text-[15px] font-bold tabular-nums leading-[1.4] sm:text-[16px] ${isLast ? "text-[#111]" : "text-[#333]"}`}>
+                              {val}
+                            </span>
+                            {isLast && hasDelta && (
+                              <span
+                                className={`mt-0.5 block text-[12px] font-extrabold tabular-nums leading-[1.4] sm:text-[13px] ${
+                                  d > 0 ? "kpi-step-delta--up" : d < 0 ? "kpi-step-delta--down" : ""
+                                }`}
+                              >
+                                {d > 0 ? `(▲${d})` : d < 0 ? `(▼${Math.abs(d)})` : "(-)"}
+                              </span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {/* 풋터 문구 — plan-recap과 동일 오프셋(의사결정 카드 +6/+7 스텝) */}
+      {/* 풋터 문구 */}
       <div className="mt-16 space-y-1 px-2 text-center sm:mt-20">
         <p
           className="ep1-scene-reveal m-0 text-[17px] font-bold leading-[2] text-[#111] sm:text-[18px]"
-          style={revealDelay(decisionCardStep + 6)}
+          style={revealDelay(decisionCardStep + 8)}
         >
           감시 및 통제 단계를 무사히 통과하셨습니다!
         </p>
         <p
           className="ep1-scene-reveal m-0 text-[17px] font-medium leading-[2] text-[#374151] sm:text-[18px]"
-          style={revealDelay(decisionCardStep + 7)}
+          style={revealDelay(decisionCardStep + 9)}
         >
           다음 단계로 넘어가면 <strong className="plan-recap-accent-text font-bold">선배 PM들의 노하우</strong>가 이어집니다.
         </p>

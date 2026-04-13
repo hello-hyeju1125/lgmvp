@@ -169,15 +169,7 @@ export function OnboardingStep2({ prevHref, nextHref }: OnboardingStep2Props) {
   }));
 
   return (
-    <div className="s2-page-wrapper flex min-h-0 flex-1 flex-col"
-      style={{
-        backgroundImage: "url('/bg_pattern_opt.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundColor: "#f5f5f5",
-      }}
-    >
+    <div className="s2-page-wrapper flex min-h-0 flex-1 flex-col">
     <div className="s2-page relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-6 sm:px-10">
       <div className="s2-inner mx-auto w-full max-w-6xl py-8 sm:py-10">
         {/* Title */}

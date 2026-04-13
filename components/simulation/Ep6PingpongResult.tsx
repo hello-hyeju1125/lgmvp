@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import Image from "next/image";
 import { useStore } from "@/store/useStore";
 import { getEp6Result, ep6Scene } from "@/content/episode6";
@@ -8,6 +8,24 @@ import { KpiTrendPill, sortKpiLabels } from "@/components/shared/KpiTrendPill";
 
 interface Ep6PingpongResultProps {
   userName: string;
+}
+
+/** 대표 (block1, block2, block3) 조합 — `getEp6Result` 분기별 엔딩을 한 번씩 보여줌 */
+const EP6_RESULT_SHOWCASE: ReadonlyArray<readonly [string, string, string]> = [
+  ["B", "E", "B"], // 결과 1 · 장애물 제거자
+  ["A", "E", "A"], // 결과 2 · 실용적 중재자
+  ["B", "B", "B"], // 결과 3 · 서류형 관리자
+  ["B", "A", "B"], // 결과 4 · 핑퐁 연장자
+  ["B", "E", "E"], // 결과 5 · 권위에 의존한 소통
+];
+
+const PLANNING_REVEAL_STAGGER_MS = 110;
+function planningRevealDelay(step: number): CSSProperties {
+  return { animationDelay: `${step * PLANNING_REVEAL_STAGGER_MS}ms` };
+}
+
+function ep6TripletKey(block1: string, block2: string, block3: string) {
+  return `${block1}|${block2}|${block3}`;
 }
 
 function renderBoldMarkdown(paragraph: string): ReactNode {
@@ -91,11 +109,45 @@ function NarrationBox({ markdown }: { markdown: string }) {
   );
 }
 
+/** 결과 카드 안에서 "이 결과가 나오는 조건"을 설명 */
+function ConditionDescriptionBox({ description }: { description: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-black/20 bg-[#F8FAFC] px-5 py-4 text-center sm:px-6 sm:py-5">
+      <p className="m-0 mb-2 text-[12px] font-extrabold uppercase tracking-wide text-[#6b7280] sm:text-[13px]">
+        이 결과가 나오는 조건
+      </p>
+      <div className="m-0 text-[14px] leading-[1.85] text-[#333] sm:text-[15px]">
+        {description.split("\n").map((line, i, arr) => (
+          <span key={i}>
+            {renderBoldMarkdown(line)}
+            {i < arr.length - 1 && <br />}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function Ep6PingpongResult({ userName: _userName }: Ep6PingpongResultProps) {
   const { episode6Blocks } = useStore();
+  const [showOthers, setShowOthers] = useState(false);
   const b = episode6Blocks ?? { block1: "B", block2: "E", block3: "D", block4: "" };
   const result = getEp6Result(b.block1, b.block2, b.block3);
   const episodeTitle = ep6Scene.title;
+
+  const otherShowcases = useMemo(() => {
+    const userKey = ep6TripletKey(b.block1, b.block2, b.block3);
+    const userEnding = getEp6Result(b.block1, b.block2, b.block3).endingTitle;
+    return EP6_RESULT_SHOWCASE.filter(([b1, b2, b3]) => ep6TripletKey(b1, b2, b3) !== userKey)
+      .map(([b1, b2, b3]) => ({
+        key: ep6TripletKey(b1, b2, b3),
+        result: getEp6Result(b1, b2, b3),
+      }))
+      .filter((row) => row.result.endingTitle !== userEnding);
+  }, [b.block1, b.block2, b.block3]);
+
+  const ctaStep = 0;
+  const accordionBase = 1;
 
   return (
     <section
@@ -133,7 +185,11 @@ export function Ep6PingpongResult({ userName: _userName }: Ep6PingpongResultProp
             </h2>
           </div>
 
-          <div className="flex flex-col gap-6 bg-white px-6 pb-7 pt-8 sm:px-8 sm:pb-8 sm:pt-9">
+          <div className="flex flex-col gap-4 bg-white px-6 pb-2 pt-6 sm:px-8 sm:pb-3 sm:pt-7">
+            <ConditionDescriptionBox description={result.conditionDescription} />
+          </div>
+
+          <div className="flex flex-col gap-6 bg-white px-6 pb-7 pt-2 sm:px-8 sm:pb-8 sm:pt-3">
             <NarrationBox markdown={result.text} />
           </div>
 
@@ -147,6 +203,55 @@ export function Ep6PingpongResult({ userName: _userName }: Ep6PingpongResultProp
 
           <FeedbackPanel paragraphs={result.adviceParagraphs} />
         </div>
+
+        {otherShowcases.length > 0 ? (
+          <>
+            <div className="ep1-scene-reveal mt-10 text-center sm:mt-12" style={planningRevealDelay(ctaStep)}>
+              <p className="m-0 text-[22px] font-extrabold text-[#333] sm:text-[24px]">다른 선택의 결과도 아래를 통해 참고해보세요!</p>
+              {!showOthers && (
+                <button
+                  type="button"
+                  onClick={() => setShowOthers(true)}
+                  className="ep1-result-show-others-btn mt-5 inline-flex items-center gap-2 rounded-none border-2 border-black bg-white px-7 py-3 text-[15px] font-bold text-[#111] transition hover:bg-[#f5f5f5] active:translate-y-px sm:text-[16px]"
+                >
+                  더보기<span className="text-xl" aria-hidden>∨</span>
+                </button>
+              )}
+            </div>
+
+            {showOthers && (
+              <div className="mt-6 space-y-5">
+                {otherShowcases.map((row, idx) => (
+                  <div
+                    key={row.key}
+                    className="ep1-scene-reveal ep1-result-accordion-card overflow-hidden rounded-none border-2 border-black bg-white"
+                    style={planningRevealDelay(accordionBase + idx)}
+                  >
+                    <div className="ep1-result-card-headline-bar border-b-0 px-6 pb-3 pt-5 sm:px-8 sm:pb-4 sm:pt-6">
+                      <h3 className="ep1-result-heading-title m-0 text-center text-[24px] font-extrabold leading-tight sm:text-[28px]">
+                        {row.result.endingTitle}
+                      </h3>
+                    </div>
+                    <div className="flex flex-col gap-4 bg-white px-6 pb-2 pt-5 sm:px-8 sm:pb-3 sm:pt-6">
+                      <ConditionDescriptionBox description={row.result.conditionDescription} />
+                    </div>
+                    <div className="flex flex-col gap-6 bg-white px-6 pb-7 pt-2 sm:px-8 sm:pb-8 sm:pt-3">
+                      <NarrationBox markdown={row.result.text} />
+                    </div>
+                    {row.result.kpiLabels.length ? (
+                      <div className="flex flex-wrap justify-center gap-3 border-t-0 bg-white px-6 pb-6 pt-4 sm:px-8">
+                        {sortKpiLabels(row.result.kpiLabels).map((label) => (
+                          <KpiTrendPill key={label} label={label} />
+                        ))}
+                      </div>
+                    ) : null}
+                    <FeedbackPanel paragraphs={row.result.adviceParagraphs} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : null}
       </div>
     </section>
   );

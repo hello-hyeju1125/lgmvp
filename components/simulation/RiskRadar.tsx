@@ -51,9 +51,11 @@ type PlacementId = QuadrantId | typeof POOL;
 
 interface RiskRadarProps {
   userName: string;
+  /** 푸터 다음 버튼 잠금 해제용 — 부모가 전체 정답 여부를 계산 */
+  onPlacementChange?: (placement: Record<string, PlacementId>) => void;
 }
 
-export function RiskRadar({ userName }: RiskRadarProps) {
+export function RiskRadar({ userName, onPlacementChange }: RiskRadarProps) {
   const router = useRouter();
   const [showRadarIntro, setShowRadarIntro] = useState(true);
   const [placement, setPlacement] = useState<Record<string, PlacementId>>(() => {
@@ -82,6 +84,10 @@ export function RiskRadar({ userName }: RiskRadarProps) {
 
   const allCorrect =
     RISK_POSTITS.every((r) => placement[r.id] === r.suggestedQuadrant);
+
+  useEffect(() => {
+    onPlacementChange?.(placement);
+  }, [placement, onPlacementChange]);
 
   useEffect(() => {
     if (!showRadarIntro) return;
